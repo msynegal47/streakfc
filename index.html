@@ -18,6 +18,7 @@
   --orange:#f97316;--orange2:#fb923c;
   --indigo:#6366f1;--indigo2:#818cf8;
   --green:#22c55e;
+  --yellow:#eab308;
   --text:#e8edf5;--text2:#a0b4c8;--text3:#4a6080;
   --border:rgba(255,255,255,0.07);
   --safe-top:env(safe-area-inset-top,0px);
@@ -98,45 +99,78 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Barlow
 .xp-track{height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden}
 .xp-fill{height:100%;background:linear-gradient(90deg,var(--indigo),var(--indigo2));border-radius:2px;transition:width 0.6s ease}
 
-.mode-picker{padding:0 20px 16px;display:flex;gap:8px}
-.mode-btn{flex:1;height:40px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.03);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--text3);letter-spacing:1px;cursor:pointer;transition:all 0.15s}
-.mode-btn.active{background:rgba(249,115,22,0.12);border-color:rgba(249,115,22,0.4);color:var(--orange)}
+/* DIFFICULTY PICKER */
+.difficulty-wrap{padding:0 20px 14px}
+.difficulty-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:2px;margin-bottom:8px}
+.difficulty-row{display:flex;gap:8px}
+.diff-btn{flex:1;padding:10px 6px 8px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.03);text-align:center;cursor:pointer;transition:all 0.15s}
+.diff-btn .diff-name{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--text3);line-height:1}
+.diff-btn .diff-xp{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-top:3px}
+.diff-btn.active-hustle{background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.4)}
+.diff-btn.active-hustle .diff-name{color:#f87171}
+.diff-btn.active-hustle .diff-xp{color:#f87171}
+.diff-btn.active-consistent{background:rgba(249,115,22,0.1);border-color:rgba(249,115,22,0.4)}
+.diff-btn.active-consistent .diff-name{color:var(--orange)}
+.diff-btn.active-consistent .diff-xp{color:var(--orange)}
+.diff-btn.active-limited{background:rgba(99,102,241,0.1);border-color:rgba(99,102,241,0.4)}
+.diff-btn.active-limited .diff-name{color:var(--indigo2)}
+.diff-btn.active-limited .diff-xp{color:var(--indigo2)}
 
-.touch-card{margin:0 20px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.touch-num{font-family:'Bebas Neue',sans-serif;font-size:52px;color:var(--text);line-height:1}
-.touch-label{font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--text3);font-weight:600;letter-spacing:1px;margin-top:2px}
-.touch-target{font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--text3)}
-.touch-target span{color:var(--orange);font-weight:700}
-.counter-btns{display:flex;flex-direction:column;gap:6px}
-.cnt-btn{width:52px;height:52px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:var(--text);font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.1s;font-family:'Barlow',sans-serif}
-.cnt-btn:active{background:rgba(255,255,255,0.1)}
-.cnt-btn.plus{border-color:rgba(249,115,22,0.3);background:rgba(249,115,22,0.08);color:var(--orange)}
+/* TOUCH PROGRESS CARD */
+.touch-progress-card{margin:0 20px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px}
+.touch-progress-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.touch-big{font-family:'Bebas Neue',sans-serif;font-size:48px;line-height:1;color:var(--text)}
+.touch-prog-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--text3);font-weight:700;letter-spacing:1px;margin-top:4px}
+.touch-target-chip{background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.25);border-radius:6px;padding:4px 10px}
+.touch-target-chip span{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--orange);letter-spacing:1px}
+.touch-prog-track{height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden}
+.touch-prog-fill{height:100%;background:linear-gradient(90deg,var(--orange),var(--orange2));border-radius:3px;transition:width 0.4s ease;width:0%}
 
-.skills-grid{margin:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
-.skill-chip{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:20px;padding:8px 12px;display:flex;align-items:center;gap:6px;cursor:pointer;transition:all 0.15s}
-.skill-chip.done{background:rgba(99,102,241,0.12);border-color:rgba(99,102,241,0.35)}
-.skill-chip span{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;color:var(--text3)}
-.skill-chip.done span{color:var(--indigo2)}
-.skill-check{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--text3);flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.skill-chip.done .skill-check{background:var(--indigo);border-color:var(--indigo)}
+/* SKILL BLOCKS */
+.block-wrap{margin:0 20px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.block-header{padding:12px 16px 8px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.block-title-row{display:flex;align-items:center;gap:8px}
+.block-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.block-icon.bm{background:rgba(249,115,22,0.15)}
+.block-icon.mv{background:rgba(99,102,241,0.15)}
+.block-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px}
+.block-progress-chip{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;padding:2px 8px;border-radius:4px;border:1px solid}
+.block-progress-chip.incomplete{color:var(--text3);border-color:var(--border)}
+.block-progress-chip.complete{color:var(--green);border-color:rgba(34,197,94,0.4);background:rgba(34,197,94,0.1)}
+.block-progress-bar{height:3px;background:rgba(255,255,255,0.06)}
+.block-progress-bar-fill{height:100%;transition:width 0.3s ease}
+.block-progress-bar-fill.bm{background:var(--orange)}
+.block-progress-bar-fill.mv{background:var(--indigo)}
+.block-skills{padding:8px 12px 12px;display:flex;flex-direction:column;gap:6px}
+.skill-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid transparent;cursor:pointer;transition:all 0.15s}
+.skill-row.done{background:rgba(99,102,241,0.06);border-color:rgba(99,102,241,0.2)}
+.skill-row.done.bm-done{background:rgba(249,115,22,0.06);border-color:rgba(249,115,22,0.2)}
+.skill-check-box{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--text3);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.skill-row.done .skill-check-box{background:var(--indigo);border-color:var(--indigo)}
+.skill-row.bm-done .skill-check-box{background:var(--orange);border-color:var(--orange)}
+.skill-row-name{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;color:var(--text2);letter-spacing:0.5px;flex:1}
+.skill-row.done .skill-row-name{color:var(--text)}
+.skill-touch-count{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:0.5px}
+.skill-row.done .skill-touch-count{color:var(--orange)}
 
+/* JUGGLE CARD */
+.juggle-card{margin:0 20px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px}
+.juggle-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.juggle-title-row{display:flex;align-items:center;gap:6px}
+.juggle-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px}
+.juggle-pb{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:var(--yellow);letter-spacing:1px;background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.3);border-radius:4px;padding:2px 6px}
+.juggle-inputs{display:flex;gap:10px}
+.juggle-input-wrap{flex:1;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.juggle-input-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;color:var(--text3);letter-spacing:1.5px;margin-bottom:4px}
+.juggle-num-input{background:transparent;border:none;width:100%;font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--text);outline:none}
+.juggle-num-input::placeholder{color:var(--text3);opacity:0.4}
+
+/* LOG BUTTON */
 .log-btn{margin:4px 20px 0;height:56px;background:var(--orange);border:none;border-radius:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 0 24px rgba(249,115,22,0.25)}
 .log-btn span{font-family:'Bebas Neue',sans-serif;font-size:20px;color:#fff;letter-spacing:2px}
 .log-btn:active{opacity:0.85}
 .log-btn:disabled{opacity:0.4;cursor:default;box-shadow:none}
-
-/* JUGGLE INPUT */
-.juggle-row{margin:0 20px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.juggle-label{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--text3);letter-spacing:1px}
-.juggle-input{background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.15);width:60px;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--text);outline:none}
-.juggle-sub{font-family:'Barlow',sans-serif;font-size:11px;color:var(--text3);margin-top:2px}
-
-/* SESSION TYPE */
-.session-type-wrap{padding:0 20px 14px}
-.session-type-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:2px;margin-bottom:8px}
-.session-types{display:flex;gap:8px}
-.stype-btn{flex:1;height:36px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.03);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;cursor:pointer}
-.stype-btn.active{background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.4);color:var(--green)}
+.log-btn-sub{font-family:'Barlow Condensed',sans-serif;font-size:9px;color:rgba(255,255,255,0.6);letter-spacing:1px;margin-top:2px}
 
 /* PROFILE SCREEN */
 .profile-hero{padding:20px 20px 0;display:flex;gap:16px;align-items:flex-start}
@@ -150,6 +184,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Barlow
 .stat-box{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
 .stat-num{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--text);line-height:1}
 .stat-lbl{font-family:'Barlow Condensed',sans-serif;font-size:9px;color:var(--text3);font-weight:700;letter-spacing:1px;margin-top:2px}
+.juggle-pb-stat{font-family:'Barlow Condensed',sans-serif;font-size:9px;color:var(--yellow);font-weight:700;letter-spacing:1px;margin-top:4px}
 
 .week-chart{margin:16px 20px 0;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px}
 .week-bars{display:flex;align-items:flex-end;gap:6px;height:64px;margin-bottom:8px}
@@ -170,8 +205,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Barlow
 .skill-list-item{margin:0 20px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px}
 .skill-list-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px}
 .skill-list-meta{font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--text3);font-weight:600;letter-spacing:1px;margin-top:2px}
-.skill-test-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:6px;padding:2px 8px;margin-top:6px}
-.skill-test-badge span{font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--green);font-weight:700;letter-spacing:1px}
 
 /* TOAST */
 .toast{position:fixed;bottom:calc(76px + var(--safe-bot));left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--text);letter-spacing:1px;opacity:0;transition:all 0.3s;z-index:100;white-space:nowrap}
@@ -271,46 +304,100 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Barlow
       <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
     </div>
 
-    <div class="session-type-wrap">
-      <div class="session-type-label">SESSION TYPE</div>
-      <div class="session-types">
-        <button class="stype-btn active" id="stype-home" onclick="setSessionType('home')">HOME</button>
-        <button class="stype-btn" id="stype-training" onclick="setSessionType('training')">TRAINING</button>
-        <button class="stype-btn" id="stype-travel" onclick="setSessionType('travel')">TRAVEL</button>
+    <!-- DIFFICULTY PICKER -->
+    <div class="difficulty-wrap">
+      <div class="difficulty-label">HOW'S THE GRIND?</div>
+      <div class="difficulty-row">
+        <div class="diff-btn" id="diff-hustle" onclick="setDifficulty('hustle')">
+          <div class="diff-name">HUSTLING</div>
+          <div class="diff-xp">2.0x XP</div>
+        </div>
+        <div class="diff-btn active-consistent" id="diff-consistent" onclick="setDifficulty('consistent')">
+          <div class="diff-name">CONSISTENT</div>
+          <div class="diff-xp">1.5x XP</div>
+        </div>
+        <div class="diff-btn" id="diff-limited" onclick="setDifficulty('limited')">
+          <div class="diff-name">LIMITED GEAR</div>
+          <div class="diff-xp">1.0x XP</div>
+        </div>
       </div>
     </div>
 
-    <div class="mode-picker">
-      <button class="mode-btn" id="mode-easy" onclick="setMode('easy')">EASY<br><span style="font-size:9px;opacity:0.6">500 · 50XP</span></button>
-      <button class="mode-btn active" id="mode-standard" onclick="setMode('standard')">STANDARD<br><span style="font-size:9px;opacity:0.6">1000 · 100XP</span></button>
-      <button class="mode-btn" id="mode-hard" onclick="setMode('hard')">HARD<br><span style="font-size:9px;opacity:0.6">1500 · 175XP</span></button>
-    </div>
-
-    <div class="touch-card">
-      <div>
-        <div class="touch-num" id="touchCount">0</div>
-        <div class="touch-label">TOTAL TOUCHES</div>
-        <div class="touch-target">TARGET: <span id="touchTarget">1,000</span></div>
+    <!-- TOUCH PROGRESS -->
+    <div class="touch-progress-card">
+      <div class="touch-progress-header">
+        <div>
+          <div class="touch-big" id="touchCount">0</div>
+          <div class="touch-prog-label">TOUCHES LOGGED</div>
+        </div>
+        <div class="touch-target-chip">
+          <span>TARGET: <span id="touchTarget">1,500</span></span>
+        </div>
       </div>
-      <div class="counter-btns">
-        <button class="cnt-btn plus" onclick="adjustTouches(50)">+50</button>
-        <button class="cnt-btn" onclick="adjustTouches(-50)">-50</button>
+      <div class="touch-prog-track">
+        <div class="touch-prog-fill" id="touchProgFill"></div>
       </div>
     </div>
 
-    <div class="juggle-row">
-      <div>
-        <div class="juggle-label">JUGGLE HIGH SCORE</div>
-        <div class="juggle-sub">Not in a row · Log your best</div>
+    <!-- BALL MASTERY BLOCK -->
+    <div class="section-label" style="margin-top:4px">SKILL BLOCKS</div>
+    <div class="block-wrap" id="bmBlock">
+      <div class="block-header" onclick="toggleBlock('bm')">
+        <div class="block-title-row">
+          <div class="block-icon bm">⚽</div>
+          <div>
+            <div class="block-title">BALL MASTERY</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--text3);letter-spacing:0.5px;margin-top:1px" id="bmTouchSub">0 / 900 touches</div>
+          </div>
+        </div>
+        <div class="block-progress-chip incomplete" id="bmChip">0/7</div>
       </div>
-      <input class="juggle-input" id="juggleScore" type="number" min="0" placeholder="0" inputmode="numeric">
+      <div class="block-progress-bar"><div class="block-progress-bar-fill bm" id="bmBar" style="width:0%"></div></div>
+      <div class="block-skills" id="bmSkills"></div>
     </div>
 
-    <div class="section-label">SKILLS PRACTICED</div>
-    <div class="skills-grid" id="skillsGrid"></div>
+    <!-- MOVEMENT BLOCK -->
+    <div class="block-wrap" id="mvBlock">
+      <div class="block-header" onclick="toggleBlock('mv')">
+        <div class="block-title-row">
+          <div class="block-icon mv">🔄</div>
+          <div>
+            <div class="block-title">MOVEMENT</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--text3);letter-spacing:0.5px;margin-top:1px" id="mvTouchSub">0 / 600 touches</div>
+          </div>
+        </div>
+        <div class="block-progress-chip incomplete" id="mvChip">0/6</div>
+      </div>
+      <div class="block-progress-bar"><div class="block-progress-bar-fill mv" id="mvBar" style="width:0%"></div></div>
+      <div class="block-skills" id="mvSkills"></div>
+    </div>
+
+    <!-- JUGGLE -->
+    <div class="juggle-card">
+      <div class="juggle-top">
+        <div class="juggle-title-row">
+          <span style="font-size:16px">🎯</span>
+          <div class="juggle-title">JUGGLING</div>
+        </div>
+        <div class="juggle-pb" id="jugglePbBadge">PB: --</div>
+      </div>
+      <div class="juggle-inputs">
+        <div class="juggle-input-wrap">
+          <div class="juggle-input-label">TODAY'S BEST</div>
+          <input class="juggle-num-input" id="juggleToday" type="number" min="0" placeholder="0" inputmode="numeric">
+        </div>
+        <div class="juggle-input-wrap" style="background:rgba(234,179,8,0.04);border-color:rgba(234,179,8,0.15)">
+          <div class="juggle-input-label" style="color:var(--yellow)">ALL-TIME PB</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--yellow)" id="juggleAllTimePb">--</div>
+        </div>
+      </div>
+    </div>
 
     <button class="log-btn" id="logBtn" onclick="logSession()">
-      <span>LOG SESSION</span>
+      <div>
+        <div><span>LOG SESSION</span></div>
+        <div class="log-btn-sub" id="logBtnSub">COMPLETE BOTH BLOCKS TO UNLOCK</div>
+      </div>
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
     <div style="height:16px"></div>
@@ -331,9 +418,19 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Barlow
       </div>
     </div>
     <div class="stats-row">
-      <div class="stat-box"><div class="stat-num" id="statStreak">0</div><div class="stat-lbl">DAY STREAK</div></div>
-      <div class="stat-box"><div class="stat-num" id="statTouches">0</div><div class="stat-lbl">TOTAL TOUCHES</div></div>
-      <div class="stat-box"><div class="stat-num" id="statSessions">0</div><div class="stat-lbl">SESSIONS</div></div>
+      <div class="stat-box">
+        <div class="stat-num" id="statStreak">0</div>
+        <div class="stat-lbl">DAY STREAK</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="statTouches">0</div>
+        <div class="stat-lbl">TOTAL TOUCHES</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="statSessions">0</div>
+        <div class="stat-lbl">SESSIONS</div>
+        <div class="juggle-pb-stat" id="statJugglePb" style="display:none">🎯 PB: --</div>
+      </div>
     </div>
     <div class="week-chart">
       <div class="section-label" style="padding:0;margin:0 0 12px">THIS WEEK</div>
@@ -355,8 +452,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Barlow
     <div id="skillListBM"></div>
     <div class="section-label">MOVEMENT COMBOS</div>
     <div id="skillListMV"></div>
-    <div class="section-label">PASSING</div>
-    <div id="skillListPS"></div>
     <div style="height:8px"></div>
   </div>
 
@@ -411,48 +506,62 @@ const RANKS = [
   {name:'PRO',        min:22000,max:99999,color:'#22c55e'},
 ];
 
-const MODES = {
-  easy:     {target:500,  xp:50,  label:'500 touches'},
-  standard: {target:1000, xp:100, label:'1,000 touches'},
-  hard:     {target:1500, xp:175, label:'1,500 touches'},
+// Difficulty: base XP per full session (both blocks complete = 1,500 touches)
+const DIFFICULTY = {
+  hustle:     {label:'HUSTLING',     multiplier:2.0, baseXP:175, color:'#f87171'},
+  consistent: {label:'CONSISTENT',  multiplier:1.5, baseXP:130, color:'#f97316'},
+  limited:    {label:'LIMITED GEAR', multiplier:1.0, baseXP:80,  color:'#818cf8'},
 };
 
-const SESSION_SKILLS = {
-  home: {
-    mastery: ['V Poles','Pull Push','Sole Rolls','Outside-Inside','L Turns','Lacrosse','Step Overs','Maradonas','Toe Taps'],
-    movement: ['Outside Cuts','Outside Scissors','L Turn + Drag Back','Scissor Feint + Step Over'],
-    passing: ['Wall Pass - 1 Touch','Wall Pass - 2 Touch','Partner Passing'],
-  },
-  training: {
-    mastery: ['V Poles','Pull Push','Sole Rolls','Outside-Inside','L Turns','Lacrosse','Step Overs','Maradonas','Toe Taps'],
-    movement: ['Power Shot','Finesse Shot','Passing Shot','1v1 to 5'],
-    passing: ['Wall Pass - 1 Touch','Wall Pass - 2 Touch','Partner Passing'],
-  },
-  travel: {
-    mastery: ['V Poles','Pull Push','Sole Rolls','Outside-Inside','L Turns','Lacrosse'],
-    movement: ['Step Over to Lacrosse','Scissor to Maradona','L Turn to Drag Back','Sole Roll L Turn','Body Feint + Push'],
-    body: ['Lateral Jumps','Skiers','Single-Leg Balance','Hop + Control'],
-  },
-};
+// Ball Mastery block - each skill has a touch count
+// Total block = 900 touches minimum (all 7 required)
+const BM_SKILLS = [
+  {id:'toe-taps',       name:'Toe Taps',          touches:200, min:true},
+  {id:'v-poles',        name:'V Poles',            touches:100, min:true},
+  {id:'pull-push',      name:'Pull Push',          touches:100, min:true},
+  {id:'sole-rolls',     name:'Sole Rolls',         touches:100, min:true},
+  {id:'outside-inside', name:'Outside / Inside',   touches:100, min:true},
+  {id:'l-turns',        name:'L Turns',            touches:150, min:true},
+  {id:'lacrosse',       name:'Lacrosse Roll',      touches:150, min:true},
+];
+const BM_MIN_REQUIRED = BM_SKILLS.length; // all 7
+const BM_TOTAL_TOUCHES = BM_SKILLS.reduce((s,k) => s + k.touches, 0); // 900
+
+// Movement block - each skill has a touch count
+// Total block = 600 touches minimum (all 6 required)
+const MV_SKILLS = [
+  {id:'step-overs',     name:'Step Overs',         touches:100, min:true},
+  {id:'maradonas',      name:'Maradonas',          touches:100, min:true},
+  {id:'scissors',       name:'Scissors',           touches:100, min:true},
+  {id:'outside-cut',    name:'Outside Cut Combo',  touches:100, min:true},
+  {id:'cruyff',         name:'Cruyff Turn',        touches:100, min:true},
+  {id:'drag-back',      name:'Drag Back Combo',    touches:100, min:true},
+];
+const MV_MIN_REQUIRED = MV_SKILLS.length; // all 6
+const MV_TOTAL_TOUCHES = MV_SKILLS.reduce((s,k) => s + k.touches, 0); // 600
+
+const TOTAL_TARGET = BM_TOTAL_TOUCHES + MV_TOTAL_TOUCHES; // 1500
 
 const BADGES = [
-  {id:'streak7',   emoji:'🔥', name:'7 Day Streak',  desc:'Log 7 days in a row'},
-  {id:'touches1k', emoji:'👟', name:'1K Touches',    desc:'Log 1,000 total touches'},
-  {id:'touches10k',emoji:'⚡', name:'10K Touches',   desc:'Log 10,000 total touches'},
-  {id:'sessions10',emoji:'🏟️', name:'10 Sessions',   desc:'Complete 10 sessions'},
-  {id:'hardmode',  emoji:'💪', name:'Hard Mode',     desc:'Complete a Hard mode session'},
-  {id:'streak30',  emoji:'🌟', name:'30 Day Streak', desc:'Log 30 days in a row'},
+  {id:'streak7',    emoji:'🔥', name:'7 Day Streak',   cond: p => p.streak >= 7},
+  {id:'touches1k',  emoji:'👟', name:'1K Touches',     cond: p => p.total_touches >= 1000},
+  {id:'touches10k', emoji:'⚡', name:'10K Touches',    cond: p => p.total_touches >= 10000},
+  {id:'sessions10', emoji:'🏟️', name:'10 Sessions',    cond: p => p.sessions >= 10},
+  {id:'hustle5',    emoji:'💪', name:'5x Hustler',     cond: (p,s) => (s||[]).filter(x=>x.difficulty==='hustle').length >= 5},
+  {id:'streak30',   emoji:'🌟', name:'30 Day Streak',  cond: p => p.streak >= 30},
+  {id:'juggle50',   emoji:'🎯', name:'Juggle 50',      cond: p => (p.juggle_pb||0) >= 50},
+  {id:'juggle100',  emoji:'🏆', name:'Juggle 100',     cond: p => (p.juggle_pb||0) >= 100},
 ];
 
 // ─── STATE ────────────────────────────────────────────────
-let currentUser = null;   // Supabase user
-let currentPlayer = null; // player profile object
-let todayTouches = 0;
-let selectedSkills = new Set();
-let currentMode = 'standard';
-let currentSessionType = 'home';
-let pinBuffer = '';
-let pendingPlayer = null;
+let currentUser    = null;
+let currentPlayer  = null;
+let currentDiff    = 'consistent';
+let completedBM    = new Set(); // BM skill IDs done this session
+let completedMV    = new Set(); // MV skill IDs done this session
+let blocksCollapsed = {bm: false, mv: false};
+let pinBuffer      = '';
+let pendingPlayer  = null;
 
 // ─── SUPABASE HELPERS ─────────────────────────────────────
 async function sb(path, opts={}) {
@@ -481,23 +590,17 @@ async function sbAuth(path, body) {
 
 // ─── AUTH ─────────────────────────────────────────────────
 async function init() {
-  // Check stored session
   const stored = localStorage.getItem('sfc_session');
   if (stored) {
     try {
       currentUser = JSON.parse(stored);
-      // Verify token still valid
       const res = await fetch(`${SB_URL}/auth/v1/user`, {
         headers: {'apikey': SB_KEY, 'Authorization': `Bearer ${currentUser.access_token}`}
       });
-      if (res.ok) {
-        showPlayerSelect();
-        return;
-      }
+      if (res.ok) { showPlayerSelect(); return; }
     } catch(e) {}
     localStorage.removeItem('sfc_session');
   }
-  // Check URL for magic link token
   const hash = window.location.hash;
   if (hash.includes('access_token')) {
     const params = new URLSearchParams(hash.slice(1));
@@ -544,12 +647,10 @@ async function showPlayerSelect() {
   const ps = document.getElementById('player-select');
   ps.classList.add('active');
 
-  // Load players for this account
   let players = [];
   try {
     players = await sb(`profiles?parent_id=eq.${encodeURIComponent(currentUser.access_token)}&order=name`, {method:'GET'});
   } catch(e) {
-    // Fallback to seeded players
     players = getSeededPlayers();
   }
   if (!players || players.length === 0) players = getSeededPlayers();
@@ -574,9 +675,9 @@ async function showPlayerSelect() {
 
 function getSeededPlayers() {
   return [
-    {id:'madden',  name:'Madden',  club:'AZ Arsenal', pin:'0926', xp:1240, streak:7,  total_touches:4820, sessions:12},
-    {id:'caysen',  name:'Caysen',  club:'AZ Arsenal', pin:'0211', xp:890,  streak:5,  total_touches:3200, sessions:8},
-    {id:'emmitt',  name:'Emmitt',  club:'AZ Arsenal', pin:'1202', xp:450,  streak:3,  total_touches:1800, sessions:5},
+    {id:'madden',  name:'Madden',  club:'AZ Arsenal', pin:'0926', xp:0, streak:0, total_touches:0, sessions:0, juggle_pb:0},
+    {id:'caysen',  name:'Caysen',  club:'AZ Arsenal', pin:'0211', xp:0, streak:0, total_touches:0, sessions:0, juggle_pb:0},
+    {id:'emmitt',  name:'Emmitt',  club:'AZ Arsenal', pin:'1202', xp:0, streak:0, total_touches:0, sessions:0, juggle_pb:0},
   ];
 }
 
@@ -628,6 +729,7 @@ async function loadApp() {
   document.getElementById('app').style.display = 'flex';
   updateClock();
   setInterval(updateClock, 60000);
+  resetSession();
   renderHome();
   renderProfile();
   renderSkillsList();
@@ -648,6 +750,16 @@ function checkOnline() {
   document.getElementById('offlineBar').classList.toggle('show', !navigator.onLine);
 }
 
+// ─── SESSION RESET ────────────────────────────────────────
+function resetSession() {
+  completedBM.clear();
+  completedMV.clear();
+  document.getElementById('juggleToday').value = '';
+  renderBlockSkills();
+  updateTouchProgress();
+  updateLogBtn();
+}
+
 // ─── HOME RENDER ──────────────────────────────────────────
 function renderHome() {
   const p = currentPlayer;
@@ -666,8 +778,12 @@ function renderHome() {
   document.getElementById('xpFill').style.width = Math.min(100, progress) + '%';
   document.getElementById('xpCount').textContent = `${(p.xp||0).toLocaleString()} / ${(nextRank?.min||rank.max).toLocaleString()} XP`;
 
-  setMode(currentMode);
-  setSessionType(currentSessionType);
+  // Juggle PB
+  const pb = getJugglePB();
+  document.getElementById('jugglePbBadge').textContent = pb > 0 ? `PB: ${pb}` : 'PB: --';
+  document.getElementById('juggleAllTimePb').textContent = pb > 0 ? pb : '--';
+
+  setDifficulty(currentDiff);
 }
 
 function getTodayLabel() {
@@ -678,106 +794,194 @@ function getRank(xp) {
   return RANKS.slice().reverse().find(r => xp >= r.min) || RANKS[0];
 }
 
-function setMode(m) {
-  currentMode = m;
-  Object.keys(MODES).forEach(k => document.getElementById(`mode-${k}`).classList.toggle('active', k===m));
-  document.getElementById('touchTarget').textContent = MODES[m].target.toLocaleString();
+function getJugglePB() {
+  const localPB = parseInt(localStorage.getItem(`sfc_juggle_${currentPlayer.id}`) || '0');
+  const profilePB = currentPlayer.juggle_pb || 0;
+  return Math.max(localPB, profilePB);
 }
 
-function setSessionType(t) {
-  currentSessionType = t;
-  ['home','training','travel'].forEach(s => document.getElementById(`stype-${s}`).classList.toggle('active', s===t));
-  renderSkillChips();
-}
-
-function renderSkillChips() {
-  const skills = SESSION_SKILLS[currentSessionType];
-  const allSkills = [...(skills.mastery||[]), ...(skills.movement||[]), ...(skills.passing||[]), ...(skills.body||[])];
-  const grid = document.getElementById('skillsGrid');
-  grid.innerHTML = '';
-  allSkills.forEach(s => {
-    const done = selectedSkills.has(s);
-    const chip = document.createElement('div');
-    chip.className = 'skill-chip' + (done ? ' done' : '');
-    chip.innerHTML = `<div class="skill-check">${done?'<svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5L4 7L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>':''}</div><span>${s}</span>`;
-    chip.onclick = () => toggleSkill(s, chip);
-    grid.appendChild(chip);
+// ─── DIFFICULTY ───────────────────────────────────────────
+function setDifficulty(d) {
+  currentDiff = d;
+  const keys = ['hustle', 'consistent', 'limited'];
+  keys.forEach(k => {
+    const btn = document.getElementById(`diff-${k}`);
+    btn.className = 'diff-btn' + (k === d ? ` active-${k}` : '');
   });
+  updateLogBtn();
 }
 
-function toggleSkill(s, el) {
-  if (selectedSkills.has(s)) {
-    selectedSkills.delete(s);
-    el.classList.remove('done');
-    el.querySelector('.skill-check').innerHTML = '';
+// ─── SKILL BLOCKS ─────────────────────────────────────────
+function toggleBlock(block) {
+  blocksCollapsed[block] = !blocksCollapsed[block];
+  const skillsEl = document.getElementById(`${block}Skills`);
+  skillsEl.style.display = blocksCollapsed[block] ? 'none' : 'flex';
+}
+
+function renderBlockSkills() {
+  renderBlock('bm', BM_SKILLS, completedBM);
+  renderBlock('mv', MV_SKILLS, completedMV);
+}
+
+function renderBlock(blockId, skills, completedSet) {
+  const container = document.getElementById(`${blockId}Skills`);
+  container.innerHTML = '';
+  skills.forEach(skill => {
+    const done = completedSet.has(skill.id);
+    const row = document.createElement('div');
+    row.className = `skill-row${done ? (blockId==='bm' ? ' done bm-done' : ' done') : ''}`;
+    row.innerHTML = `
+      <div class="skill-check-box">${done ? '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6L5 9L10 3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}</div>
+      <div class="skill-row-name">${skill.name}</div>
+      <div class="skill-touch-count">${skill.touches}</div>
+    `;
+    row.onclick = () => toggleBlockSkill(blockId, skill, row, completedSet);
+    container.appendChild(row);
+  });
+  updateBlockProgress(blockId, completedSet, skills);
+}
+
+function toggleBlockSkill(blockId, skill, row, completedSet) {
+  if (completedSet.has(skill.id)) {
+    completedSet.delete(skill.id);
+    row.className = 'skill-row';
+    row.querySelector('.skill-check-box').innerHTML = '';
   } else {
-    selectedSkills.add(s);
-    el.classList.add('done');
-    el.querySelector('.skill-check').innerHTML = '<svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5L4 7L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>';
+    completedSet.add(skill.id);
+    const doneClass = blockId === 'bm' ? 'skill-row done bm-done' : 'skill-row done';
+    row.className = doneClass;
+    row.querySelector('.skill-check-box').innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6L5 9L10 3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   }
+  updateBlockProgress(blockId, completedSet, blockId === 'bm' ? BM_SKILLS : MV_SKILLS);
+  updateTouchProgress();
+  updateLogBtn();
 }
 
-function adjustTouches(n) {
-  todayTouches = Math.max(0, todayTouches + n);
-  document.getElementById('touchCount').textContent = todayTouches.toLocaleString();
+function updateBlockProgress(blockId, completedSet, skills) {
+  const done = completedSet.size;
+  const total = skills.length;
+  const pct = (done / total) * 100;
+  const touchesDone = skills.filter(s => completedSet.has(s.id)).reduce((a,b) => a + b.touches, 0);
+  const touchesTotal = skills.reduce((a,b) => a + b.touches, 0);
+  const isComplete = done >= total;
+
+  document.getElementById(`${blockId}Bar`).style.width = pct + '%';
+  document.getElementById(`${blockId}Chip`).textContent = `${done}/${total}`;
+  document.getElementById(`${blockId}Chip`).className = `block-progress-chip ${isComplete ? 'complete' : 'incomplete'}`;
+  document.getElementById(`${blockId}TouchSub`).textContent = `${touchesDone.toLocaleString()} / ${touchesTotal.toLocaleString()} touches`;
+}
+
+function calcTouches() {
+  const bmT = BM_SKILLS.filter(s => completedBM.has(s.id)).reduce((a,b) => a + b.touches, 0);
+  const mvT = MV_SKILLS.filter(s => completedMV.has(s.id)).reduce((a,b) => a + b.touches, 0);
+  return bmT + mvT;
+}
+
+function updateTouchProgress() {
+  const total = calcTouches();
+  const pct = Math.min(100, (total / TOTAL_TARGET) * 100);
+  document.getElementById('touchCount').textContent = total.toLocaleString();
+  document.getElementById('touchTarget').textContent = TOTAL_TARGET.toLocaleString();
+  document.getElementById('touchProgFill').style.width = pct + '%';
+}
+
+function updateLogBtn() {
+  const bmDone = completedBM.size >= BM_MIN_REQUIRED;
+  const mvDone = completedMV.size >= MV_MIN_REQUIRED;
+  const allDone = bmDone && mvDone;
+  const btn = document.getElementById('logBtn');
+  const sub = document.getElementById('logBtnSub');
+  btn.disabled = false; // allow partial logging too, but inform user
+  if (allDone) {
+    const diff = DIFFICULTY[currentDiff];
+    const xp = Math.round(diff.baseXP * diff.multiplier);
+    sub.textContent = `${xp} XP · ${currentDiff.toUpperCase()} · ${calcTouches().toLocaleString()} TOUCHES`;
+  } else {
+    const parts = [];
+    if (!bmDone) parts.push(`BM: ${completedBM.size}/${BM_MIN_REQUIRED}`);
+    if (!mvDone) parts.push(`MV: ${completedMV.size}/${MV_MIN_REQUIRED}`);
+    sub.textContent = parts.join(' · ') + ' — LOG PARTIAL?';
+  }
 }
 
 // ─── LOG SESSION ──────────────────────────────────────────
 async function logSession() {
-  if (todayTouches === 0) {
-    showToast('Add some touches first!', 'error');
+  const touches = calcTouches();
+  if (touches === 0) {
+    showToast('Complete some skills first!', 'error');
     return;
   }
+
+  const bmDone = completedBM.size >= BM_MIN_REQUIRED;
+  const mvDone = completedMV.size >= MV_MIN_REQUIRED;
+  const fullSession = bmDone && mvDone;
+
+  const diff = DIFFICULTY[currentDiff];
+  const xpEarned = fullSession
+    ? Math.round(diff.baseXP * diff.multiplier)
+    : Math.round((diff.baseXP * diff.multiplier) * (touches / TOTAL_TARGET));
+
+  const juggle = parseInt(document.getElementById('juggleToday').value) || 0;
+  const today = new Date().toISOString().slice(0,10);
+
+  // Update juggle PB if new best
+  const oldPB = getJugglePB();
+  if (juggle > oldPB) {
+    localStorage.setItem(`sfc_juggle_${currentPlayer.id}`, String(juggle));
+    currentPlayer.juggle_pb = juggle;
+  }
+
   const btn = document.getElementById('logBtn');
   btn.disabled = true;
-
-  const mode = currentMode;
-  const xpEarned = MODES[mode].xp;
-  const juggle = parseInt(document.getElementById('juggleScore').value) || 0;
-  const today = new Date().toISOString().slice(0,10);
 
   const session = {
     player_id: currentPlayer.id,
     date: today,
-    touches: todayTouches,
+    touches: touches,
     juggle_high: juggle,
-    skills: [...selectedSkills],
-    mode: mode,
-    session_type: currentSessionType,
+    bm_skills: [...completedBM],
+    mv_skills: [...completedMV],
+    difficulty: currentDiff,
+    full_session: fullSession,
     xp_earned: xpEarned,
   };
 
   try {
     await sb('sessions', {method:'POST', body: JSON.stringify(session)});
   } catch(e) {
-    // Queue offline
     queueOffline(session);
   }
 
-  // Update player XP + streak locally
+  // Update player locally
   currentPlayer.xp = (currentPlayer.xp||0) + xpEarned;
   currentPlayer.streak = (currentPlayer.streak||0) + 1;
-  currentPlayer.total_touches = (currentPlayer.total_touches||0) + todayTouches;
+  currentPlayer.total_touches = (currentPlayer.total_touches||0) + touches;
   currentPlayer.sessions = (currentPlayer.sessions||0) + 1;
 
-  // Update in Supabase
+  // Push to Supabase
   try {
     await sb(`profiles?id=eq.${currentPlayer.id}`, {
       method:'PATCH',
-      body: JSON.stringify({xp: currentPlayer.xp, streak: currentPlayer.streak, total_touches: currentPlayer.total_touches, sessions: currentPlayer.sessions}),
+      body: JSON.stringify({
+        xp: currentPlayer.xp,
+        streak: currentPlayer.streak,
+        total_touches: currentPlayer.total_touches,
+        sessions: currentPlayer.sessions,
+        juggle_pb: currentPlayer.juggle_pb || 0,
+      }),
       prefer: 'return=minimal'
     });
   } catch(e) {}
 
+  localStorage.setItem('sfc_player', JSON.stringify(currentPlayer));
   checkBadges();
-  showToast(`+${xpEarned} XP · STREAK SAVED 🔥`, 'success');
+  showToast(`+${xpEarned} XP · ${fullSession ? 'FULL SESSION 🔥' : 'PARTIAL SESSION'}`, 'success');
 
-  // Reset
-  todayTouches = 0;
-  selectedSkills.clear();
-  document.getElementById('touchCount').textContent = '0';
-  document.getElementById('juggleScore').value = '';
-  renderSkillChips();
+  if (juggle > oldPB && juggle > 0) {
+    setTimeout(() => showToast(`🎯 NEW JUGGLE PB: ${juggle}!`, 'success'), 1600);
+  }
+
+  resetSession();
   renderHome();
   renderProfile();
   btn.disabled = false;
@@ -794,14 +998,14 @@ function checkBadges() {
   const p = currentPlayer;
   const earned = JSON.parse(localStorage.getItem(`sfc_badges_${p.id}`)||'[]');
   const newBadges = [];
-  if (p.streak >= 7 && !earned.includes('streak7')) { earned.push('streak7'); newBadges.push('🔥 7 Day Streak!'); }
-  if (p.total_touches >= 1000 && !earned.includes('touches1k')) { earned.push('touches1k'); newBadges.push('👟 1K Touches!'); }
-  if (p.total_touches >= 10000 && !earned.includes('touches10k')) { earned.push('touches10k'); newBadges.push('⚡ 10K Touches!'); }
-  if (p.sessions >= 10 && !earned.includes('sessions10')) { earned.push('sessions10'); newBadges.push('🏟️ 10 Sessions!'); }
-  if (currentMode === 'hard' && !earned.includes('hardmode')) { earned.push('hardmode'); newBadges.push('💪 Hard Mode!'); }
-  if (p.streak >= 30 && !earned.includes('streak30')) { earned.push('streak30'); newBadges.push('🌟 30 Day Streak!'); }
+  BADGES.forEach(b => {
+    if (!earned.includes(b.id) && b.cond(p)) {
+      earned.push(b.id);
+      newBadges.push(`${b.emoji} ${b.name}!`);
+    }
+  });
   localStorage.setItem(`sfc_badges_${p.id}`, JSON.stringify(earned));
-  if (newBadges.length) setTimeout(() => showToast('BADGE: ' + newBadges[0], 'success'), 1500);
+  if (newBadges.length) setTimeout(() => showToast('BADGE: ' + newBadges[0], 'success'), 3000);
 }
 
 // ─── PROFILE RENDER ───────────────────────────────────────
@@ -815,6 +1019,13 @@ function renderProfile() {
   document.getElementById('statStreak').textContent = p.streak||0;
   document.getElementById('statTouches').textContent = ((p.total_touches||0)/1000).toFixed(1)+'K';
   document.getElementById('statSessions').textContent = p.sessions||0;
+
+  const pb = getJugglePB();
+  const pbEl = document.getElementById('statJugglePb');
+  if (pb > 0) {
+    pbEl.style.display = 'block';
+    pbEl.textContent = `🎯 PB: ${pb}`;
+  }
   renderWeekChart();
   renderBadges();
 }
@@ -825,15 +1036,16 @@ function renderWeekChart() {
   const bars = document.getElementById('weekBars');
   const labels = document.getElementById('weekLabels');
   bars.innerHTML = ''; labels.innerHTML = '';
-  // Placeholder data - real data loads from sessions table
-  const mockData = [200,800,1200,500,1000,0,0];
-  const max = Math.max(...mockData, 1);
+  const mockData = [0,0,0,0,0,0,0];
+  // Mark today if session was just logged
+  if (currentPlayer.sessions > 0) mockData[today] = calcTouches() || 800;
+  const max = Math.max(...mockData, 100);
   for (let i=0; i<7; i++) {
     const pct = (mockData[i]/max)*100;
     const isToday = i === today;
     const bw = document.createElement('div');
     bw.className = 'week-bar-wrap';
-    bw.innerHTML = `<div style="flex:1;display:flex;align-items:flex-end;width:100%"><div class="week-bar${isToday?' today':''}" style="height:${pct||4}%"></div></div>`;
+    bw.innerHTML = `<div style="flex:1;display:flex;align-items:flex-end;width:100%"><div class="week-bar${isToday?' today':''}" style="height:${Math.max(pct,4)}%"></div></div>`;
     bars.appendChild(bw);
     const lbl = document.createElement('div');
     lbl.style.flex = '1';
@@ -856,22 +1068,25 @@ function renderBadges() {
   });
 }
 
-// ─── SKILLS LIST ──────────────────────────────────────────
+// ─── SKILLS LIST (reference tab) ─────────────────────────
 function renderSkillsList() {
-  const skills = {
-    mastery: ['Toe Taps','V Poles','Pull Push','Sole Rolls','Outside-Inside (Both Feet)','L Turns','Lacrosse','Step Overs','Maradonas'],
-    movement: ['Outside Cuts','Outside Scissors','L Turn + Drag Back','Scissor Feint + Step Over','Step Over to Lacrosse','Scissor to Maradona','Sole Roll L Turn','Body Feint + Push'],
-    passing: ['Wall Pass - 1 Touch','Wall Pass - 2 Touch','Partner Passing - Alternate Feet','1v1 Game'],
-  };
-  [['BM','mastery'],['MV','movement'],['PS','passing']].forEach(([id, key]) => {
-    const el = document.getElementById(`skillList${id}`);
-    el.innerHTML = '';
-    skills[key].forEach(s => {
-      const item = document.createElement('div');
-      item.className = 'skill-list-item';
-      item.innerHTML = `<div class="skill-list-name">${s}</div>`;
-      el.appendChild(item);
-    });
+  const bmList = document.getElementById('skillListBM');
+  const mvList = document.getElementById('skillListMV');
+  bmList.innerHTML = '';
+  mvList.innerHTML = '';
+
+  BM_SKILLS.forEach(s => {
+    const item = document.createElement('div');
+    item.className = 'skill-list-item';
+    item.innerHTML = `<div class="skill-list-name">${s.name}</div><div class="skill-list-meta">${s.touches} TOUCHES · BALL MASTERY</div>`;
+    bmList.appendChild(item);
+  });
+
+  MV_SKILLS.forEach(s => {
+    const item = document.createElement('div');
+    item.className = 'skill-list-item';
+    item.innerHTML = `<div class="skill-list-name">${s.name}</div><div class="skill-list-meta">${s.touches} TOUCHES · MOVEMENT</div>`;
+    mvList.appendChild(item);
   });
 }
 
@@ -880,7 +1095,6 @@ function switchTab(tab) {
   ['home','profile','skills','crew'].forEach(t => {
     document.getElementById(`screen-${t}`).classList.toggle('active', t===tab);
     document.getElementById(`nav-${t}`).classList.toggle('active', t===tab);
-    // swap nav icon colors
     const navEl = document.getElementById(`nav-${t}`);
     navEl.querySelectorAll('path,circle,rect').forEach(el => {
       el.setAttribute('stroke', t===tab ? '#f97316' : '#4a6080');
