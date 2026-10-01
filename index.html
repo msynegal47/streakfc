@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f97316">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Streak FC">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<title>Streak FC</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#060a0f;--bg2:#0c1420;--bg3:#111d2e;
+  --orange:#f97316;--orange2:#fb923c;
+  --indigo:#6366f1;--indigo2:#818cf8;
+  --green:#22c55e;
+  --text:#e8edf5;--text2:#a0b4c8;--text3:#4a6080;
+  --border:rgba(255,255,255,0.07);
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bot:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;overflow:hidden}
+#app{height:100%;display:flex;flex-direction:column;max-width:480px;margin:0 auto;position:relative}
+.screen{flex:1;overflow-y:auto;overflow-x:hidden;display:none;flex-direction:column;padding-bottom:calc(68px + var(--safe-bot))}
+.screen.active{display:flex}
+.status-bar{height:calc(44px + var(--safe-top));padding-top:var(--safe-top);display:flex;align-items:center;justify-content:space-between;padding-left:20px;padding-right:20px;flex-shrink:0}
+.status-time{font-size:13px;font-weight:600}
+
+/* NAV */
+.bottom-nav{height:calc(60px + var(--safe-bot));padding-bottom:var(--safe-bot);border-top:1px solid var(--border);display:flex;align-items:center;background:rgba(6,10,15,0.96);flex-shrink:0;position:relative;z-index:10}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding-top:8px}
+.nav-item span{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:1px;color:var(--text3)}
+.nav-item.active span{color:var(--orange)}
+.nav-item svg{opacity:0.4}
+.nav-item.active svg{opacity:1}
+
+/* AUTH */
+#auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:32px 28px;background:var(--bg)}
+.auth-logo{font-family:'Bebas Neue',sans-serif;font-size:52px;color:var(--orange);letter-spacing:4px;margin-bottom:4px}
+.auth-sub{font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--text3);letter-spacing:3px;margin-bottom:48px}
+.auth-box{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px}
+.auth-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;margin-bottom:4px}
+.auth-desc{font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.5}
+.input-field{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-size:15px;color:var(--text);font-family:'Barlow',sans-serif;outline:none;margin-bottom:12px}
+.input-field:focus{border-color:rgba(249,115,22,0.4)}
+.input-field::placeholder{color:var(--text3)}
+.btn-primary{width:100%;height:52px;background:var(--orange);border:none;border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:18px;color:#fff;letter-spacing:2px;cursor:pointer;transition:opacity 0.15s}
+.btn-primary:active{opacity:0.8}
+.btn-secondary{width:100%;height:48px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--text2);letter-spacing:2px;cursor:pointer;margin-top:10px}
+.auth-msg{font-size:13px;color:var(--text2);text-align:center;margin-top:16px;line-height:1.5}
+.auth-msg a{color:var(--orange);cursor:pointer;text-decoration:none}
+
+/* PLAYER SELECT */
+#player-select{display:none;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:32px 24px;background:var(--bg)}
+#player-select.active{display:flex}
+.player-grid{width:100%;display:flex;flex-direction:column;gap:12px;margin-top:24px}
+.player-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:border-color 0.15s}
+.player-card:active{border-color:var(--orange)}
+.player-avatar{width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(99,102,241,0.4),rgba(99,102,241,0.08));border:2px solid rgba(99,102,241,0.5);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.player-avatar span{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--indigo2)}
+.player-info{flex:1}
+.player-name{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px}
+.player-meta{font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--text3);font-weight:600;letter-spacing:1px}
+.player-streak{display:flex;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:var(--orange)}
+
+/* PIN ENTRY */
+#pin-screen{display:none;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:32px 28px;background:var(--bg)}
+#pin-screen.active{display:flex}
+.pin-dots{display:flex;gap:14px;margin:24px 0}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--text3);transition:all 0.15s}
+.pin-dot.filled{background:var(--orange);border-color:var(--orange)}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:280px}
+.pin-btn{height:72px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.1s}
+.pin-btn:active{background:var(--bg3)}
+.pin-btn.del{font-size:18px;color:var(--text3)}
+
+/* CARDS & SECTIONS */
+.section-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:2px;padding:0 20px;margin-bottom:8px;margin-top:20px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;margin:0 20px}
+
+/* HOME SCREEN */
+.home-header{padding:8px 20px 12px;display:flex;align-items:center;justify-content:space-between}
+.home-logo{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--orange);letter-spacing:2px}
+.home-sub{font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--text3);font-weight:600;letter-spacing:2px}
+.avatar-badge{position:relative;cursor:pointer}
+.avatar-circle{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1a2d45,#0c1a2e);border:2px solid rgba(99,102,241,0.5);display:flex;align-items:center;justify-content:center}
+.avatar-circle span{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--indigo)}
+.streak-badge{position:absolute;bottom:-4px;right:-4px;background:var(--orange);border-radius:10px;padding:1px 5px;border:1px solid var(--bg);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:#fff}
+
+.xp-bar-wrap{padding:0 20px 16px}
+.xp-labels{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.rank-chip{background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);border-radius:4px;padding:2px 8px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--indigo);letter-spacing:1px}
+.xp-count{font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--text3);font-weight:600}
+.xp-track{height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--indigo),var(--indigo2));border-radius:2px;transition:width 0.6s ease}
+
+.mode-picker{padding:0 20px 16px;display:flex;gap:8px}
+.mode-btn{flex:1;height:40px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.03);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--text3);letter-spacing:1px;cursor:pointer;transition:all 0.15s}
+.mode-btn.active{background:rgba(249,115,22,0.12);border-color:rgba(249,115,22,0.4);color:var(--orange)}
+
+.touch-card{margin:0 20px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.touch-num{font-family:'Bebas Neue',sans-serif;font-size:52px;color:var(--text);line-height:1}
+.touch-label{font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--text3);font-weight:600;letter-spacing:1px;margin-top:2px}
+.touch-target{font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--text3)}
+.touch-target span{color:var(--orange);font-weight:700}
+.counter-btns{display:flex;flex-direction:column;gap:6px}
+.cnt-btn{width:52px;height:52px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:var(--text);font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.1s;font-family:'Barlow',sans-serif}
+.cnt-btn:active{background:rgba(255,255,255,0.1)}
+.cnt-btn.plus{border-color:rgba(249,115,22,0.3);background:rgba(249,115,22,0.08);color:var(--orange)}
+
+.skills-grid{margin:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.skill-chip{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:20px;padding:8px 12px;display:flex;align-items:center;gap:6px;cursor:pointer;transition:all 0.15s}
+.skill-chip.done{background:rgba(99,102,241,0.12);border-color:rgba(99,102,241,0.35)}
+.skill-chip span{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;color:var(--text3)}
+.skill-chip.done span{color:var(--indigo2)}
+.skill-check{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--text3);flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.skill-chip.done .skill-check{background:var(--indigo);border-color:var(--indigo)}
+
+.log-btn{margin:4px 20px 0;height:56px;background:var(--orange);border:none;border-radius:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 0 24px rgba(249,115,22,0.25)}
+.log-btn span{font-family:'Bebas Neue',sans-serif;font-size:20px;color:#fff;letter-spacing:2px}
+.log-btn:active{opacity:0.85}
+.log-btn:disabled{opacity:0.4;cursor:default;box-shadow:none}
+
+/* JUGGLE INPUT */
+.juggle-row{margin:0 20px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.juggle-label{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--text3);letter-spacing:1px}
+.juggle-input{background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.15);width:60px;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--text);outline:none}
+.juggle-sub{font-family:'Barlow',sans-serif;font-size:11px;color:var(--text3);margin-top:2px}
+
+/* SESSION TYPE */
+.session-type-wrap{padding:0 20px 14px}
+.session-type-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:2px;margin-bottom:8px}
+.session-types{display:flex;gap:8px}
+.stype-btn{flex:1;height:36px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.03);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;cursor:pointer}
+.stype-btn.active{background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.4);color:var(--green)}
+
+/* PROFILE SCREEN */
+.profile-hero{padding:20px 20px 0;display:flex;gap:16px;align-items:flex-start}
+.profile-avatar{width:72px;height:72px;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(99,102,241,0.4),rgba(99,102,241,0.08));border:3px solid rgba(99,102,241,0.5);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.profile-avatar span{font-family:'Bebas Neue',sans-serif;font-size:38px;color:var(--indigo2)}
+.profile-name{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;line-height:1}
+.profile-club{font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--indigo2);font-weight:700;letter-spacing:2px;margin-top:4px}
+.profile-rank{margin-top:6px}
+
+.stats-row{display:flex;gap:8px;padding:16px 20px 0}
+.stat-box{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--text);line-height:1}
+.stat-lbl{font-family:'Barlow Condensed',sans-serif;font-size:9px;color:var(--text3);font-weight:700;letter-spacing:1px;margin-top:2px}
+
+.week-chart{margin:16px 20px 0;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px}
+.week-bars{display:flex;align-items:flex-end;gap:6px;height:64px;margin-bottom:8px}
+.week-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%}
+.week-bar{width:100%;border-radius:3px 3px 0 0;background:rgba(99,102,241,0.25);min-height:4px;transition:height 0.4s}
+.week-bar.today{background:var(--indigo)}
+.week-day{font-family:'Barlow Condensed',sans-serif;font-size:9px;color:var(--text3);font-weight:700}
+.week-day.today{color:var(--indigo2)}
+
+.badges-grid{display:flex;flex-wrap:wrap;gap:10px;padding:12px 20px}
+.badge-item{width:72px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.badge-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px}
+.badge-icon.earned{background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.3)}
+.badge-icon.locked{background:rgba(255,255,255,0.03);border:1px solid var(--border);filter:grayscale(1);opacity:0.4}
+.badge-name{font-family:'Barlow Condensed',sans-serif;font-size:9px;color:var(--text3);font-weight:700;letter-spacing:0.5px;text-align:center;line-height:1.2}
+
+/* SKILLS SCREEN */
+.skill-list-item{margin:0 20px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px}
+.skill-list-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px}
+.skill-list-meta{font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--text3);font-weight:600;letter-spacing:1px;margin-top:2px}
+.skill-test-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:6px;padding:2px 8px;margin-top:6px}
+.skill-test-badge span{font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--green);font-weight:700;letter-spacing:1px}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(76px + var(--safe-bot));left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--text);letter-spacing:1px;opacity:0;transition:all 0.3s;z-index:100;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:rgba(34,197,94,0.4);color:var(--green)}
+.toast.error{border-color:rgba(239,68,68,0.4);color:#f87171}
+
+/* OFFLINE BAR */
+.offline-bar{background:rgba(239,68,68,0.15);border-bottom:1px solid rgba(239,68,68,0.3);padding:6px 20px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:#f87171;letter-spacing:1px;display:none}
+.offline-bar.show{display:block}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:0}
+
+/* BG GLOW */
+.bg-glow{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(249,115,22,0.06) 0%,transparent 65%);pointer-events:none;z-index:0}
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+
+<!-- OFFLINE BAR -->
+<div class="offline-bar" id="offlineBar">NO CONNECTION - LOGGING OFFLINE</div>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-logo">STREAK FC</div>
+  <div class="auth-sub">TRACK · GRIND · GROW</div>
+  <div class="auth-box" id="authBox">
+    <div class="auth-title">PARENT LOGIN</div>
+    <div class="auth-desc">Enter your email and we'll send you a magic link to sign in.</div>
+    <input class="input-field" id="authEmail" type="email" placeholder="parent@email.com" autocomplete="email">
+    <button class="btn-primary" onclick="sendMagicLink()">SEND MAGIC LINK</button>
+    <div class="auth-msg" id="authMsg"></div>
+  </div>
+</div>
+
+<!-- PLAYER SELECT -->
+<div id="player-select">
+  <div style="text-align:center">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:3px;margin-bottom:8px">STREAK FC</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px">WHO'S TRAINING?</div>
+  </div>
+  <div class="player-grid" id="playerGrid"></div>
+  <button class="btn-secondary" style="margin-top:20px;width:280px" onclick="signOut()">SIGN OUT</button>
+</div>
+
+<!-- PIN SCREEN -->
+<div id="pin-screen">
+  <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:3px">STREAK FC</div>
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin-top:8px" id="pinName">ENTER PIN</div>
+  <div class="pin-dots" id="pinDots">
+    <div class="pin-dot" id="d0"></div>
+    <div class="pin-dot" id="d1"></div>
+    <div class="pin-dot" id="d2"></div>
+    <div class="pin-dot" id="d3"></div>
+  </div>
+  <div class="pin-pad">
+    <button class="pin-btn" onclick="pinTap('1')">1</button>
+    <button class="pin-btn" onclick="pinTap('2')">2</button>
+    <button class="pin-btn" onclick="pinTap('3')">3</button>
+    <button class="pin-btn" onclick="pinTap('4')">4</button>
+    <button class="pin-btn" onclick="pinTap('5')">5</button>
+    <button class="pin-btn" onclick="pinTap('6')">6</button>
+    <button class="pin-btn" onclick="pinTap('7')">7</button>
+    <button class="pin-btn" onclick="pinTap('8')">8</button>
+    <button class="pin-btn" onclick="pinTap('9')">9</button>
+    <button class="pin-btn" onclick="showPlayerSelect()">←</button>
+    <button class="pin-btn" onclick="pinTap('0')">0</button>
+    <button class="pin-btn del" onclick="pinDel()">⌫</button>
+  </div>
+  <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--text3);margin-top:20px" id="pinError"></div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none">
+  <div class="screen active" id="screen-home">
+    <div class="status-bar">
+      <span class="status-time" id="clockHome">9:41</span>
+    </div>
+    <div class="home-header">
+      <div>
+        <div class="home-logo">STREAK FC</div>
+        <div class="home-sub" id="homeSubLabel">TODAY</div>
+      </div>
+      <div class="avatar-badge" onclick="showPlayerSelect()">
+        <div class="avatar-circle"><span id="homeAvatar">M</span></div>
+        <div class="streak-badge" id="homeStreakBadge">🔥0</div>
+      </div>
+    </div>
+
+    <div class="xp-bar-wrap">
+      <div class="xp-labels">
+        <div class="rank-chip" id="rankChip">GRASSROOTS</div>
+        <span class="xp-count" id="xpCount">0 / 500 XP</span>
+      </div>
+      <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
+    </div>
+
+    <div class="session-type-wrap">
+      <div class="session-type-label">SESSION TYPE</div>
+      <div class="session-types">
+        <button class="stype-btn active" id="stype-home" onclick="setSessionType('home')">HOME</button>
+        <button class="stype-btn" id="stype-training" onclick="setSessionType('training')">TRAINING</button>
+        <button class="stype-btn" id="stype-travel" onclick="setSessionType('travel')">TRAVEL</button>
+      </div>
+    </div>
+
+    <div class="mode-picker">
+      <button class="mode-btn" id="mode-easy" onclick="setMode('easy')">EASY<br><span style="font-size:9px;opacity:0.6">500 · 50XP</span></button>
+      <button class="mode-btn active" id="mode-standard" onclick="setMode('standard')">STANDARD<br><span style="font-size:9px;opacity:0.6">1000 · 100XP</span></button>
+      <button class="mode-btn" id="mode-hard" onclick="setMode('hard')">HARD<br><span style="font-size:9px;opacity:0.6">1500 · 175XP</span></button>
+    </div>
+
+    <div class="touch-card">
+      <div>
+        <div class="touch-num" id="touchCount">0</div>
+        <div class="touch-label">TOTAL TOUCHES</div>
+        <div class="touch-target">TARGET: <span id="touchTarget">1,000</span></div>
+      </div>
+      <div class="counter-btns">
+        <button class="cnt-btn plus" onclick="adjustTouches(50)">+50</button>
+        <button class="cnt-btn" onclick="adjustTouches(-50)">-50</button>
+      </div>
+    </div>
+
+    <div class="juggle-row">
+      <div>
+        <div class="juggle-label">JUGGLE HIGH SCORE</div>
+        <div class="juggle-sub">Not in a row · Log your best</div>
+      </div>
+      <input class="juggle-input" id="juggleScore" type="number" min="0" placeholder="0" inputmode="numeric">
+    </div>
+
+    <div class="section-label">SKILLS PRACTICED</div>
+    <div class="skills-grid" id="skillsGrid"></div>
+
+    <button class="log-btn" id="logBtn" onclick="logSession()">
+      <span>LOG SESSION</span>
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div style="height:16px"></div>
+  </div>
+
+  <!-- PROFILE SCREEN -->
+  <div class="screen" id="screen-profile">
+    <div class="status-bar">
+      <span class="status-time" id="clockProfile">9:41</span>
+      <span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--text3);font-weight:600">PROFILE</span>
+    </div>
+    <div class="profile-hero">
+      <div class="profile-avatar"><span id="profileAvatar">M</span></div>
+      <div>
+        <div class="profile-name" id="profileName">MADDEN</div>
+        <div class="profile-club" id="profileClub">AZ ARSENAL</div>
+        <div class="profile-rank"><span class="rank-chip" id="profileRank">GRASSROOTS</span></div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-num" id="statStreak">0</div><div class="stat-lbl">DAY STREAK</div></div>
+      <div class="stat-box"><div class="stat-num" id="statTouches">0</div><div class="stat-lbl">TOTAL TOUCHES</div></div>
+      <div class="stat-box"><div class="stat-num" id="statSessions">0</div><div class="stat-lbl">SESSIONS</div></div>
+    </div>
+    <div class="week-chart">
+      <div class="section-label" style="padding:0;margin:0 0 12px">THIS WEEK</div>
+      <div class="week-bars" id="weekBars"></div>
+      <div style="display:flex;gap:6px" id="weekLabels"></div>
+    </div>
+    <div class="section-label">BADGES</div>
+    <div class="badges-grid" id="badgesGrid"></div>
+    <div style="height:8px"></div>
+  </div>
+
+  <!-- SKILLS SCREEN -->
+  <div class="screen" id="screen-skills">
+    <div class="status-bar">
+      <span class="status-time" id="clockSkills">9:41</span>
+      <span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--text3);font-weight:600">SKILLS</span>
+    </div>
+    <div class="section-label" style="margin-top:8px">BALL MASTERY</div>
+    <div id="skillListBM"></div>
+    <div class="section-label">MOVEMENT COMBOS</div>
+    <div id="skillListMV"></div>
+    <div class="section-label">PASSING</div>
+    <div id="skillListPS"></div>
+    <div style="height:8px"></div>
+  </div>
+
+  <!-- CREW SCREEN -->
+  <div class="screen" id="screen-crew">
+    <div class="status-bar">
+      <span class="status-time" id="clockCrew">9:41</span>
+      <span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--text3);font-weight:600">CREW</span>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;gap:12px">
+      <div style="font-size:40px">⚽</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px">CREW COMING SOON</div>
+      <div style="font-family:'Barlow',sans-serif;font-size:14px;color:var(--text3);line-height:1.6">Challenge your teammates, see who's on a streak, and hold each other accountable.</div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-home" onclick="switchTab('home')">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="9" stroke="#f97316" stroke-width="1.5"/><path d="M11 7V11L14 13" stroke="#f97316" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span>TODAY</span>
+    </div>
+    <div class="nav-item" id="nav-profile" onclick="switchTab('profile')">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="9" r="4" stroke="#4a6080" stroke-width="1.5"/><path d="M4 19C4 15.7 7.1 13 11 13C14.9 13 18 15.7 18 19" stroke="#4a6080" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span>PROFILE</span>
+    </div>
+    <div class="nav-item" id="nav-skills" onclick="switchTab('skills')">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="3" width="7" height="7" rx="2" stroke="#4a6080" stroke-width="1.5"/><rect x="12" y="3" width="7" height="7" rx="2" stroke="#4a6080" stroke-width="1.5"/><rect x="3" y="12" width="7" height="7" rx="2" stroke="#4a6080" stroke-width="1.5"/><rect x="12" y="12" width="7" height="7" rx="2" stroke="#4a6080" stroke-width="1.5"/></svg>
+      <span>SKILLS</span>
+    </div>
+    <div class="nav-item" id="nav-crew" onclick="switchTab('crew')">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 6H19M3 11H19M3 16H13" stroke="#4a6080" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span>CREW</span>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────
+const SB_URL = 'https://zrdtwiuekozfteaurrzp.supabase.co';
+const SB_KEY = 'sb_publishable_KFpa8NmzxgtF_r2UX2se_Q_8UoN1hbc';
+
+const RANKS = [
+  {name:'GRASSROOTS', min:0,    max:500,  color:'#6b7280'},
+  {name:'REC',        min:500,  max:1500, color:'#84cc16'},
+  {name:'SELECT',     min:1500, max:3500, color:'#06b6d4'},
+  {name:'ACADEMY',    min:3500, max:7000, color:'#6366f1'},
+  {name:'ECNL',       min:7000, max:13000,color:'#f97316'},
+  {name:'MLS NEXT',   min:13000,max:22000,color:'#eab308'},
+  {name:'PRO',        min:22000,max:99999,color:'#22c55e'},
+];
+
+const MODES = {
+  easy:     {target:500,  xp:50,  label:'500 touches'},
+  standard: {target:1000, xp:100, label:'1,000 touches'},
+  hard:     {target:1500, xp:175, label:'1,500 touches'},
+};
+
+const SESSION_SKILLS = {
+  home: {
+    mastery: ['V Poles','Pull Push','Sole Rolls','Outside-Inside','L Turns','Lacrosse','Step Overs','Maradonas','Toe Taps'],
+    movement: ['Outside Cuts','Outside Scissors','L Turn + Drag Back','Scissor Feint + Step Over'],
+    passing: ['Wall Pass - 1 Touch','Wall Pass - 2 Touch','Partner Passing'],
+  },
+  training: {
+    mastery: ['V Poles','Pull Push','Sole Rolls','Outside-Inside','L Turns','Lacrosse','Step Overs','Maradonas','Toe Taps'],
+    movement: ['Power Shot','Finesse Shot','Passing Shot','1v1 to 5'],
+    passing: ['Wall Pass - 1 Touch','Wall Pass - 2 Touch','Partner Passing'],
+  },
+  travel: {
+    mastery: ['V Poles','Pull Push','Sole Rolls','Outside-Inside','L Turns','Lacrosse'],
+    movement: ['Step Over to Lacrosse','Scissor to Maradona','L Turn to Drag Back','Sole Roll L Turn','Body Feint + Push'],
+    body: ['Lateral Jumps','Skiers','Single-Leg Balance','Hop + Control'],
+  },
+};
+
+const BADGES = [
+  {id:'streak7',   emoji:'🔥', name:'7 Day Streak',  desc:'Log 7 days in a row'},
+  {id:'touches1k', emoji:'👟', name:'1K Touches',    desc:'Log 1,000 total touches'},
+  {id:'touches10k',emoji:'⚡', name:'10K Touches',   desc:'Log 10,000 total touches'},
+  {id:'sessions10',emoji:'🏟️', name:'10 Sessions',   desc:'Complete 10 sessions'},
+  {id:'hardmode',  emoji:'💪', name:'Hard Mode',     desc:'Complete a Hard mode session'},
+  {id:'streak30',  emoji:'🌟', name:'30 Day Streak', desc:'Log 30 days in a row'},
+];
+
+// ─── STATE ────────────────────────────────────────────────
+let currentUser = null;   // Supabase user
+let currentPlayer = null; // player profile object
+let todayTouches = 0;
+let selectedSkills = new Set();
+let currentMode = 'standard';
+let currentSessionType = 'home';
+let pinBuffer = '';
+let pendingPlayer = null;
+
+// ─── SUPABASE HELPERS ─────────────────────────────────────
+async function sb(path, opts={}) {
+  const r = await fetch(`${SB_URL}/rest/v1/${path}`, {
+    headers: {
+      'apikey': SB_KEY,
+      'Authorization': `Bearer ${currentUser?.access_token || SB_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': opts.prefer || 'return=representation',
+      ...opts.headers
+    },
+    ...opts
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.status === 204 ? null : r.json();
+}
+
+async function sbAuth(path, body) {
+  const r = await fetch(`${SB_URL}/auth/v1/${path}`, {
+    method: 'POST',
+    headers: {'apikey': SB_KEY, 'Content-Type': 'application/json'},
+    body: JSON.stringify(body)
+  });
+  return r.json();
+}
+
+// ─── AUTH ─────────────────────────────────────────────────
+async function init() {
+  // Check stored session
+  const stored = localStorage.getItem('sfc_session');
+  if (stored) {
+    try {
+      currentUser = JSON.parse(stored);
+      // Verify token still valid
+      const res = await fetch(`${SB_URL}/auth/v1/user`, {
+        headers: {'apikey': SB_KEY, 'Authorization': `Bearer ${currentUser.access_token}`}
+      });
+      if (res.ok) {
+        showPlayerSelect();
+        return;
+      }
+    } catch(e) {}
+    localStorage.removeItem('sfc_session');
+  }
+  // Check URL for magic link token
+  const hash = window.location.hash;
+  if (hash.includes('access_token')) {
+    const params = new URLSearchParams(hash.slice(1));
+    currentUser = {
+      access_token: params.get('access_token'),
+      refresh_token: params.get('refresh_token'),
+    };
+    localStorage.setItem('sfc_session', JSON.stringify(currentUser));
+    window.history.replaceState({}, '', '/');
+    showPlayerSelect();
+    return;
+  }
+  document.getElementById('auth-screen').style.display = 'flex';
+}
+
+async function sendMagicLink() {
+  const email = document.getElementById('authEmail').value.trim();
+  if (!email) return;
+  const msg = document.getElementById('authMsg');
+  msg.textContent = 'Sending...';
+  const res = await sbAuth('magiclink', {email, options:{emailRedirectTo: window.location.origin}});
+  if (res.error) {
+    msg.innerHTML = `<span style="color:#f87171">${res.error.message}</span>`;
+  } else {
+    msg.innerHTML = '✅ Check your email for the link!<br><span style="color:var(--text3);font-size:12px">Tap it on this device to sign in</span>';
+  }
+}
+
+async function signOut() {
+  localStorage.removeItem('sfc_session');
+  localStorage.removeItem('sfc_player');
+  currentUser = null;
+  currentPlayer = null;
+  document.getElementById('player-select').classList.remove('active');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+}
+
+// ─── PLAYER SELECT ────────────────────────────────────────
+async function showPlayerSelect() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('pin-screen').classList.remove('active');
+  document.getElementById('app').style.display = 'none';
+  const ps = document.getElementById('player-select');
+  ps.classList.add('active');
+
+  // Load players for this account
+  let players = [];
+  try {
+    players = await sb(`profiles?parent_id=eq.${encodeURIComponent(currentUser.access_token)}&order=name`, {method:'GET'});
+  } catch(e) {
+    // Fallback to seeded players
+    players = getSeededPlayers();
+  }
+  if (!players || players.length === 0) players = getSeededPlayers();
+
+  const grid = document.getElementById('playerGrid');
+  grid.innerHTML = '';
+  players.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'player-card';
+    card.innerHTML = `
+      <div class="player-avatar"><span>${p.name[0].toUpperCase()}</span></div>
+      <div class="player-info">
+        <div class="player-name">${p.name.toUpperCase()}</div>
+        <div class="player-meta">${p.club || 'NO CLUB'} · ${getRank(p.xp||0).name}</div>
+      </div>
+      <div class="player-streak">🔥${p.streak||0}</div>
+    `;
+    card.onclick = () => selectPlayer(p);
+    grid.appendChild(card);
+  });
+}
+
+function getSeededPlayers() {
+  return [
+    {id:'madden',  name:'Madden',  club:'AZ Arsenal', pin:'1234', xp:1240, streak:7,  total_touches:4820, sessions:12},
+    {id:'caysen',  name:'Caysen',  club:'AZ Arsenal', pin:'2345', xp:890,  streak:5,  total_touches:3200, sessions:8},
+    {id:'emmitt',  name:'Emmitt',  club:'AZ Arsenal', pin:'3456', xp:450,  streak:3,  total_touches:1800, sessions:5},
+  ];
+}
+
+function selectPlayer(player) {
+  pendingPlayer = player;
+  document.getElementById('player-select').classList.remove('active');
+  document.getElementById('pin-screen').classList.add('active');
+  document.getElementById('pinName').textContent = `HEY ${player.name.toUpperCase()}`;
+  document.getElementById('pinError').textContent = '';
+  pinBuffer = '';
+  updatePinDots();
+}
+
+// ─── PIN ──────────────────────────────────────────────────
+function pinTap(d) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += d;
+  updatePinDots();
+  if (pinBuffer.length === 4) setTimeout(checkPin, 100);
+}
+
+function pinDel() {
+  pinBuffer = pinBuffer.slice(0,-1);
+  updatePinDots();
+  document.getElementById('pinError').textContent = '';
+}
+
+function updatePinDots() {
+  for (let i=0;i<4;i++) {
+    document.getElementById(`d${i}`).classList.toggle('filled', i < pinBuffer.length);
+  }
+}
+
+function checkPin() {
+  if (pinBuffer === String(pendingPlayer.pin)) {
+    currentPlayer = pendingPlayer;
+    localStorage.setItem('sfc_player', JSON.stringify(currentPlayer));
+    document.getElementById('pin-screen').classList.remove('active');
+    loadApp();
+  } else {
+    document.getElementById('pinError').textContent = 'Wrong PIN - try again';
+    pinBuffer = '';
+    updatePinDots();
+  }
+}
+
+// ─── APP LOAD ─────────────────────────────────────────────
+async function loadApp() {
+  document.getElementById('app').style.display = 'flex';
+  updateClock();
+  setInterval(updateClock, 60000);
+  renderHome();
+  renderProfile();
+  renderSkillsList();
+  checkOnline();
+  window.addEventListener('online', checkOnline);
+  window.addEventListener('offline', checkOnline);
+}
+
+function updateClock() {
+  const t = new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+  ['Home','Profile','Skills','Crew'].forEach(s => {
+    const el = document.getElementById(`clock${s}`);
+    if (el) el.textContent = t;
+  });
+}
+
+function checkOnline() {
+  document.getElementById('offlineBar').classList.toggle('show', !navigator.onLine);
+}
+
+// ─── HOME RENDER ──────────────────────────────────────────
+function renderHome() {
+  const p = currentPlayer;
+  document.getElementById('homeAvatar').textContent = p.name[0].toUpperCase();
+  document.getElementById('homeStreakBadge').textContent = `🔥${p.streak||0}`;
+  document.getElementById('homeSubLabel').textContent = getTodayLabel();
+
+  const rank = getRank(p.xp||0);
+  document.getElementById('rankChip').textContent = rank.name;
+  document.getElementById('rankChip').style.color = rank.color;
+  document.getElementById('rankChip').style.borderColor = rank.color + '55';
+  document.getElementById('rankChip').style.background = rank.color + '22';
+
+  const nextRank = RANKS[RANKS.indexOf(rank)+1];
+  const progress = nextRank ? ((p.xp - rank.min) / (nextRank.min - rank.min) * 100) : 100;
+  document.getElementById('xpFill').style.width = Math.min(100, progress) + '%';
+  document.getElementById('xpCount').textContent = `${(p.xp||0).toLocaleString()} / ${(nextRank?.min||rank.max).toLocaleString()} XP`;
+
+  setMode(currentMode);
+  setSessionType(currentSessionType);
+}
+
+function getTodayLabel() {
+  return new Date().toLocaleDateString([],{weekday:'long',month:'short',day:'numeric'}).toUpperCase();
+}
+
+function getRank(xp) {
+  return RANKS.slice().reverse().find(r => xp >= r.min) || RANKS[0];
+}
+
+function setMode(m) {
+  currentMode = m;
+  Object.keys(MODES).forEach(k => document.getElementById(`mode-${k}`).classList.toggle('active', k===m));
+  document.getElementById('touchTarget').textContent = MODES[m].target.toLocaleString();
+}
+
+function setSessionType(t) {
+  currentSessionType = t;
+  ['home','training','travel'].forEach(s => document.getElementById(`stype-${s}`).classList.toggle('active', s===t));
+  renderSkillChips();
+}
+
+function renderSkillChips() {
+  const skills = SESSION_SKILLS[currentSessionType];
+  const allSkills = [...(skills.mastery||[]), ...(skills.movement||[]), ...(skills.passing||[]), ...(skills.body||[])];
+  const grid = document.getElementById('skillsGrid');
+  grid.innerHTML = '';
+  allSkills.forEach(s => {
+    const done = selectedSkills.has(s);
+    const chip = document.createElement('div');
+    chip.className = 'skill-chip' + (done ? ' done' : '');
+    chip.innerHTML = `<div class="skill-check">${done?'<svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5L4 7L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>':''}</div><span>${s}</span>`;
+    chip.onclick = () => toggleSkill(s, chip);
+    grid.appendChild(chip);
+  });
+}
+
+function toggleSkill(s, el) {
+  if (selectedSkills.has(s)) {
+    selectedSkills.delete(s);
+    el.classList.remove('done');
+    el.querySelector('.skill-check').innerHTML = '';
+  } else {
+    selectedSkills.add(s);
+    el.classList.add('done');
+    el.querySelector('.skill-check').innerHTML = '<svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5L4 7L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>';
+  }
+}
+
+function adjustTouches(n) {
+  todayTouches = Math.max(0, todayTouches + n);
+  document.getElementById('touchCount').textContent = todayTouches.toLocaleString();
+}
+
+// ─── LOG SESSION ──────────────────────────────────────────
+async function logSession() {
+  if (todayTouches === 0) {
+    showToast('Add some touches first!', 'error');
+    return;
+  }
+  const btn = document.getElementById('logBtn');
+  btn.disabled = true;
+
+  const mode = currentMode;
+  const xpEarned = MODES[mode].xp;
+  const juggle = parseInt(document.getElementById('juggleScore').value) || 0;
+  const today = new Date().toISOString().slice(0,10);
+
+  const session = {
+    player_id: currentPlayer.id,
+    date: today,
+    touches: todayTouches,
+    juggle_high: juggle,
+    skills: [...selectedSkills],
+    mode: mode,
+    session_type: currentSessionType,
+    xp_earned: xpEarned,
+  };
+
+  try {
+    await sb('sessions', {method:'POST', body: JSON.stringify(session)});
+  } catch(e) {
+    // Queue offline
+    queueOffline(session);
+  }
+
+  // Update player XP + streak locally
+  currentPlayer.xp = (currentPlayer.xp||0) + xpEarned;
+  currentPlayer.streak = (currentPlayer.streak||0) + 1;
+  currentPlayer.total_touches = (currentPlayer.total_touches||0) + todayTouches;
+  currentPlayer.sessions = (currentPlayer.sessions||0) + 1;
+
+  // Update in Supabase
+  try {
+    await sb(`profiles?id=eq.${currentPlayer.id}`, {
+      method:'PATCH',
+      body: JSON.stringify({xp: currentPlayer.xp, streak: currentPlayer.streak, total_touches: currentPlayer.total_touches, sessions: currentPlayer.sessions}),
+      prefer: 'return=minimal'
+    });
+  } catch(e) {}
+
+  checkBadges();
+  showToast(`+${xpEarned} XP · STREAK SAVED 🔥`, 'success');
+
+  // Reset
+  todayTouches = 0;
+  selectedSkills.clear();
+  document.getElementById('touchCount').textContent = '0';
+  document.getElementById('juggleScore').value = '';
+  renderSkillChips();
+  renderHome();
+  renderProfile();
+  btn.disabled = false;
+}
+
+function queueOffline(session) {
+  const q = JSON.parse(localStorage.getItem('sfc_queue')||'[]');
+  q.push(session);
+  localStorage.setItem('sfc_queue', JSON.stringify(q));
+}
+
+// ─── BADGES ───────────────────────────────────────────────
+function checkBadges() {
+  const p = currentPlayer;
+  const earned = JSON.parse(localStorage.getItem(`sfc_badges_${p.id}`)||'[]');
+  const newBadges = [];
+  if (p.streak >= 7 && !earned.includes('streak7')) { earned.push('streak7'); newBadges.push('🔥 7 Day Streak!'); }
+  if (p.total_touches >= 1000 && !earned.includes('touches1k')) { earned.push('touches1k'); newBadges.push('👟 1K Touches!'); }
+  if (p.total_touches >= 10000 && !earned.includes('touches10k')) { earned.push('touches10k'); newBadges.push('⚡ 10K Touches!'); }
+  if (p.sessions >= 10 && !earned.includes('sessions10')) { earned.push('sessions10'); newBadges.push('🏟️ 10 Sessions!'); }
+  if (currentMode === 'hard' && !earned.includes('hardmode')) { earned.push('hardmode'); newBadges.push('💪 Hard Mode!'); }
+  if (p.streak >= 30 && !earned.includes('streak30')) { earned.push('streak30'); newBadges.push('🌟 30 Day Streak!'); }
+  localStorage.setItem(`sfc_badges_${p.id}`, JSON.stringify(earned));
+  if (newBadges.length) setTimeout(() => showToast('BADGE: ' + newBadges[0], 'success'), 1500);
+}
+
+// ─── PROFILE RENDER ───────────────────────────────────────
+function renderProfile() {
+  const p = currentPlayer;
+  document.getElementById('profileAvatar').textContent = p.name[0].toUpperCase();
+  document.getElementById('profileName').textContent = p.name.toUpperCase();
+  document.getElementById('profileClub').textContent = (p.club||'').toUpperCase();
+  const rank = getRank(p.xp||0);
+  document.getElementById('profileRank').textContent = rank.name;
+  document.getElementById('statStreak').textContent = p.streak||0;
+  document.getElementById('statTouches').textContent = ((p.total_touches||0)/1000).toFixed(1)+'K';
+  document.getElementById('statSessions').textContent = p.sessions||0;
+  renderWeekChart();
+  renderBadges();
+}
+
+function renderWeekChart() {
+  const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  const today = new Date().getDay();
+  const bars = document.getElementById('weekBars');
+  const labels = document.getElementById('weekLabels');
+  bars.innerHTML = ''; labels.innerHTML = '';
+  // Placeholder data - real data loads from sessions table
+  const mockData = [200,800,1200,500,1000,0,0];
+  const max = Math.max(...mockData, 1);
+  for (let i=0; i<7; i++) {
+    const pct = (mockData[i]/max)*100;
+    const isToday = i === today;
+    const bw = document.createElement('div');
+    bw.className = 'week-bar-wrap';
+    bw.innerHTML = `<div style="flex:1;display:flex;align-items:flex-end;width:100%"><div class="week-bar${isToday?' today':''}" style="height:${pct||4}%"></div></div>`;
+    bars.appendChild(bw);
+    const lbl = document.createElement('div');
+    lbl.style.flex = '1';
+    lbl.style.textAlign = 'center';
+    lbl.innerHTML = `<div class="week-day${isToday?' today':''}">${days[i]}</div>`;
+    labels.appendChild(lbl);
+  }
+}
+
+function renderBadges() {
+  const earned = JSON.parse(localStorage.getItem(`sfc_badges_${currentPlayer.id}`)||'[]');
+  const grid = document.getElementById('badgesGrid');
+  grid.innerHTML = '';
+  BADGES.forEach(b => {
+    const isEarned = earned.includes(b.id);
+    const item = document.createElement('div');
+    item.className = 'badge-item';
+    item.innerHTML = `<div class="badge-icon ${isEarned?'earned':'locked'}">${b.emoji}</div><div class="badge-name">${b.name}</div>`;
+    grid.appendChild(item);
+  });
+}
+
+// ─── SKILLS LIST ──────────────────────────────────────────
+function renderSkillsList() {
+  const skills = {
+    mastery: ['Toe Taps','V Poles','Pull Push','Sole Rolls','Outside-Inside (Both Feet)','L Turns','Lacrosse','Step Overs','Maradonas'],
+    movement: ['Outside Cuts','Outside Scissors','L Turn + Drag Back','Scissor Feint + Step Over','Step Over to Lacrosse','Scissor to Maradona','Sole Roll L Turn','Body Feint + Push'],
+    passing: ['Wall Pass - 1 Touch','Wall Pass - 2 Touch','Partner Passing - Alternate Feet','1v1 Game'],
+  };
+  [['BM','mastery'],['MV','movement'],['PS','passing']].forEach(([id, key]) => {
+    const el = document.getElementById(`skillList${id}`);
+    el.innerHTML = '';
+    skills[key].forEach(s => {
+      const item = document.createElement('div');
+      item.className = 'skill-list-item';
+      item.innerHTML = `<div class="skill-list-name">${s}</div>`;
+      el.appendChild(item);
+    });
+  });
+}
+
+// ─── NAV ─────────────────────────────────────────────────
+function switchTab(tab) {
+  ['home','profile','skills','crew'].forEach(t => {
+    document.getElementById(`screen-${t}`).classList.toggle('active', t===tab);
+    document.getElementById(`nav-${t}`).classList.toggle('active', t===tab);
+    // swap nav icon colors
+    const navEl = document.getElementById(`nav-${t}`);
+    navEl.querySelectorAll('path,circle,rect').forEach(el => {
+      el.setAttribute('stroke', t===tab ? '#f97316' : '#4a6080');
+    });
+  });
+}
+
+// ─── TOAST ────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ─── SERVICE WORKER ───────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+}
+
+// ─── START ────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
