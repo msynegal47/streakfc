@@ -368,8 +368,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .logout-btn{background:none;border:1px solid var(--border);border-radius:8px;color:var(--sub);font-size:10px;padding:6px 10px;cursor:pointer;letter-spacing:1px}
 
 /* Screen content */
-.app-screens{flex:1;overflow:hidden;position:relative}
-.app-screen{display:none;height:100%;overflow-y:auto;flex-direction:column;
+.app-screens{flex:1;overflow:hidden;position:relative;min-height:0}
+.app-screen{display:none;position:absolute;inset:0;overflow-y:auto;flex-direction:column;
   padding-bottom:calc(60px + env(safe-area-inset-bottom,0px))}
 .app-screen.active{display:flex}
 
@@ -1406,6 +1406,17 @@ function launchApp() {
   window.addEventListener('online', checkOnline);
   window.addEventListener('offline', checkOnline);
 }
+
+// ─── KEYBOARD INPUT FOR PIN ─────────────────────────
+document.addEventListener('keydown', e => {
+  // Active PIN keypad = player-pin screen showing the keypad
+  const pinScreen = document.getElementById('player-pin');
+  const keypad = document.getElementById('playerPinKeypad');
+  if (!pinScreen || pinScreen.style.display === 'none' || !pinScreen.classList.contains('active')) return;
+  if (!keypad || keypad.style.display === 'none') return;
+  if (e.key >= '0' && e.key <= '9') { ppTap(e.key); e.preventDefault(); }
+  else if (e.key === 'Backspace') { ppDel(); e.preventDefault(); }
+});
 
 function exitToPlayerSelect() {
   document.getElementById('app').style.display = 'none';
