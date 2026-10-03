@@ -1,4 +1,4 @@
-const CACHE = 'streakfc-v2';
+const CACHE = 'streakfc-v3';
 const OFFLINE_URLS = ['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png'];
 
 self.addEventListener('install', e => {

@@ -299,7 +299,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
   align-items:center;justify-content:flex-start;padding:0;
 }
 .ps-header {
-  width:100%;padding:calc(env(safe-area-inset-top,20px)+12px) 20px 16px;
+  width:100%;padding:calc(env(safe-area-inset-top,20px) + 12px) 20px 16px;
   background:var(--bg2);border-bottom:1px solid var(--border);
 }
 .ps-logo{font-size:18px;font-weight:900;letter-spacing:-1px;
@@ -357,7 +357,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 
 /* Top bar */
 .top-bar {
-  padding:calc(env(safe-area-inset-top,20px)+8px) 16px 10px;
+  padding:calc(env(safe-area-inset-top,20px) + 8px) 16px 10px;
   display:flex;align-items:center;justify-content:space-between;
   background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;
 }
@@ -549,7 +549,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .skills-section-title{font-size:11px;color:var(--sub);letter-spacing:3px;text-transform:uppercase;padding:0 2px}
 .skill-list-item{
   background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;
+  display:flex;align-items:center;gap:10px;cursor:pointer;
 }
+.skill-list-item:active{background:var(--bg3)}
+.skill-list-item.done{border-color:var(--green);background:rgba(34,197,94,.08)}
+.skill-list-check{font-size:10px;font-weight:800;letter-spacing:1px;color:var(--sub)}
+.skill-list-item.done .skill-list-check{color:var(--green)}
 .skill-list-name{font-size:14px;font-weight:700}
 .skill-list-meta{font-size:11px;color:var(--sub);margin-top:3px}
 
@@ -568,6 +573,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .crew-name{font-size:15px;font-weight:700}
 .crew-rank{font-size:11px;color:var(--sub);margin-top:2px}
 .crew-streak{font-size:12px;font-weight:700;color:var(--accent);margin-left:auto}
+
+/* Clear the fixed bottom nav on every tab (must come after the per-screen padding rules) */
+#screen-home{padding:0}
+#screen-home,#screen-profile,#screen-skills,#screen-crew{
+  padding-bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+}
+.app-screen > *{flex-shrink:0}
 
 /* ── OFFLINE BAR ── */
 .offline-bar{
@@ -616,7 +629,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
   <div class="path-card parent-path" onclick="showParentAuth()">
     <div class="path-card-icon">👋</div>
     <div class="path-card-title">PARENT / COACH</div>
-    <div class="path-card-desc">Sign in with magic link to manage your crew, set PINs, and track progress.</div>
+    <div class="path-card-desc">Sign in with an email code to manage your crew, set PINs, and track progress.</div>
   </div>
 </div>
 
@@ -668,9 +681,18 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
     <div class="auth-logo">STREAKFC</div>
     <div class="auth-eyebrow">Parent / Coach</div>
     <div class="auth-title">Welcome back</div>
-    <div class="auth-desc">Enter your email and we'll send you a magic link. No password needed.</div>
-    <input class="auth-input" id="emailInput" type="email" inputmode="email" placeholder="your@email.com" autocomplete="email">
-    <button class="auth-btn" id="sendBtn" onclick="sendMagicLink()">SEND MAGIC LINK</button>
+    <div class="auth-desc" id="authDesc">Enter your email. We'll send a sign-in code. Type it here - don't tap the link in the email.</div>
+    <input class="auth-input" id="emailInput" type="email" inputmode="email" placeholder="your@email.com" autocomplete="email"
+      onkeydown="if(event.key==='Enter')sendMagicLink()">
+    <button class="auth-btn" id="sendBtn" onclick="sendMagicLink()">SEND CODE</button>
+    <div id="codeWrap" style="display:none;width:100%;flex-direction:column;gap:12px">
+      <input class="auth-input" id="codeInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8"
+        autocomplete="one-time-code" placeholder="Code from email"
+        style="text-align:center;font-size:24px;font-weight:800;letter-spacing:8px"
+        oninput="this.value=this.value.replace(/\D/g,'')"
+        onkeydown="if(event.key==='Enter')verifyCode()">
+      <button class="auth-btn" id="verifyBtn" onclick="verifyCode()">SIGN IN</button>
+    </div>
     <div class="auth-status" id="authStatus"></div>
   </div>
 </div>
@@ -802,7 +824,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
         <div class="juggle-card">
           <div class="juggle-icon">🎯</div>
           <div class="juggle-label">Today's juggle count</div>
-          <input class="juggle-input" id="juggleToday" type="number" inputmode="numeric" placeholder="0" min="0">
+          <input class="juggle-input" id="juggleToday" type="number" inputmode="numeric" placeholder="0" min="0" oninput="saveWip()">
           <div class="juggle-pb-badge" id="jugglePbBadge">PB: --</div>
         </div>
         <!-- Difficulty -->
@@ -1025,13 +1047,27 @@ async function getUserId() {
 }
 
 // ─── SCREEN ROUTING ───────────────────────────────────
-function showScreen(id) {
+function hideAllScreens() {
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  const el = document.getElementById(id);
-  if (el) el.classList.add('active');
-  // hide pin-screen when navigating away
   document.getElementById('pin-screen').style.display='none';
   document.getElementById('app').style.display='none';
+}
+function showScreen(id) {
+  hideAllScreens();
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
+
+// Overlay per-device stats on top of the roster (pin from roster wins)
+function mergeLocal(list) {
+  return list.map(p => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(`sfc_playerdata_${p.id}`)||'null');
+      return stored ? {...stored, ...p, xp:Math.max(p.xp||0,stored.xp||0), streak:Math.max(p.streak||0,stored.streak||0),
+        total_touches:Math.max(p.total_touches||0,stored.total_touches||0), sessions:Math.max(p.sessions||0,stored.sessions||0),
+        juggle_pb:Math.max(p.juggle_pb||0,stored.juggle_pb||0)} : p;
+    } catch(e) { return p; }
+  });
 }
 
 // ─── LANDING ACTIONS ──────────────────────────────────
@@ -1040,10 +1076,7 @@ function showPlayerPinEntry() {
   const storedPlayers = localStorage.getItem('sfc_players');
   const allPlayers = storedPlayers ? JSON.parse(storedPlayers) : getSeededPlayers();
   // Merge stored stats
-  players = allPlayers.map(p => {
-    const stored = localStorage.getItem(`sfc_playerdata_${p.id}`);
-    return stored ? {...p, ...JSON.parse(stored)} : p;
-  });
+  players = mergeLocal(allPlayers);
   showScreen('player-pin');
   renderPlayerPinCards();
 }
@@ -1069,7 +1102,7 @@ function renderPlayerPinCards() {
       <div class="player-pin-avatar" style="background:${color}">${p.name[0]}</div>
       <div class="player-pin-info">
         <div class="player-pin-name">${p.name.toUpperCase()}</div>
-        <div class="player-pin-club">${p.club||'AZ Arsenal'} · 🔥${p.streak||0}</div>
+        <div class="player-pin-club">${p.club||'AZ Arsenal'} · 🔥${liveStreak(p)}</div>
       </div>
       <div class="player-pin-arrow">›</div>
     `;
@@ -1122,7 +1155,6 @@ function checkPP() {
   if (ppBuffer === String(ppPendingPlayer.pin)) {
     currentPlayer = ppPendingPlayer;
     localStorage.setItem('sfc_player', JSON.stringify(currentPlayer));
-    showScreen('landing'); // hide screens
     launchApp();
   } else {
     document.getElementById('ppError').textContent = 'Wrong PIN - try again';
@@ -1140,27 +1172,77 @@ async function sendMagicLink() {
     return;
   }
   const btn = document.getElementById('sendBtn');
+  const status = document.getElementById('authStatus');
   btn.disabled = true;
   btn.textContent = 'SENDING...';
   try {
-    const res = await fetch(`${SB_URL}/auth/v1/magiclink`, {
+    const res = await fetch(`${SB_URL}/auth/v1/otp`, {
       method:'POST',
       headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
-      body: JSON.stringify({email}),
+      body: JSON.stringify({email, create_user:true}),
     });
-    if (res.ok) {
-      document.getElementById('authStatus').textContent = '✓ Check your email for the magic link!';
-      document.getElementById('authStatus').style.color = 'var(--green)';
-      btn.textContent = 'RESEND';
-    } else {
-      throw new Error();
-    }
+    if (res.status === 429) throw new Error('Too many requests - wait a minute and try again');
+    if (!res.ok) throw new Error('Error sending - try again');
+    status.textContent = '✓ Code sent. Check your email, then type it below.';
+    status.style.color = 'var(--green)';
+    btn.textContent = 'RESEND CODE';
+    btn.style.background = 'var(--bg3)';
+    const cw = document.getElementById('codeWrap');
+    cw.style.display = 'flex';
+    setTimeout(()=>document.getElementById('codeInput').focus(), 100);
   } catch(e) {
-    document.getElementById('authStatus').textContent = 'Error sending - try again';
-    document.getElementById('authStatus').style.color = 'var(--red)';
-    btn.textContent = 'SEND MAGIC LINK';
+    status.textContent = e.message || 'Error sending - try again';
+    status.style.color = 'var(--red)';
+    btn.textContent = 'SEND CODE';
   }
   btn.disabled = false;
+}
+
+async function verifyCode() {
+  const email = document.getElementById('emailInput').value.trim();
+  const token = document.getElementById('codeInput').value.replace(/\D/g,'');
+  const status = document.getElementById('authStatus');
+  const btn = document.getElementById('verifyBtn');
+  if (token.length < 6) { status.textContent = 'Enter the full code'; status.style.color='var(--red)'; return; }
+  if (btn.disabled) return;
+  btn.disabled = true; btn.textContent = 'SIGNING IN...';
+  try {
+    const res = await fetch(`${SB_URL}/auth/v1/verify`, {
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+      body: JSON.stringify({type:'email', email, token}),
+    });
+    const data = await res.json().catch(()=>({}));
+    if (!res.ok || !data.access_token) throw new Error(data.msg || data.error_description || 'Code invalid or expired');
+    saveSession(data);
+    document.getElementById('codeInput').value = '';
+    status.textContent = '';
+    await loadParentPlayers();
+  } catch(e) {
+    status.textContent = e.message;
+    status.style.color = 'var(--red)';
+  }
+  btn.disabled = false; btn.textContent = 'SIGN IN';
+}
+
+function saveSession(d) {
+  currentUser = {access_token:d.access_token, refresh_token:d.refresh_token,
+    expires_at: d.expires_at || (Math.floor(Date.now()/1000) + (+d.expires_in||3600))};
+  localStorage.setItem('sfc_session', JSON.stringify(currentUser));
+}
+
+// Access tokens last 1h; refresh so parents stay signed in
+async function refreshSession() {
+  if (!currentUser?.refresh_token) return false;
+  try {
+    const res = await fetch(`${SB_URL}/auth/v1/token?grant_type=refresh_token`, {
+      method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+      body: JSON.stringify({refresh_token: currentUser.refresh_token}),
+    });
+    if (!res.ok) return false;
+    saveSession(await res.json());
+    return true;
+  } catch(e) { return false; }
 }
 
 // ─── INIT (handles magic link callback) ───────────────
@@ -1169,25 +1251,25 @@ async function init() {
   const hash = window.location.hash;
   if (hash.includes('access_token')) {
     const params = new URLSearchParams(hash.slice(1));
-    currentUser = {
+    saveSession({
       access_token: params.get('access_token'),
       refresh_token: params.get('refresh_token'),
-    };
-    localStorage.setItem('sfc_session', JSON.stringify(currentUser));
+      expires_in: params.get('expires_in'),
+    });
     window.history.replaceState({}, '', window.location.pathname);
     await loadParentPlayers();
     return;
   }
 
-  // Check stored session
+  // Check stored session (refresh if expired; offline keeps you signed in)
   const stored = localStorage.getItem('sfc_session');
   if (stored) {
     try {
       currentUser = JSON.parse(stored);
-      const res = await fetch(`${SB_URL}/auth/v1/user`, {
-        headers:{'apikey':SB_KEY,'Authorization':`Bearer ${currentUser.access_token}`}
-      });
-      if (res.ok) {
+      const expired = !currentUser.expires_at || currentUser.expires_at - 60 < Date.now()/1000;
+      let ok = !expired || await refreshSession();
+      if (!ok && !navigator.onLine) ok = true;
+      if (ok) {
         await loadParentPlayers();
         return;
       }
@@ -1201,7 +1283,6 @@ async function init() {
   if (storedPlayer) {
     try {
       currentPlayer = JSON.parse(storedPlayer);
-      showScreen('landing');
       launchApp();
       return;
     } catch(e) {}
@@ -1231,6 +1312,12 @@ async function loadParentPlayers() {
   } else {
     players = getSeededPlayers();
   }
+  const roster = JSON.parse(localStorage.getItem('sfc_players')||'null');
+  if (roster && players.every(p=>p.id in Object.fromEntries(roster.map(r=>[r.id,1])))) {
+    // keep parent-edited PINs
+    players = players.map(p => ({...p, pin:(roster.find(r=>r.id===p.id)||{}).pin || p.pin}));
+  }
+  players = mergeLocal(players);
   showParentPortal();
 }
 
@@ -1264,7 +1351,7 @@ function renderParentPortal() {
           <div class="kid-card-name">${p.name.toUpperCase()}</div>
           <div class="kid-card-rank">${rank.name} · ${(p.xp||0).toLocaleString()} XP</div>
         </div>
-        <div class="kid-card-streak">🔥${p.streak||0}</div>
+        <div class="kid-card-streak">🔥${liveStreak(p)}</div>
       </div>
       <div class="kid-stats">
         <div class="kid-stat"><div class="kid-stat-val">${p.sessions||0}</div><div class="kid-stat-lbl">SESSIONS</div></div>
@@ -1311,7 +1398,7 @@ function renderPlayerSelect() {
     const color = p.color || colors[p.id] || '#4fc3f7';
     const rank = getRank(p.xp||0);
     const nextRank = RANKS[RANKS.indexOf(rank)+1];
-    const progress = nextRank ? ((p.xp||0 - rank.min)/(nextRank.min - rank.min)*100) : 100;
+    const progress = nextRank ? (((p.xp||0) - rank.min)/(nextRank.min - rank.min)*100) : 100;
     const card = document.createElement('div');
     card.className = 'player-select-card';
     card.style.cssText = `--player-color:${color}`;
@@ -1323,7 +1410,7 @@ function renderPlayerSelect() {
         <div class="ps-meta">${p.club||'AZ Arsenal'} · ${rank.name}</div>
         <div class="ps-xp-bar-wrap"><div class="ps-xp-bar" style="width:${Math.min(100,Math.max(0,progress))}%;background:${color}"></div></div>
       </div>
-      <div class="ps-streak-badge">🔥${p.streak||0}</div>
+      <div class="ps-streak-badge">🔥${liveStreak(p)}</div>
     `;
     card.onclick = () => selectPlayer(p);
     body.appendChild(card);
@@ -1391,40 +1478,59 @@ function checkPin() {
 }
 
 // ─── APP LAUNCH ───────────────────────────────────────
+let appWired = false;
 function launchApp() {
   const colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
   const color = currentPlayer.color || colors[currentPlayer.id] || '#4fc3f7';
   document.documentElement.style.setProperty('--player-color', color);
+  hideAllScreens();
   document.getElementById('app').style.display = 'flex';
+  if (!appWired) {
+    appWired = true;
+    setInterval(updateClock, 60000);
+    window.addEventListener('online', checkOnline);
+    window.addEventListener('offline', checkOnline);
+  }
   updateClock();
-  setInterval(updateClock, 60000);
-  resetSession();
+  loadWip();
+  switchTab('home');
+  document.getElementById('screen-home').scrollTop = 0;
   renderHome();
   renderProfile();
   renderSkillsList();
+  renderCrew();
   checkOnline();
-  window.addEventListener('online', checkOnline);
-  window.addEventListener('offline', checkOnline);
 }
 
 // ─── KEYBOARD INPUT FOR PIN ─────────────────────────
 document.addEventListener('keydown', e => {
-  // Active PIN keypad = player-pin screen showing the keypad
-  const pinScreen = document.getElementById('player-pin');
-  const keypad = document.getElementById('playerPinKeypad');
-  if (!pinScreen || pinScreen.style.display === 'none' || !pinScreen.classList.contains('active')) return;
-  if (!keypad || keypad.style.display === 'none') return;
-  if (e.key >= '0' && e.key <= '9') { ppTap(e.key); e.preventDefault(); }
-  else if (e.key === 'Backspace') { ppDel(); e.preventDefault(); }
+  const isDigit = e.key >= '0' && e.key <= '9';
+  const isBack  = e.key === 'Backspace';
+  if (!isDigit && !isBack) return;
+
+  // pin-screen (player-select / parent flow)
+  const pinScrEl = document.getElementById('pin-screen');
+  if (pinScrEl && pinScrEl.style.display !== 'none' && pinScrEl.style.display !== '') {
+    if (isDigit) pinTap(e.key); else pinDel();
+    e.preventDefault(); return;
+  }
+
+  // player-pin screen (landing flow) - keypad visible
+  const ppScreen = document.getElementById('player-pin');
+  const ppKeypad = document.getElementById('playerPinKeypad');
+  if (ppScreen && ppScreen.classList.contains('active') && ppKeypad && ppKeypad.style.display !== 'none') {
+    if (isDigit) ppTap(e.key); else ppDel();
+    e.preventDefault();
+  }
 });
 
 function exitToPlayerSelect() {
-  document.getElementById('app').style.display = 'none';
+  localStorage.removeItem('sfc_player');
+  currentPlayer = null;
   if (currentUser) {
-    showScreen('player-select');
-    renderPlayerSelect();
+    showParentPortal();
   } else {
-    showScreen('landing');
+    showPlayerPinEntry();
   }
 }
 
@@ -1438,15 +1544,56 @@ function checkOnline() {
   document.getElementById('offlineBar').classList.toggle('show', !navigator.onLine);
 }
 
-// ─── SESSION RESET ────────────────────────────────────
-function resetSession() {
-  completedBM.clear();
-  completedMV.clear();
+// ─── DATES / STREAK / HISTORY ─────────────────────────
+function localDate(d=new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function yesterdayStr() { const d=new Date(); d.setDate(d.getDate()-1); return localDate(d); }
+// Streak that has lapsed (no log today or yesterday) displays as 0
+function liveStreak(p) {
+  const last = localStorage.getItem(`sfc_lastlog_${p.id}`);
+  if (!last) return p.streak||0;
+  return (last===localDate() || last===yesterdayStr()) ? (p.streak||0) : 0;
+}
+function applyStreak(p, today) {
+  const last = localStorage.getItem(`sfc_lastlog_${p.id}`);
+  if (last === today) return;
+  p.streak = (last === yesterdayStr()) ? (p.streak||0)+1 : 1;
+  localStorage.setItem(`sfc_lastlog_${p.id}`, today);
+}
+function addHistory(id, date, touches) {
+  const key = `sfc_history_${id}`;
+  const h = JSON.parse(localStorage.getItem(key)||'{}');
+  h[date] = (h[date]||0) + touches;
+  localStorage.setItem(key, JSON.stringify(h));
+}
+
+// ─── IN-PROGRESS SESSION (survives app close) ─────────
+function wipKey() { return `sfc_wip_${currentPlayer?.id||'none'}_${localDate()}`; }
+function saveWip() {
+  if (!currentPlayer) return;
+  localStorage.setItem(wipKey(), JSON.stringify({
+    bm:[...completedBM], mv:[...completedMV], diff:currentDiff,
+    juggle:document.getElementById('juggleToday').value
+  }));
+}
+function loadWip() {
+  let w = {};
+  try { w = JSON.parse(localStorage.getItem(wipKey())||'{}'); } catch(e) {}
+  completedBM = new Set(w.bm||[]);
+  completedMV = new Set(w.mv||[]);
+  currentDiff = w.diff || 'consistent';
   blocksCollapsed = {bm:false, mv:false};
-  document.getElementById('juggleToday').value = '';
+  document.getElementById('juggleToday').value = w.juggle || '';
   renderBlockSkills();
   updateTouchProgress();
   updateLogBtn();
+}
+
+// ─── SESSION RESET ────────────────────────────────────
+function resetSession() {
+  localStorage.removeItem(wipKey());
+  loadWip();
 }
 
 // ─── HOME RENDER ──────────────────────────────────────
@@ -1458,12 +1605,12 @@ function renderHome() {
   document.getElementById('homeAvatar').textContent = p.name[0].toUpperCase();
   document.getElementById('homeAvatar').style.background = color;
   document.getElementById('homePlayerName').textContent = p.name.toUpperCase();
-  document.getElementById('homeStreakBadge').textContent = `🔥 ${p.streak||0} DAY STREAK`;
+  document.getElementById('homeStreakBadge').textContent = `🔥 ${liveStreak(p)} DAY STREAK`;
   document.getElementById('homeSubLabel').textContent = getTodayLabel();
 
   // Top bar
   document.getElementById('appPlayerName').textContent = p.name.toUpperCase();
-  document.getElementById('appPlayerStreak').textContent = `🔥 ${p.streak||0}`;
+  document.getElementById('appPlayerStreak').textContent = `🔥 ${liveStreak(p)}`;
 
   const rank = getRank(p.xp||0);
   document.getElementById('rankChip').textContent = rank.name;
@@ -1472,7 +1619,7 @@ function renderHome() {
   document.getElementById('rankChip').style.background = rank.color + '22';
 
   const nextRank = RANKS[RANKS.indexOf(rank)+1];
-  const progress = nextRank ? ((p.xp - rank.min)/(nextRank.min - rank.min)*100) : 100;
+  const progress = nextRank ? (((p.xp||0) - rank.min)/(nextRank.min - rank.min)*100) : 100;
   document.getElementById('xpFill').style.width = Math.min(100,progress) + '%';
   document.getElementById('xpCount').textContent = `${(p.xp||0).toLocaleString()} / ${(nextRank?.min||rank.max).toLocaleString()} XP`;
 
@@ -1505,6 +1652,7 @@ function setDifficulty(d) {
     btn.className = 'diff-btn' + (k===d ? ` active-${k}` : '');
   });
   updateLogBtn();
+  saveWip();
 }
 
 // ─── SKILL BLOCKS ─────────────────────────────────────
@@ -1550,6 +1698,8 @@ function toggleBlockSkill(blockId, skill, row, completedSet) {
   updateBlockProgress(blockId, completedSet, blockId==='bm' ? BM_SKILLS : MV_SKILLS);
   updateTouchProgress();
   updateLogBtn();
+  saveWip();
+  renderSkillsList();
 }
 
 function updateBlockProgress(blockId, completedSet, skills) {
@@ -1610,7 +1760,7 @@ async function logSession() {
     ? Math.round(diff.baseXP * diff.multiplier)
     : Math.round((diff.baseXP * diff.multiplier) * (touches/TOTAL_TARGET));
   const juggle = parseInt(document.getElementById('juggleToday').value)||0;
-  const today = new Date().toISOString().slice(0,10);
+  const today = localDate();
 
   const oldPB = getJugglePB();
   if (juggle > oldPB) {
@@ -1619,7 +1769,9 @@ async function logSession() {
   }
 
   const btn = document.getElementById('logBtn');
+  if (btn.disabled) return;
   btn.disabled = true;
+  const p = currentPlayer;
 
   const session = {
     player_id: currentPlayer.id,
@@ -1633,27 +1785,15 @@ async function logSession() {
     xp_earned: xpEarned,
   };
 
-  try { await sb('sessions', {method:'POST', body:JSON.stringify(session)}); }
-  catch(e) { queueOffline(session); }
-
-  const lastLog = localStorage.getItem(`sfc_lastlog_${currentPlayer.id}`);
-  if (lastLog !== today) {
-    currentPlayer.streak = (currentPlayer.streak||0) + 1;
-    localStorage.setItem(`sfc_lastlog_${currentPlayer.id}`, today);
-  }
+  applyStreak(currentPlayer, today);
+  addHistory(currentPlayer.id, today, touches);
   currentPlayer.xp = (currentPlayer.xp||0) + xpEarned;
   currentPlayer.total_touches = (currentPlayer.total_touches||0) + touches;
   currentPlayer.sessions = (currentPlayer.sessions||0) + 1;
 
-  try {
-    await sb(`profiles?id=eq.${currentPlayer.id}`, {
-      method:'PATCH',
-      body:JSON.stringify({xp:currentPlayer.xp, streak:currentPlayer.streak,
-        total_touches:currentPlayer.total_touches, sessions:currentPlayer.sessions,
-        juggle_pb:currentPlayer.juggle_pb||0}),
-      prefer:'return=minimal'
-    });
-  } catch(e) {}
+  // Background sync - UI never waits on the network
+  syncSession(session, {xp:p.xp, streak:p.streak, total_touches:p.total_touches,
+    sessions:p.sessions, juggle_pb:p.juggle_pb||0}, p.id);
 
   // Save locally
   localStorage.setItem('sfc_player', JSON.stringify(currentPlayer));
@@ -1664,7 +1804,17 @@ async function logSession() {
   resetSession();
   renderHome();
   renderProfile();
+  renderSkillsList();
+  renderCrew();
   btn.disabled = false;
+  document.getElementById('screen-home').scrollTo({top:0, behavior:'smooth'});
+}
+
+async function syncSession(session, stats, playerId) {
+  try { await sb('sessions', {method:'POST', body:JSON.stringify(session)}); }
+  catch(e) { queueOffline(session); }
+  try { await sb(`profiles?id=eq.${playerId}`, {method:'PATCH', body:JSON.stringify(stats), prefer:'return=minimal'}); }
+  catch(e) {}
 }
 
 function queueOffline(session) {
@@ -1762,8 +1912,8 @@ async function submitLogForKid() {
   const xp = fullSession
     ? Math.round(diff.baseXP * diff.multiplier)
     : Math.round((diff.baseXP * diff.multiplier) * (touches/TOTAL_TARGET));
-  const today = new Date().toISOString().slice(0,10);
-  const juggle = logModalState.juggle || 0;
+  const today = localDate();
+  const juggle = parseInt(document.getElementById('logModalJuggle')?.value) || logModalState.juggle || 0;
 
   const session = {
     player_id: p.id, date:today, touches,
@@ -1772,25 +1922,15 @@ async function submitLogForKid() {
     difficulty:logModalState.diff, full_session:fullSession, xp_earned:xp
   };
 
-  try { await sb('sessions',{method:'POST',body:JSON.stringify(session)}); } catch(e) {}
-
   // Update player stats
-  const lastLog = localStorage.getItem(`sfc_lastlog_${p.id}`);
-  if (lastLog !== today) {
-    p.streak = (p.streak||0)+1;
-    localStorage.setItem(`sfc_lastlog_${p.id}`, today);
-  }
+  applyStreak(p, today);
+  addHistory(p.id, today, touches);
   p.xp = (p.xp||0)+xp;
   p.total_touches = (p.total_touches||0)+touches;
   p.sessions = (p.sessions||0)+1;
   if (juggle > (p.juggle_pb||0)) p.juggle_pb = juggle;
 
-  try {
-    await sb(`profiles?id=eq.${p.id}`,{method:'PATCH',
-      body:JSON.stringify({xp:p.xp,streak:p.streak,total_touches:p.total_touches,sessions:p.sessions,juggle_pb:p.juggle_pb||0}),
-      prefer:'return=minimal'
-    });
-  } catch(e) {}
+  syncSession(session, {xp:p.xp,streak:p.streak,total_touches:p.total_touches,sessions:p.sessions,juggle_pb:p.juggle_pb||0}, p.id);
 
   localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p));
   closeLogModal();
@@ -1811,7 +1951,7 @@ function openPinModal() {
     row.innerHTML = `
       <div class="pin-set-avatar" style="background:${color}">${p.name[0]}</div>
       <div class="pin-set-name">${p.name}</div>
-      <input class="pin-set-input" id="newpin_${p.id}" type="number" inputmode="numeric" maxlength="4" placeholder="****" value="${p.pin||''}">
+      <input class="pin-set-input" id="newpin_${p.id}" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="****" value="${p.pin||''}">
     `;
     wrap.appendChild(row);
   });
@@ -1845,7 +1985,6 @@ function goTrainAs(playerId) {
   if (!p) return;
   currentPlayer = p;
   localStorage.setItem('sfc_player', JSON.stringify(p));
-  showScreen('parent-portal');
   launchApp();
 }
 
@@ -1860,7 +1999,7 @@ function renderProfile() {
   document.getElementById('profileClub').textContent = (p.club||'').toUpperCase();
   const rank = getRank(p.xp||0);
   document.getElementById('profileRank').textContent = rank.name;
-  document.getElementById('statStreak').textContent = p.streak||0;
+  document.getElementById('statStreak').textContent = liveStreak(p);
   document.getElementById('statTouches').textContent = ((p.total_touches||0)/1000).toFixed(1)+'K';
   document.getElementById('statSessions').textContent = p.sessions||0;
   const pb = getJugglePB();
@@ -1876,9 +2015,11 @@ function renderWeekChart() {
   const bars = document.getElementById('weekBars');
   const labels = document.getElementById('weekLabels');
   bars.innerHTML=''; labels.innerHTML='';
+  // Real touches per day for the current Sun-Sat week
+  const hist = JSON.parse(localStorage.getItem(`sfc_history_${currentPlayer.id}`)||'{}');
   const mockData=[0,0,0,0,0,0,0];
-  if (currentPlayer.sessions>0) mockData[today]=calcTouches()||800;
-  const max=Math.max(...mockData,100);
+  for (let i=0;i<7;i++) { const d=new Date(); d.setDate(d.getDate()-today+i); mockData[i]=hist[localDate(d)]||0; }
+  const max=Math.max(...mockData,TOTAL_TARGET);
   for (let i=0;i<7;i++) {
     const pct=(mockData[i]/max)*100;
     const isToday=i===today;
@@ -1923,20 +2064,54 @@ function checkBadges() {
 
 // ─── SKILLS LIST ──────────────────────────────────────
 function renderSkillsList() {
-  const bmList = document.getElementById('skillListBM');
-  const mvList = document.getElementById('skillListMV');
-  bmList.innerHTML=''; mvList.innerHTML='';
-  BM_SKILLS.forEach(s => {
-    const item=document.createElement('div');
-    item.className='skill-list-item';
-    item.innerHTML=`<div class="skill-list-name">${s.name}</div><div class="skill-list-meta">${s.touches} TOUCHES · BALL MASTERY</div>`;
-    bmList.appendChild(item);
+  const groups = [
+    {el:'skillListBM', skills:BM_SKILLS, set:completedBM, label:'BALL MASTERY'},
+    {el:'skillListMV', skills:MV_SKILLS, set:completedMV, label:'MOVEMENT'},
+  ];
+  groups.forEach(g => {
+    const list = document.getElementById(g.el);
+    list.innerHTML = '';
+    g.skills.forEach(s => {
+      const done = g.set.has(s.id);
+      const item = document.createElement('div');
+      item.className = 'skill-list-item' + (done ? ' done' : '');
+      item.innerHTML = `<div style="flex:1"><div class="skill-list-name">${s.name}</div>
+        <div class="skill-list-meta">${s.touches} TOUCHES · ${g.label}</div></div>
+        <div class="skill-list-check">${done ? '✓ DONE' : 'TAP WHEN DONE'}</div>`;
+      item.onclick = () => {
+        g.set.has(s.id) ? g.set.delete(s.id) : g.set.add(s.id);
+        renderBlockSkills();
+        updateTouchProgress();
+        updateLogBtn();
+        saveWip();
+        renderSkillsList();
+      };
+      list.appendChild(item);
+    });
   });
-  MV_SKILLS.forEach(s => {
-    const item=document.createElement('div');
-    item.className='skill-list-item';
-    item.innerHTML=`<div class="skill-list-name">${s.name}</div><div class="skill-list-meta">${s.touches} TOUCHES · MOVEMENT</div>`;
-    mvList.appendChild(item);
+}
+
+// ─── CREW (sibling leaderboard) ───────────────────────
+function renderCrew() {
+  const list = document.getElementById('crewList');
+  const empty = document.getElementById('crewEmpty');
+  let roster = players.length ? players : getSeededPlayers();
+  roster = mergeLocal(roster).map(p => p.id===currentPlayer?.id ? currentPlayer : p);
+  roster.sort((a,b)=>(b.xp||0)-(a.xp||0));
+  empty.style.display = 'none';
+  list.innerHTML = '<div class="skills-section-title" style="margin-bottom:10px">CREW LEADERBOARD · XP</div>';
+  const colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
+  roster.forEach((p,i) => {
+    const color = p.color || colors[p.id] || '#4fc3f7';
+    const card = document.createElement('div');
+    card.className = 'crew-card';
+    card.style.marginBottom = '10px';
+    if (p.id===currentPlayer?.id) card.style.borderColor = color;
+    card.innerHTML = `<div style="width:18px;color:var(--sub);font-weight:800">${i+1}</div>
+      <div class="crew-avatar" style="background:${color}">${p.name[0]}</div>
+      <div><div class="crew-name">${p.name}</div><div class="crew-rank">${getRank(p.xp||0).name} · ${(p.xp||0).toLocaleString()} XP</div></div>
+      <div class="crew-streak">🔥${liveStreak(p)}</div>`;
+    list.appendChild(card);
   });
 }
 
