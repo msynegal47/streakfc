@@ -1,604 +1,1171 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f97316">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080c14">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Streak FC">
+<title>StreakFC</title>
 <link rel="manifest" href="/manifest.json">
-<link rel="apple-touch-icon" href="/icon-192.png">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
-<title>Streak FC</title>
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#060a0f;--bg2:#0c1420;--bg3:#111d2e;
-  --orange:#f97316;--orange2:#fb923c;
-  --indigo:#6366f1;--indigo2:#818cf8;
-  --green:#22c55e;
-  --yellow:#eab308;
-  --text:#e8edf5;--text2:#a0b4c8;--text3:#4a6080;
-  --border:rgba(255,255,255,0.07);
-  --safe-top:env(safe-area-inset-top,0px);
-  --safe-bot:env(safe-area-inset-bottom,0px);
+:root {
+  --bg:    #080c14;
+  --bg2:   #0f1520;
+  --bg3:   #151d2e;
+  --border:#1e2a3d;
+  --text:  #e8edf5;
+  --sub:   #6b7fa0;
+  --accent:#f97316;
+  --green: #22c55e;
+  --red:   #ef4444;
+  --blue:  #4fc3f7;
+  --amber: #f59e0b;
+  --radius:14px;
 }
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;overflow:hidden}
-#app{height:100%;display:flex;flex-direction:column;max-width:480px;margin:0 auto;position:relative}
-.screen{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;display:none;flex-direction:column;padding-bottom:calc(68px + var(--safe-bot))}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+
+/* ── FIELD LINES BACKGROUND ── */
+.field-bg {
+  position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;opacity:.03;
+}
+.field-bg::before{content:'';position:absolute;inset:0;
+  background:
+    repeating-linear-gradient(90deg,#fff 0,#fff 1px,transparent 1px,transparent 80px),
+    repeating-linear-gradient(0deg,#fff 0,#fff 1px,transparent 1px,transparent 80px);
+}
+
+/* ── SCREENS ── */
+.screen{display:none;flex-direction:column;height:100%;position:relative;z-index:1}
 .screen.active{display:flex}
-.status-bar{height:calc(44px + var(--safe-top));padding-top:var(--safe-top);display:flex;align-items:center;justify-content:space-between;padding-left:20px;padding-right:20px;flex-shrink:0}
-.status-time{font-size:13px;font-weight:600}
 
-/* NAV */
-.bottom-nav{height:calc(60px + var(--safe-bot));padding-bottom:var(--safe-bot);border-top:1px solid var(--border);display:flex;align-items:center;background:rgba(6,10,15,0.96);flex-shrink:0;position:relative;z-index:10}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding-top:8px}
-.nav-item span{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:1px;color:var(--text3)}
-.nav-item.active span{color:var(--orange)}
-.nav-item svg{opacity:0.4}
-.nav-item.active svg{opacity:1}
+/* ─────────────────────────────────────
+   LANDING SCREEN
+───────────────────────────────────── */
+#landing {
+  align-items:center;justify-content:center;padding:32px 24px;gap:0;
+  background: radial-gradient(ellipse at 50% 0%, #1a2540 0%, #080c14 65%);
+}
+.landing-logo {
+  font-size:42px;font-weight:900;letter-spacing:-1px;
+  background:linear-gradient(135deg,#f97316,#fbbf24);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:4px;
+}
+.landing-tagline {
+  font-size:12px;letter-spacing:3px;color:var(--sub);text-transform:uppercase;
+  margin-bottom:48px;
+}
+.landing-divider {
+  font-size:11px;color:var(--sub);letter-spacing:2px;text-transform:uppercase;
+  margin:24px 0;display:flex;align-items:center;gap:12px;width:100%;max-width:320px;
+}
+.landing-divider::before,.landing-divider::after{content:'';flex:1;height:1px;background:var(--border)}
 
-/* AUTH */
-#auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:32px 28px;background:var(--bg)}
-.auth-logo{font-family:'Bebas Neue',sans-serif;font-size:52px;color:var(--orange);letter-spacing:4px;margin-bottom:4px}
-.auth-sub{font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--text3);letter-spacing:3px;margin-bottom:48px}
-.auth-box{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px}
-.auth-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;margin-bottom:4px}
-.auth-desc{font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.5}
-.input-field{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-size:15px;color:var(--text);font-family:'Barlow',sans-serif;outline:none;margin-bottom:12px}
-.input-field:focus{border-color:rgba(249,115,22,0.4)}
-.input-field::placeholder{color:var(--text3)}
-.btn-primary{width:100%;height:52px;background:var(--orange);border:none;border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:18px;color:#fff;letter-spacing:2px;cursor:pointer;transition:opacity 0.15s}
-.btn-primary:active{opacity:0.8}
-.btn-secondary{width:100%;height:48px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--text2);letter-spacing:2px;cursor:pointer;margin-top:10px}
-.auth-msg{font-size:13px;color:var(--text2);text-align:center;margin-top:16px;line-height:1.5}
-.auth-msg a{color:var(--orange);cursor:pointer;text-decoration:none}
+.path-card {
+  width:100%;max-width:320px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:18px;
+  padding:24px 20px;cursor:pointer;transition:border-color .2s,transform .1s;
+  display:flex;flex-direction:column;gap:8px;
+}
+.path-card:active{transform:scale(.98)}
+.path-card.player-path{border-color:#4fc3f722}
+.path-card.player-path:hover{border-color:#4fc3f755}
+.path-card.parent-path{border-color:#f9731622}
+.path-card.parent-path:hover{border-color:#f9731655}
 
-/* PLAYER SELECT */
-#player-select{display:none;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:32px 24px;background:var(--bg)}
-#player-select.active{display:flex}
-.player-grid{width:100%;display:flex;flex-direction:column;gap:12px;margin-top:24px}
-.player-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:border-color 0.15s}
-.player-card:active{border-color:var(--orange)}
-.player-avatar{width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(99,102,241,0.4),rgba(99,102,241,0.08));border:2px solid rgba(99,102,241,0.5);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.player-avatar span{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--indigo2)}
-.player-info{flex:1}
-.player-name{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px}
-.player-meta{font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--text3);font-weight:600;letter-spacing:1px}
-.player-streak{display:flex;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:var(--orange)}
+.path-card-icon{font-size:28px;margin-bottom:4px}
+.path-card-title{font-size:18px;font-weight:800;letter-spacing:.5px}
+.path-card.player-path .path-card-title{color:var(--blue)}
+.path-card.parent-path .path-card-title{color:var(--accent)}
+.path-card-desc{font-size:12px;color:var(--sub);line-height:1.5}
 
-/* PIN ENTRY */
-#pin-screen{display:none;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:32px 28px;background:var(--bg)}
+/* ─────────────────────────────────────
+   PLAYER PIN SCREEN (direct entry from landing)
+───────────────────────────────────── */
+#player-pin {
+  align-items:center;justify-content:center;padding:32px 24px;gap:0;
+}
+.pin-back {
+  position:absolute;top:env(safe-area-inset-top,20px);left:20px;
+  background:none;border:none;color:var(--sub);font-size:13px;letter-spacing:1px;
+  cursor:pointer;padding:8px;display:flex;align-items:center;gap:6px;
+}
+.pin-back svg{width:16px;height:16px;stroke:var(--sub);fill:none;stroke-width:2;stroke-linecap:round}
+.pin-select-label {
+  font-size:11px;letter-spacing:3px;color:var(--sub);text-transform:uppercase;margin-bottom:20px;
+}
+.player-pin-cards {
+  display:flex;flex-direction:column;gap:12px;width:100%;max-width:320px;margin-bottom:32px;
+}
+.player-pin-card {
+  background:var(--bg2);border:1px solid var(--border);border-radius:14px;
+  padding:16px 20px;display:flex;align-items:center;gap:16px;cursor:pointer;
+  transition:border-color .2s,transform .1s;
+}
+.player-pin-card:active{transform:scale(.98)}
+.player-pin-card.selected{border-color:var(--player-color,var(--blue))}
+.player-pin-avatar {
+  width:44px;height:44px;border-radius:50%;
+  background:var(--player-color,var(--blue));
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:900;color:#000;flex-shrink:0;
+}
+.player-pin-info{flex:1}
+.player-pin-name{font-size:16px;font-weight:800;letter-spacing:.5px}
+.player-pin-club{font-size:11px;color:var(--sub);margin-top:2px}
+.player-pin-arrow{color:var(--sub);font-size:18px}
+
+/* PIN keypad (shared by both flows) */
+.pin-keypad-wrap{width:100%;max-width:320px;display:flex;flex-direction:column;align-items:center;gap:0}
+#ppName{font-size:22px;font-weight:900;letter-spacing:1px;margin-bottom:24px;text-align:center}
+.pin-dots{display:flex;gap:14px;margin-bottom:32px}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--sub);transition:all .15s}
+.pin-dot.filled{background:var(--accent);border-color:var(--accent);transform:scale(1.15)}
+.pin-error{color:var(--red);font-size:13px;min-height:20px;text-align:center;margin-bottom:8px}
+.keypad{display:grid;grid-template-columns:repeat(3,72px);gap:12px}
+.key-btn{height:64px;border-radius:16px;border:1px solid var(--border);background:var(--bg2);
+  color:var(--text);font-size:24px;font-weight:700;cursor:pointer;transition:background .1s,transform .1s}
+.key-btn:active{background:var(--bg3);transform:scale(.95)}
+.key-btn.del{font-size:16px;color:var(--sub)}
+
+/* ─────────────────────────────────────
+   AUTH SCREEN (parent magic link)
+───────────────────────────────────── */
+#auth-screen {
+  align-items:center;justify-content:center;padding:32px 24px;
+}
+.auth-card {
+  width:100%;max-width:340px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:20px;padding:32px 24px;display:flex;flex-direction:column;align-items:center;gap:20px;
+}
+.auth-logo{font-size:28px;font-weight:900;letter-spacing:-1px;
+  background:linear-gradient(135deg,#f97316,#fbbf24);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.auth-eyebrow{font-size:11px;letter-spacing:3px;color:var(--sub);text-transform:uppercase}
+.auth-title{font-size:18px;font-weight:800;text-align:center}
+.auth-desc{font-size:13px;color:var(--sub);text-align:center;line-height:1.6}
+.auth-input{
+  width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:12px;
+  color:var(--text);font-size:15px;padding:14px 16px;outline:none;
+  transition:border-color .2s;
+}
+.auth-input:focus{border-color:var(--accent)}
+.auth-btn{
+  width:100%;background:var(--accent);color:#fff;border:none;border-radius:12px;
+  font-size:15px;font-weight:700;padding:15px;cursor:pointer;
+  transition:opacity .2s,transform .1s;letter-spacing:.5px;
+}
+.auth-btn:active{transform:scale(.98);opacity:.9}
+.auth-btn:disabled{opacity:.5}
+.auth-status{font-size:13px;color:var(--green);text-align:center;min-height:20px}
+
+/* ─────────────────────────────────────
+   PARENT PORTAL
+───────────────────────────────────── */
+#parent-portal {
+  background:var(--bg);overflow:hidden;
+}
+.portal-header {
+  padding:calc(env(safe-area-inset-top,20px) + 12px) 20px 16px;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+}
+.portal-header-left{flex:1}
+.portal-greeting{font-size:11px;color:var(--sub);letter-spacing:2px;text-transform:uppercase}
+.portal-title{font-size:20px;font-weight:900;letter-spacing:.5px}
+.portal-logout-btn{background:none;border:1px solid var(--border);border-radius:8px;color:var(--sub);font-size:11px;padding:8px 12px;cursor:pointer;letter-spacing:1px}
+
+.portal-body{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;
+  padding-bottom:calc(32px + env(safe-area-inset-bottom,0px))}
+
+.portal-section-label {
+  font-size:11px;letter-spacing:3px;color:var(--sub);text-transform:uppercase;margin-bottom:10px;
+}
+
+/* Kid summary cards */
+.kid-card {
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px;overflow:hidden;position:relative;
+}
+.kid-card-accent-bar{
+  position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--player-color,var(--blue));
+}
+.kid-card-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.kid-card-avatar{
+  width:42px;height:42px;border-radius:50%;
+  background:var(--player-color,var(--blue));
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;font-weight:900;color:#000;flex-shrink:0;
+}
+.kid-card-name{font-size:16px;font-weight:800}
+.kid-card-rank{font-size:11px;color:var(--sub);margin-top:2px}
+.kid-card-streak{margin-left:auto;font-size:13px;font-weight:700;color:var(--accent)}
+
+.kid-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.kid-stat{background:var(--bg3);border-radius:10px;padding:8px;text-align:center}
+.kid-stat-val{font-size:15px;font-weight:800}
+.kid-stat-lbl{font-size:10px;color:var(--sub);margin-top:2px;letter-spacing:.5px}
+
+.kid-card-actions{display:flex;gap:8px}
+.kid-action-btn{
+  flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;
+  color:var(--text);font-size:11px;font-weight:700;padding:9px 6px;cursor:pointer;
+  letter-spacing:.5px;transition:background .2s,border-color .2s;text-align:center;
+}
+.kid-action-btn:hover{border-color:var(--accent);color:var(--accent)}
+.kid-action-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* PIN manager modal */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;
+  display:none;align-items:flex-end;
+}
+.modal-overlay.open{display:flex}
+.modal-sheet{
+  width:100%;background:var(--bg2);border-radius:20px 20px 0 0;padding:24px 20px;
+  padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));
+}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
+.modal-title{font-size:16px;font-weight:800;margin-bottom:4px}
+.modal-sub{font-size:12px;color:var(--sub);margin-bottom:20px}
+
+.pin-set-wrap{display:flex;flex-direction:column;gap:12px}
+.pin-set-player-row{
+  display:flex;align-items:center;gap:12px;background:var(--bg3);border-radius:12px;padding:12px 14px;
+}
+.pin-set-avatar{
+  width:34px;height:34px;border-radius:50%;
+  background:var(--player-color,var(--blue));
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:900;color:#000;flex-shrink:0;
+}
+.pin-set-name{font-size:14px;font-weight:700;flex:1}
+.pin-set-input{
+  width:90px;background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);font-size:18px;font-weight:800;padding:8px 10px;
+  text-align:center;letter-spacing:6px;outline:none;
+}
+.pin-set-input:focus{border-color:var(--accent)}
+
+.modal-save-btn{
+  width:100%;background:var(--accent);color:#fff;border:none;border-radius:12px;
+  font-size:15px;font-weight:700;padding:15px;cursor:pointer;margin-top:16px;
+}
+
+/* Log-for-kid modal */
+.log-for-kid-wrap{display:flex;flex-direction:column;gap:12px}
+.log-kid-selector{display:flex;gap:8px}
+.log-kid-btn{
+  flex:1;padding:10px 6px;border-radius:10px;border:1px solid var(--border);
+  background:var(--bg3);color:var(--text);font-size:12px;font-weight:700;cursor:pointer;
+  text-align:center;transition:border-color .2s;
+}
+.log-kid-btn.active{border-color:var(--player-color,var(--blue));color:var(--player-color,var(--blue))}
+.log-modal-skill-group{margin-top:4px}
+.log-modal-group-label{font-size:10px;letter-spacing:2px;color:var(--sub);margin-bottom:6px}
+.log-modal-skills{display:flex;flex-wrap:wrap;gap:6px}
+.log-modal-skill-chip{
+  padding:6px 12px;border-radius:8px;border:1px solid var(--border);
+  background:var(--bg3);color:var(--sub);font-size:11px;font-weight:700;cursor:pointer;
+  transition:all .15s;
+}
+.log-modal-skill-chip.done{background:var(--green);border-color:var(--green);color:#fff}
+.log-modal-juggle{display:flex;align-items:center;gap:10px;margin-top:8px}
+.log-modal-juggle-label{font-size:12px;color:var(--sub);flex:1}
+.log-modal-juggle-input{
+  width:80px;background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);font-size:16px;font-weight:800;padding:8px;text-align:center;outline:none;
+}
+.log-modal-juggle-input:focus{border-color:var(--accent)}
+.diff-row{display:flex;gap:8px;margin-top:8px}
+.log-diff-btn{
+  flex:1;padding:8px 4px;border-radius:8px;border:1px solid var(--border);
+  background:var(--bg3);color:var(--sub);font-size:11px;font-weight:700;cursor:pointer;
+  text-align:center;
+}
+.log-diff-btn.active-hustle{background:#ef444422;border-color:var(--red);color:var(--red)}
+.log-diff-btn.active-consistent{background:#f9731622;border-color:var(--accent);color:var(--accent)}
+.log-diff-btn.active-limited{background:#4fc3f722;border-color:var(--blue);color:var(--blue)}
+
+/* ─────────────────────────────────────
+   PLAYER SELECT (after parent login)
+───────────────────────────────────── */
+#player-select {
+  align-items:center;justify-content:flex-start;padding:0;
+}
+.ps-header {
+  width:100%;padding:calc(env(safe-area-inset-top,20px)+12px) 20px 16px;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+}
+.ps-logo{font-size:18px;font-weight:900;letter-spacing:-1px;
+  background:linear-gradient(135deg,#f97316,#fbbf24);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:2px}
+.ps-sub{font-size:11px;color:var(--sub);letter-spacing:2px;text-transform:uppercase}
+.ps-body{flex:1;width:100%;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px}
+.ps-switch-link{
+  text-align:center;font-size:12px;color:var(--sub);margin-top:8px;cursor:pointer;
+  text-decoration:underline;text-underline-offset:3px;
+}
+
+.player-select-card {
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;
+  transition:border-color .2s,transform .1s;position:relative;overflow:hidden;
+}
+.player-select-card:active{transform:scale(.98)}
+.player-select-card-accent{
+  position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--player-color,var(--blue));
+}
+.ps-avatar{
+  width:46px;height:46px;border-radius:50%;
+  background:var(--player-color,var(--blue));
+  display:flex;align-items:center;justify-content:center;
+  font-size:19px;font-weight:900;color:#000;flex-shrink:0;
+}
+.ps-info{flex:1}
+.ps-name{font-size:17px;font-weight:800;letter-spacing:.5px}
+.ps-meta{font-size:11px;color:var(--sub);margin-top:3px}
+.ps-streak-badge{
+  font-size:12px;font-weight:700;color:var(--accent);
+  background:rgba(249,115,22,.1);padding:4px 10px;border-radius:20px;
+  border:1px solid rgba(249,115,22,.2);
+}
+.ps-xp-bar-wrap{margin-top:8px;width:100%;height:3px;background:var(--border);border-radius:2px}
+.ps-xp-bar{height:3px;border-radius:2px;background:var(--player-color,var(--blue));transition:width .4s}
+
+/* ─────────────────────────────────────
+   PIN SCREEN (from player select)
+───────────────────────────────────── */
+#pin-screen {
+  align-items:center;justify-content:center;padding:32px 24px;
+  display:none;
+}
 #pin-screen.active{display:flex}
-.pin-dots{display:flex;gap:14px;margin:24px 0}
-.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--text3);transition:all 0.15s}
-.pin-dot.filled{background:var(--orange);border-color:var(--orange)}
-.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:280px}
-.pin-btn{height:72px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.1s}
-.pin-btn:active{background:var(--bg3)}
-.pin-btn.del{font-size:18px;color:var(--text3)}
 
-/* CARDS & SECTIONS */
-.section-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:2px;padding:0 20px;margin-bottom:8px;margin-top:20px}
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;margin:0 20px}
+/* ─────────────────────────────────────
+   MAIN APP
+───────────────────────────────────── */
+#app {
+  display:none;flex-direction:column;height:100%;
+}
 
-/* HOME SCREEN */
-.home-header{padding:8px 20px 12px;display:flex;align-items:center;justify-content:space-between}
-.home-logo{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--orange);letter-spacing:2px}
-.home-sub{font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--text3);font-weight:600;letter-spacing:2px}
-.avatar-badge{position:relative;cursor:pointer}
-.avatar-circle{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1a2d45,#0c1a2e);border:2px solid rgba(99,102,241,0.5);display:flex;align-items:center;justify-content:center}
-.avatar-circle span{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--indigo)}
-.streak-badge{position:absolute;bottom:-4px;right:-4px;background:var(--orange);border-radius:10px;padding:1px 5px;border:1px solid var(--bg);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:#fff}
+/* Top bar */
+.top-bar {
+  padding:calc(env(safe-area-inset-top,20px)+8px) 16px 10px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.top-bar-left{display:flex;flex-direction:column}
+.top-clock{font-size:11px;color:var(--sub)}
+.top-player{font-size:16px;font-weight:900;letter-spacing:.5px}
+.top-streak{font-size:12px;font-weight:700;color:var(--accent)}
+.logout-btn{background:none;border:1px solid var(--border);border-radius:8px;color:var(--sub);font-size:10px;padding:6px 10px;cursor:pointer;letter-spacing:1px}
 
-.xp-bar-wrap{padding:0 20px 16px}
-.xp-labels{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-.rank-chip{background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);border-radius:4px;padding:2px 8px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--indigo);letter-spacing:1px}
-.xp-count{font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--text3);font-weight:600}
-.xp-track{height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden}
-.xp-fill{height:100%;background:linear-gradient(90deg,var(--indigo),var(--indigo2));border-radius:2px;transition:width 0.6s ease}
+/* Screen content */
+.app-screens{flex:1;overflow:hidden;position:relative}
+.app-screen{display:none;height:100%;overflow-y:auto;flex-direction:column;
+  padding-bottom:calc(60px + env(safe-area-inset-bottom,0px))}
+.app-screen.active{display:flex}
 
-/* DIFFICULTY PICKER */
-.difficulty-wrap{padding:0 20px 14px}
-.difficulty-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:2px;margin-bottom:8px}
-.difficulty-row{display:flex;gap:8px}
-.diff-btn{flex:1;padding:10px 6px 8px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.03);text-align:center;cursor:pointer;transition:all 0.15s}
-.diff-btn .diff-name{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--text3);line-height:1}
-.diff-btn .diff-xp{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-top:3px}
-.diff-btn.active-hustle{background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.4)}
-.diff-btn.active-hustle .diff-name{color:#f87171}
-.diff-btn.active-hustle .diff-xp{color:#f87171}
-.diff-btn.active-consistent{background:rgba(249,115,22,0.1);border-color:rgba(249,115,22,0.4)}
-.diff-btn.active-consistent .diff-name{color:var(--orange)}
-.diff-btn.active-consistent .diff-xp{color:var(--orange)}
-.diff-btn.active-limited{background:rgba(99,102,241,0.1);border-color:rgba(99,102,241,0.4)}
-.diff-btn.active-limited .diff-name{color:var(--indigo2)}
-.diff-btn.active-limited .diff-xp{color:var(--indigo2)}
+/* Bottom nav */
+.bottom-nav{
+  position:absolute;bottom:0;left:0;right:0;
+  height:calc(56px + env(safe-area-inset-bottom,0px));
+  background:var(--bg2);border-top:1px solid var(--border);
+  display:flex;align-items:flex-start;
+  padding:0;padding-bottom:env(safe-area-inset-bottom,0px);
+  z-index:10;
+}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:56px;background:none;border:none;cursor:pointer;padding:0}
+.nav-btn span{font-size:9px;letter-spacing:.8px;color:#4a6080;text-transform:uppercase}
+.nav-btn.active span{color:var(--accent)}
 
-/* TOUCH PROGRESS CARD */
-.touch-progress-card{margin:0 20px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px}
-.touch-progress-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
-.touch-big{font-family:'Bebas Neue',sans-serif;font-size:48px;line-height:1;color:var(--text)}
-.touch-prog-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--text3);font-weight:700;letter-spacing:1px;margin-top:4px}
-.touch-target-chip{background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.25);border-radius:6px;padding:4px 10px}
-.touch-target-chip span{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--orange);letter-spacing:1px}
-.touch-prog-track{height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden}
-.touch-prog-fill{height:100%;background:linear-gradient(90deg,var(--orange),var(--orange2));border-radius:3px;transition:width 0.4s ease;width:0%}
+/* ── HOME SCREEN ── */
+#screen-home{padding:16px;gap:12px}
 
-/* SKILL BLOCKS */
-.block-wrap{margin:0 20px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:14px}
-.block-header{padding:12px 16px 8px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
-.block-title-row{display:flex;align-items:center;gap:8px}
-.block-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
-.block-icon.bm{background:rgba(249,115,22,0.15)}
-.block-icon.mv{background:rgba(99,102,241,0.15)}
-.block-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px}
-.block-progress-chip{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;padding:2px 8px;border-radius:4px;border:1px solid}
-.block-progress-chip.incomplete{color:var(--text3);border-color:var(--border)}
-.block-progress-chip.complete{color:var(--green);border-color:rgba(34,197,94,0.4);background:rgba(34,197,94,0.1)}
-.block-progress-bar{height:3px;background:rgba(255,255,255,0.06)}
-.block-progress-bar-fill{height:100%;transition:width 0.3s ease}
-.block-progress-bar-fill.bm{background:var(--orange)}
-.block-progress-bar-fill.mv{background:var(--indigo)}
-.block-skills{padding:8px 12px 12px;display:flex;flex-direction:column;gap:6px}
-.skill-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid transparent;cursor:pointer;transition:all 0.15s}
-.skill-row.done{background:rgba(99,102,241,0.06);border-color:rgba(99,102,241,0.2)}
-.skill-row.done.bm-done{background:rgba(249,115,22,0.06);border-color:rgba(249,115,22,0.2)}
-.skill-check-box{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--text3);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
-.skill-row.done .skill-check-box{background:var(--indigo);border-color:var(--indigo)}
-.skill-row.bm-done .skill-check-box{background:var(--orange);border-color:var(--orange)}
-.skill-row-name{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;color:var(--text2);letter-spacing:0.5px;flex:1}
-.skill-row.done .skill-row-name{color:var(--text)}
-.skill-touch-count{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:0.5px}
-.skill-row.done .skill-touch-count{color:var(--orange)}
+.home-hero{
+  background:var(--bg2);border:1px solid var(--border);border-radius:18px;
+  padding:18px;display:flex;align-items:center;gap:14px;
+}
+.home-avatar{
+  width:52px;height:52px;border-radius:50%;
+  background:var(--player-color,var(--blue));
+  display:flex;align-items:center;justify-content:center;
+  font-size:21px;font-weight:900;color:#000;flex-shrink:0;
+}
+.home-hero-info{flex:1}
+.home-date{font-size:10px;color:var(--sub);letter-spacing:2px;margin-bottom:2px}
+.home-name{font-size:20px;font-weight:900;letter-spacing:.5px}
+.home-streak{font-size:12px;color:var(--accent);font-weight:700;margin-top:2px}
 
-/* JUGGLE CARD */
-.juggle-card{margin:0 20px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px}
-.juggle-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.juggle-title-row{display:flex;align-items:center;gap:6px}
-.juggle-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px}
-.juggle-pb{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:var(--yellow);letter-spacing:1px;background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.3);border-radius:4px;padding:2px 6px}
-.juggle-inputs{display:flex;gap:10px}
-.juggle-input-wrap{flex:1;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
-.juggle-input-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;color:var(--text3);letter-spacing:1.5px;margin-bottom:4px}
-.juggle-num-input{background:transparent;border:none;width:100%;font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--text);outline:none}
-.juggle-num-input::placeholder{color:var(--text3);opacity:0.4}
+.rank-row{display:flex;align-items:center;gap:10px}
+.rank-chip{
+  font-size:11px;font-weight:800;letter-spacing:1px;padding:5px 12px;
+  border-radius:20px;border:1px solid;background:transparent;
+}
+.xp-bar-outer{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.xp-bar-inner{height:5px;background:var(--accent);border-radius:3px;transition:width .4s}
+.xp-count{font-size:10px;color:var(--sub);white-space:nowrap}
 
-/* LOG BUTTON */
-.log-btn{margin:4px 20px 0;height:56px;background:var(--orange);border:none;border-radius:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 0 24px rgba(249,115,22,0.25)}
-.log-btn span{font-family:'Bebas Neue',sans-serif;font-size:20px;color:#fff;letter-spacing:2px}
-.log-btn:active{opacity:0.85}
-.log-btn:disabled{opacity:0.4;cursor:default;box-shadow:none}
-.log-btn-sub{font-family:'Barlow Condensed',sans-serif;font-size:9px;color:rgba(255,255,255,0.6);letter-spacing:1px;margin-top:2px}
+/* Touch progress */
+.touch-prog-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;
+}
+.touch-prog-row{display:flex;align-items:baseline;gap:6px;margin-bottom:6px}
+.touch-count{font-size:26px;font-weight:900}
+.touch-label{font-size:11px;color:var(--sub);letter-spacing:1px}
+.touch-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.touch-bar-fill{height:6px;background:linear-gradient(90deg,#f97316,#fbbf24);border-radius:3px;transition:width .3s}
 
-/* PROFILE SCREEN */
-.profile-hero{padding:20px 20px 0;display:flex;gap:16px;align-items:flex-start}
-.profile-avatar{width:72px;height:72px;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(99,102,241,0.4),rgba(99,102,241,0.08));border:3px solid rgba(99,102,241,0.5);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.profile-avatar span{font-family:'Bebas Neue',sans-serif;font-size:38px;color:var(--indigo2)}
-.profile-name{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;line-height:1}
-.profile-club{font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--indigo2);font-weight:700;letter-spacing:2px;margin-top:4px}
-.profile-rank{margin-top:6px}
+/* Juggle */
+.juggle-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;
+  display:flex;align-items:center;gap:12px;
+}
+.juggle-icon{font-size:22px;flex-shrink:0}
+.juggle-label{font-size:12px;color:var(--sub);flex:1}
+.juggle-input{
+  background:var(--bg3);border:1px solid var(--border);border-radius:10px;
+  color:var(--text);font-size:18px;font-weight:800;padding:8px 12px;
+  width:80px;text-align:center;outline:none;
+}
+.juggle-input:focus{border-color:var(--accent)}
+.juggle-pb-badge{font-size:11px;color:var(--sub);text-align:right;min-width:50px}
 
-.stats-row{display:flex;gap:8px;padding:16px 20px 0}
-.stat-box{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
-.stat-num{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--text);line-height:1}
-.stat-lbl{font-family:'Barlow Condensed',sans-serif;font-size:9px;color:var(--text3);font-weight:700;letter-spacing:1px;margin-top:2px}
-.juggle-pb-stat{font-family:'Barlow Condensed',sans-serif;font-size:9px;color:var(--yellow);font-weight:700;letter-spacing:1px;margin-top:4px}
+/* Difficulty */
+.diff-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;
+}
+.diff-label{font-size:11px;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
+.diff-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.diff-btn{
+  padding:10px 6px;border-radius:10px;border:1px solid var(--border);
+  background:var(--bg3);color:var(--sub);font-size:11px;font-weight:700;cursor:pointer;
+  text-align:center;transition:all .15s;
+}
+.diff-btn.active-hustle{background:#ef444422;border-color:var(--red);color:var(--red)}
+.diff-btn.active-consistent{background:#f9731622;border-color:var(--accent);color:var(--accent)}
+.diff-btn.active-limited{background:#4fc3f722;border-color:var(--blue);color:var(--blue)}
 
-.week-chart{margin:16px 20px 0;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px}
-.week-bars{display:flex;align-items:flex-end;gap:6px;height:64px;margin-bottom:8px}
-.week-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%}
-.week-bar{width:100%;border-radius:3px 3px 0 0;background:rgba(99,102,241,0.25);min-height:4px;transition:height 0.4s}
-.week-bar.today{background:var(--indigo)}
-.week-day{font-family:'Barlow Condensed',sans-serif;font-size:9px;color:var(--text3);font-weight:700}
-.week-day.today{color:var(--indigo2)}
+/* Skill blocks */
+.block-wrap{margin:0 0 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius)}
+.block-header{
+  padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;
+}
+.block-title{font-size:12px;font-weight:800;letter-spacing:2px;flex:1}
+.block-touch-sub{font-size:10px;color:var(--sub)}
+.block-progress-chip{font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;border:1px solid;background:transparent}
+.block-progress-chip.complete{color:var(--green);border-color:var(--green)}
+.block-progress-chip.incomplete{color:var(--sub);border-color:var(--border)}
+.block-bar-wrap{height:3px;background:var(--border);margin:0 14px 0}
+.block-bar{height:3px;background:var(--accent);border-radius:2px;transition:width .3s;border-radius:0}
 
-.badges-grid{display:flex;flex-wrap:wrap;gap:10px;padding:12px 20px}
-.badge-item{width:72px;display:flex;flex-direction:column;align-items:center;gap:6px}
-.badge-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px}
-.badge-icon.earned{background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.3)}
-.badge-icon.locked{background:rgba(255,255,255,0.03);border:1px solid var(--border);filter:grayscale(1);opacity:0.4}
-.badge-name{font-family:'Barlow Condensed',sans-serif;font-size:9px;color:var(--text3);font-weight:700;letter-spacing:0.5px;text-align:center;line-height:1.2}
+.block-skills{
+  display:flex;flex-direction:column;padding:8px 0 4px;
+}
 
-/* SKILLS SCREEN */
-.skill-list-item{margin:0 20px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px}
-.skill-list-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px}
-.skill-list-meta{font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--text3);font-weight:600;letter-spacing:1px;margin-top:2px}
+.skill-row{
+  padding:11px 14px;display:flex;align-items:center;gap:10px;
+  border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;
+}
+.skill-row:last-child{border-bottom:none}
+.skill-row:active{background:var(--bg3)}
+.skill-row.done{background:rgba(34,197,94,.06)}
+.skill-row.bm-done{background:rgba(249,115,22,.06)}
+.skill-check-box{
+  width:20px;height:20px;border-radius:6px;border:1.5px solid var(--border);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;
+}
+.skill-row.done .skill-check-box{background:var(--green);border-color:var(--green)}
+.skill-row.bm-done .skill-check-box{background:var(--accent);border-color:var(--accent)}
+.skill-row-name{flex:1;font-size:14px;font-weight:600}
+.skill-touch-count{font-size:11px;color:var(--sub);font-weight:600}
 
-/* TOAST */
-.toast{position:fixed;bottom:calc(76px + var(--safe-bot));left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--text);letter-spacing:1px;opacity:0;transition:all 0.3s;z-index:100;white-space:nowrap}
+/* Log button */
+.log-btn-wrap{padding:4px 0 16px}
+.log-btn{
+  width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;
+  font-size:16px;font-weight:800;padding:16px;cursor:pointer;letter-spacing:.5px;
+  transition:opacity .2s,transform .1s;
+}
+.log-btn:active{transform:scale(.98);opacity:.9}
+.log-btn:disabled{opacity:.4}
+.log-btn-sub{font-size:11px;color:rgba(255,255,255,.7);margin-top:3px;letter-spacing:.5px;font-weight:600}
+
+/* ── PROFILE SCREEN ── */
+#screen-profile{padding:16px;gap:12px}
+
+.profile-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:20px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+}
+.profile-avatar{
+  width:68px;height:68px;border-radius:50%;
+  background:var(--player-color,var(--blue));
+  display:flex;align-items:center;justify-content:center;
+  font-size:27px;font-weight:900;color:#000;
+}
+.profile-name{font-size:20px;font-weight:900;letter-spacing:.5px}
+.profile-club{font-size:12px;color:var(--sub);letter-spacing:2px;text-transform:uppercase}
+.profile-rank{font-size:13px;font-weight:700;color:var(--accent)}
+.profile-juggle-pb{
+  font-size:13px;font-weight:700;color:var(--green);
+  background:rgba(34,197,94,.1);padding:4px 14px;border-radius:20px;border:1px solid rgba(34,197,94,.2);
+}
+
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
+.stat-val{font-size:22px;font-weight:900}
+.stat-lbl{font-size:10px;color:var(--sub);letter-spacing:1px;margin-top:2px}
+
+/* Week chart */
+.week-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.week-title{font-size:11px;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
+.week-chart{display:flex;gap:4px;height:72px;align-items:flex-end}
+.week-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;height:100%}
+.week-bar{width:100%;max-width:28px;border-radius:4px 4px 0 0;background:var(--border);transition:height .3s}
+.week-bar.today{background:var(--accent)}
+.week-labels{display:flex;margin-top:6px}
+.week-day{font-size:9px;text-align:center;color:var(--sub);flex:1}
+.week-day.today{color:var(--accent);font-weight:700}
+
+/* Badges */
+.badges-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.badges-title{font-size:11px;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
+.badges-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.badge-item{display:flex;flex-direction:column;align-items:center;gap:5px}
+.badge-icon{font-size:24px;filter:grayscale(1);opacity:.35;transition:all .2s}
+.badge-icon.earned{filter:none;opacity:1}
+.badge-name{font-size:9px;text-align:center;color:var(--sub);letter-spacing:.5px}
+
+/* ── SKILLS SCREEN ── */
+#screen-skills{padding:16px;gap:16px}
+.skills-section-title{font-size:11px;color:var(--sub);letter-spacing:3px;text-transform:uppercase;padding:0 2px}
+.skill-list-item{
+  background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;
+}
+.skill-list-name{font-size:14px;font-weight:700}
+.skill-list-meta{font-size:11px;color:var(--sub);margin-top:3px}
+
+/* ── CREW SCREEN ── */
+#screen-crew{padding:16px;gap:12px}
+.crew-empty{text-align:center;color:var(--sub);font-size:14px;padding:40px 20px}
+.crew-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px;display:flex;align-items:center;gap:12px;
+}
+.crew-avatar{
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:900;color:#000;flex-shrink:0;
+}
+.crew-name{font-size:15px;font-weight:700}
+.crew-rank{font-size:11px;color:var(--sub);margin-top:2px}
+.crew-streak{font-size:12px;font-weight:700;color:var(--accent);margin-left:auto}
+
+/* ── OFFLINE BAR ── */
+.offline-bar{
+  position:fixed;top:0;left:0;right:0;z-index:999;
+  background:var(--red);color:#fff;font-size:11px;font-weight:700;
+  letter-spacing:1px;text-align:center;padding:6px;
+  transform:translateY(-100%);transition:transform .3s;
+}
+.offline-bar.show{transform:translateY(0)}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:calc(72px + env(safe-area-inset-bottom,0px));
+  left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--bg3);border:1px solid var(--border);border-radius:12px;
+  padding:11px 18px;font-size:13px;font-weight:700;
+  opacity:0;pointer-events:none;transition:all .3s;white-space:nowrap;z-index:998;text-align:center;
+}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.toast.success{border-color:rgba(34,197,94,0.4);color:var(--green)}
-.toast.error{border-color:rgba(239,68,68,0.4);color:#f87171}
+.toast.success{background:#22c55e22;border-color:var(--green);color:var(--green)}
+.toast.error{background:#ef444422;border-color:var(--red);color:var(--red)}
 
-/* OFFLINE BAR */
-.offline-bar{background:rgba(239,68,68,0.15);border-bottom:1px solid rgba(239,68,68,0.3);padding:6px 20px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:#f87171;letter-spacing:1px;display:none}
-.offline-bar.show{display:block}
-
-/* SCROLLBAR */
-::-webkit-scrollbar{width:0}
-
-/* BG GLOW */
-.bg-glow{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(249,115,22,0.06) 0%,transparent 65%);pointer-events:none;z-index:0}
+/* Scrollbar hide */
+::-webkit-scrollbar{width:0;height:0}
 </style>
 </head>
 <body>
-<div class="bg-glow"></div>
 
-<!-- OFFLINE BAR -->
-<div class="offline-bar" id="offlineBar">NO CONNECTION - LOGGING OFFLINE</div>
+<div class="field-bg"></div>
+<div class="offline-bar" id="offlineBar">NO CONNECTION · OFFLINE MODE</div>
+<div class="toast" id="toast"></div>
 
-<!-- AUTH SCREEN -->
-<div id="auth-screen">
-  <div class="auth-logo">STREAK FC</div>
-  <div class="auth-sub">TRACK · GRIND · GROW</div>
-  <div class="auth-box" id="authBox">
-    <div class="auth-title">PARENT LOGIN</div>
-    <div class="auth-desc">Enter your email and we'll send you a magic link to sign in.</div>
-    <input class="input-field" id="authEmail" type="email" placeholder="parent@email.com" autocomplete="email">
-    <button class="btn-primary" onclick="sendMagicLink()">SEND MAGIC LINK</button>
-    <div class="auth-msg" id="authMsg"></div>
+<!-- ─────────────── LANDING ─────────────── -->
+<div class="screen active" id="landing">
+  <div class="landing-logo">STREAKFC</div>
+  <div class="landing-tagline">Train. Track. Dominate.</div>
+
+  <div class="path-card player-path" onclick="showPlayerPinEntry()">
+    <div class="path-card-icon">⚽</div>
+    <div class="path-card-title">PLAYER LOGIN</div>
+    <div class="path-card-desc">Enter your 4-digit PIN to start your session. No email needed.</div>
+  </div>
+
+  <div class="landing-divider">or</div>
+
+  <div class="path-card parent-path" onclick="showParentAuth()">
+    <div class="path-card-icon">👋</div>
+    <div class="path-card-title">PARENT / COACH</div>
+    <div class="path-card-desc">Sign in with magic link to manage your crew, set PINs, and track progress.</div>
   </div>
 </div>
 
-<!-- PLAYER SELECT -->
-<div id="player-select">
-  <div style="text-align:center">
-    <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:3px;margin-bottom:8px">STREAK FC</div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px">WHO'S TRAINING?</div>
+<!-- ─────────────── PLAYER PIN ENTRY (direct from landing) ─────────────── -->
+<div class="screen" id="player-pin">
+  <button class="pin-back" onclick="showScreen('landing')">
+    <svg viewBox="0 0 16 16"><polyline points="10,3 4,8 10,13"/></svg>
+    BACK
+  </button>
+  <div class="pin-select-label">SELECT YOUR PLAYER</div>
+  <div class="player-pin-cards" id="playerPinCards">
+    <!-- populated dynamically -->
   </div>
-  <div class="player-grid" id="playerGrid"></div>
-  <button class="btn-secondary" style="margin-top:20px;width:280px" onclick="signOut()">SIGN OUT</button>
+  <div class="pin-keypad-wrap" id="playerPinKeypad" style="display:none">
+    <div id="ppName">ENTER PIN</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pp0"></div>
+      <div class="pin-dot" id="pp1"></div>
+      <div class="pin-dot" id="pp2"></div>
+      <div class="pin-dot" id="pp3"></div>
+    </div>
+    <div class="pin-error" id="ppError"></div>
+    <div class="keypad">
+      <button class="key-btn" onclick="ppTap('1')">1</button>
+      <button class="key-btn" onclick="ppTap('2')">2</button>
+      <button class="key-btn" onclick="ppTap('3')">3</button>
+      <button class="key-btn" onclick="ppTap('4')">4</button>
+      <button class="key-btn" onclick="ppTap('5')">5</button>
+      <button class="key-btn" onclick="ppTap('6')">6</button>
+      <button class="key-btn" onclick="ppTap('7')">7</button>
+      <button class="key-btn" onclick="ppTap('8')">8</button>
+      <button class="key-btn" onclick="ppTap('9')">9</button>
+      <button class="key-btn" onclick="ppTap('0')">0</button>
+      <button class="key-btn del" onclick="ppDel()">⌫</button>
+    </div>
+    <button class="pin-back" style="position:relative;top:auto;left:auto;margin-top:24px;font-size:12px" onclick="backToPlayerSelect()">← SWITCH PLAYER</button>
+  </div>
 </div>
 
-<!-- PIN SCREEN -->
+<!-- ─────────────── AUTH (parent magic link) ─────────────── -->
+<div class="screen" id="auth-screen">
+  <div style="position:absolute;top:env(safe-area-inset-top,20px);left:20px">
+    <button class="pin-back" style="position:relative;top:auto;left:auto" onclick="showScreen('landing')">
+      <svg viewBox="0 0 16 16" style="width:16px;height:16px;stroke:var(--sub);fill:none;stroke-width:2;stroke-linecap:round"><polyline points="10,3 4,8 10,13"/></svg>
+      BACK
+    </button>
+  </div>
+  <div class="auth-card">
+    <div class="auth-logo">STREAKFC</div>
+    <div class="auth-eyebrow">Parent / Coach</div>
+    <div class="auth-title">Welcome back</div>
+    <div class="auth-desc">Enter your email and we'll send you a magic link. No password needed.</div>
+    <input class="auth-input" id="emailInput" type="email" inputmode="email" placeholder="your@email.com" autocomplete="email">
+    <button class="auth-btn" id="sendBtn" onclick="sendMagicLink()">SEND MAGIC LINK</button>
+    <div class="auth-status" id="authStatus"></div>
+  </div>
+</div>
+
+<!-- ─────────────── PLAYER SELECT (after parent auth) ─────────────── -->
+<div class="screen" id="player-select">
+  <div class="ps-header">
+    <div class="ps-logo">STREAKFC</div>
+    <div class="ps-sub">Who's training today?</div>
+  </div>
+  <div class="ps-body" id="playerSelectBody">
+    <!-- populated dynamically -->
+  </div>
+  <div class="ps-switch-link" id="parentPortalLink" onclick="showParentPortal()" style="display:none;padding:0 20px 20px;text-align:center">
+    Switch to Parent Dashboard →
+  </div>
+</div>
+
+<!-- ─────────────── PIN SCREEN (from player-select) ─────────────── -->
 <div id="pin-screen">
-  <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:3px">STREAK FC</div>
-  <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin-top:8px" id="pinName">ENTER PIN</div>
-  <div class="pin-dots" id="pinDots">
+  <button class="pin-back" onclick="exitPinBack()">
+    <svg viewBox="0 0 16 16" style="width:16px;height:16px;stroke:var(--sub);fill:none;stroke-width:2;stroke-linecap:round"><polyline points="10,3 4,8 10,13"/></svg>
+    BACK
+  </button>
+  <div id="pinName" style="font-size:22px;font-weight:900;letter-spacing:1px;margin-bottom:24px;text-align:center"></div>
+  <div class="pin-dots">
     <div class="pin-dot" id="d0"></div>
     <div class="pin-dot" id="d1"></div>
     <div class="pin-dot" id="d2"></div>
     <div class="pin-dot" id="d3"></div>
   </div>
-  <div class="pin-pad">
-    <button class="pin-btn" onclick="pinTap('1')">1</button>
-    <button class="pin-btn" onclick="pinTap('2')">2</button>
-    <button class="pin-btn" onclick="pinTap('3')">3</button>
-    <button class="pin-btn" onclick="pinTap('4')">4</button>
-    <button class="pin-btn" onclick="pinTap('5')">5</button>
-    <button class="pin-btn" onclick="pinTap('6')">6</button>
-    <button class="pin-btn" onclick="pinTap('7')">7</button>
-    <button class="pin-btn" onclick="pinTap('8')">8</button>
-    <button class="pin-btn" onclick="pinTap('9')">9</button>
-    <button class="pin-btn" onclick="showPlayerSelect()">←</button>
-    <button class="pin-btn" onclick="pinTap('0')">0</button>
-    <button class="pin-btn del" onclick="pinDel()">⌫</button>
-  </div>
-  <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--text3);margin-top:20px" id="pinError"></div>
-</div>
-
-<!-- MAIN APP -->
-<div id="app" style="display:none">
-  <div class="screen active" id="screen-home">
-    <div class="status-bar">
-      <span class="status-time" id="clockHome">9:41</span>
-    </div>
-    <div class="home-header">
-      <div>
-        <div class="home-logo">STREAK FC</div>
-        <div class="home-sub" id="homeSubLabel">TODAY</div>
-      </div>
-      <div class="avatar-badge" onclick="showPlayerSelect()">
-        <div class="avatar-circle"><span id="homeAvatar">M</span></div>
-        <div class="streak-badge" id="homeStreakBadge">🔥0</div>
-      </div>
-    </div>
-
-    <div class="xp-bar-wrap">
-      <div class="xp-labels">
-        <div class="rank-chip" id="rankChip">GRASSROOTS</div>
-        <span class="xp-count" id="xpCount">0 / 500 XP</span>
-      </div>
-      <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
-    </div>
-
-    <!-- DIFFICULTY PICKER -->
-    <div class="difficulty-wrap">
-      <div class="difficulty-label">HOW'S THE GRIND?</div>
-      <div class="difficulty-row">
-        <div class="diff-btn" id="diff-hustle" onclick="setDifficulty('hustle')">
-          <div class="diff-name">HUSTLING</div>
-          <div class="diff-xp">2.0x XP</div>
-        </div>
-        <div class="diff-btn active-consistent" id="diff-consistent" onclick="setDifficulty('consistent')">
-          <div class="diff-name">CONSISTENT</div>
-          <div class="diff-xp">1.5x XP</div>
-        </div>
-        <div class="diff-btn" id="diff-limited" onclick="setDifficulty('limited')">
-          <div class="diff-name">LIMITED GEAR</div>
-          <div class="diff-xp">1.0x XP</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TOUCH PROGRESS -->
-    <div class="touch-progress-card">
-      <div class="touch-progress-header">
-        <div>
-          <div class="touch-big" id="touchCount">0</div>
-          <div class="touch-prog-label">TOUCHES LOGGED</div>
-        </div>
-        <div class="touch-target-chip">
-          <span>TARGET: <span id="touchTarget">1,500</span></span>
-        </div>
-      </div>
-      <div class="touch-prog-track">
-        <div class="touch-prog-fill" id="touchProgFill"></div>
-      </div>
-    </div>
-
-    <!-- BALL MASTERY BLOCK -->
-    <div class="section-label" style="margin-top:4px">SKILL BLOCKS</div>
-    <div class="block-wrap" id="bmBlock">
-      <div class="block-header" onclick="toggleBlock('bm')">
-        <div class="block-title-row">
-          <div class="block-icon bm">⚽</div>
-          <div>
-            <div class="block-title">BALL MASTERY</div>
-            <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--text3);letter-spacing:0.5px;margin-top:1px" id="bmTouchSub">0 / 900 touches</div>
-          </div>
-        </div>
-        <div class="block-progress-chip incomplete" id="bmChip">0/7</div>
-      </div>
-      <div class="block-progress-bar"><div class="block-progress-bar-fill bm" id="bmBar" style="width:0%"></div></div>
-      <div class="block-skills" id="bmSkills"></div>
-    </div>
-
-    <!-- MOVEMENT BLOCK -->
-    <div class="block-wrap" id="mvBlock">
-      <div class="block-header" onclick="toggleBlock('mv')">
-        <div class="block-title-row">
-          <div class="block-icon mv">🔄</div>
-          <div>
-            <div class="block-title">MOVEMENT</div>
-            <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--text3);letter-spacing:0.5px;margin-top:1px" id="mvTouchSub">0 / 600 touches</div>
-          </div>
-        </div>
-        <div class="block-progress-chip incomplete" id="mvChip">0/6</div>
-      </div>
-      <div class="block-progress-bar"><div class="block-progress-bar-fill mv" id="mvBar" style="width:0%"></div></div>
-      <div class="block-skills" id="mvSkills"></div>
-    </div>
-
-    <!-- JUGGLE -->
-    <div class="juggle-card">
-      <div class="juggle-top">
-        <div class="juggle-title-row">
-          <span style="font-size:16px">🎯</span>
-          <div class="juggle-title">JUGGLING</div>
-        </div>
-        <div class="juggle-pb" id="jugglePbBadge">PB: --</div>
-      </div>
-      <div class="juggle-inputs">
-        <div class="juggle-input-wrap">
-          <div class="juggle-input-label">TODAY'S BEST</div>
-          <input class="juggle-num-input" id="juggleToday" type="number" min="0" placeholder="0" inputmode="numeric">
-        </div>
-        <div class="juggle-input-wrap" style="background:rgba(234,179,8,0.04);border-color:rgba(234,179,8,0.15)">
-          <div class="juggle-input-label" style="color:var(--yellow)">ALL-TIME PB</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--yellow)" id="juggleAllTimePb">--</div>
-        </div>
-      </div>
-    </div>
-
-    <button class="log-btn" id="logBtn" onclick="logSession()">
-      <div>
-        <div><span>LOG SESSION</span></div>
-        <div class="log-btn-sub" id="logBtnSub">COMPLETE BOTH BLOCKS TO UNLOCK</div>
-      </div>
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-    <div style="height:16px"></div>
-  </div>
-
-  <!-- PROFILE SCREEN -->
-  <div class="screen" id="screen-profile">
-    <div class="status-bar">
-      <span class="status-time" id="clockProfile">9:41</span>
-      <span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--text3);font-weight:600">PROFILE</span>
-    </div>
-    <div class="profile-hero">
-      <div class="profile-avatar"><span id="profileAvatar">M</span></div>
-      <div>
-        <div class="profile-name" id="profileName">MADDEN</div>
-        <div class="profile-club" id="profileClub">AZ ARSENAL</div>
-        <div class="profile-rank"><span class="rank-chip" id="profileRank">GRASSROOTS</span></div>
-      </div>
-    </div>
-    <div class="stats-row">
-      <div class="stat-box">
-        <div class="stat-num" id="statStreak">0</div>
-        <div class="stat-lbl">DAY STREAK</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-num" id="statTouches">0</div>
-        <div class="stat-lbl">TOTAL TOUCHES</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-num" id="statSessions">0</div>
-        <div class="stat-lbl">SESSIONS</div>
-        <div class="juggle-pb-stat" id="statJugglePb" style="display:none">🎯 PB: --</div>
-      </div>
-    </div>
-    <div class="week-chart">
-      <div class="section-label" style="padding:0;margin:0 0 12px">THIS WEEK</div>
-      <div class="week-bars" id="weekBars"></div>
-      <div style="display:flex;gap:6px" id="weekLabels"></div>
-    </div>
-    <div class="section-label">BADGES</div>
-    <div class="badges-grid" id="badgesGrid"></div>
-    <div style="height:8px"></div>
-  </div>
-
-  <!-- SKILLS SCREEN -->
-  <div class="screen" id="screen-skills">
-    <div class="status-bar">
-      <span class="status-time" id="clockSkills">9:41</span>
-      <span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--text3);font-weight:600">SKILLS</span>
-    </div>
-    <div class="section-label" style="margin-top:8px">BALL MASTERY</div>
-    <div id="skillListBM"></div>
-    <div class="section-label">MOVEMENT COMBOS</div>
-    <div id="skillListMV"></div>
-    <div style="height:8px"></div>
-  </div>
-
-  <!-- CREW SCREEN -->
-  <div class="screen" id="screen-crew">
-    <div class="status-bar">
-      <span class="status-time" id="clockCrew">9:41</span>
-      <span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--text3);font-weight:600">CREW</span>
-    </div>
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;gap:12px">
-      <div style="font-size:40px">⚽</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px">CREW COMING SOON</div>
-      <div style="font-family:'Barlow',sans-serif;font-size:14px;color:var(--text3);line-height:1.6">Challenge your teammates, see who's on a streak, and hold each other accountable.</div>
-    </div>
-  </div>
-
-  <!-- BOTTOM NAV -->
-  <div class="bottom-nav">
-    <div class="nav-item active" id="nav-home" onclick="switchTab('home')">
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="9" stroke="#f97316" stroke-width="1.5"/><path d="M11 7V11L14 13" stroke="#f97316" stroke-width="1.5" stroke-linecap="round"/></svg>
-      <span>TODAY</span>
-    </div>
-    <div class="nav-item" id="nav-profile" onclick="switchTab('profile')">
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="9" r="4" stroke="#4a6080" stroke-width="1.5"/><path d="M4 19C4 15.7 7.1 13 11 13C14.9 13 18 15.7 18 19" stroke="#4a6080" stroke-width="1.5" stroke-linecap="round"/></svg>
-      <span>PROFILE</span>
-    </div>
-    <div class="nav-item" id="nav-skills" onclick="switchTab('skills')">
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="3" width="7" height="7" rx="2" stroke="#4a6080" stroke-width="1.5"/><rect x="12" y="3" width="7" height="7" rx="2" stroke="#4a6080" stroke-width="1.5"/><rect x="3" y="12" width="7" height="7" rx="2" stroke="#4a6080" stroke-width="1.5"/><rect x="12" y="12" width="7" height="7" rx="2" stroke="#4a6080" stroke-width="1.5"/></svg>
-      <span>SKILLS</span>
-    </div>
-    <div class="nav-item" id="nav-crew" onclick="switchTab('crew')">
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 6H19M3 11H19M3 16H13" stroke="#4a6080" stroke-width="1.5" stroke-linecap="round"/></svg>
-      <span>CREW</span>
-    </div>
+  <div class="pin-error" id="pinError"></div>
+  <div class="keypad">
+    <button class="key-btn" onclick="pinTap('1')">1</button>
+    <button class="key-btn" onclick="pinTap('2')">2</button>
+    <button class="key-btn" onclick="pinTap('3')">3</button>
+    <button class="key-btn" onclick="pinTap('4')">4</button>
+    <button class="key-btn" onclick="pinTap('5')">5</button>
+    <button class="key-btn" onclick="pinTap('6')">6</button>
+    <button class="key-btn" onclick="pinTap('7')">7</button>
+    <button class="key-btn" onclick="pinTap('8')">8</button>
+    <button class="key-btn" onclick="pinTap('9')">9</button>
+    <button class="key-btn" onclick="pinTap('0')">0</button>
+    <button class="key-btn del" onclick="pinDel()">⌫</button>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- ─────────────── PARENT PORTAL ─────────────── -->
+<div class="screen" id="parent-portal">
+  <div class="portal-header">
+    <div class="portal-header-left">
+      <div class="portal-greeting">PARENT DASHBOARD</div>
+      <div class="portal-title" id="portalTitle">YOUR CREW</div>
+    </div>
+    <button class="portal-logout-btn" onclick="logout()">SIGN OUT</button>
+  </div>
+  <div class="portal-body" id="portalBody">
+    <!-- populated dynamically -->
+  </div>
+</div>
+
+<!-- ─────────────── PIN MANAGER MODAL ─────────────── -->
+<div class="modal-overlay" id="pinModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Manage PINs</div>
+    <div class="modal-sub">Set or update each player's 4-digit PIN</div>
+    <div class="pin-set-wrap" id="pinSetWrap"></div>
+    <button class="modal-save-btn" onclick="savePins()">SAVE PINS</button>
+    <button onclick="closePinModal()" style="width:100%;background:none;border:none;color:var(--sub);font-size:13px;padding:14px;cursor:pointer;margin-top:4px">Cancel</button>
+  </div>
+</div>
+
+<!-- ─────────────── LOG FOR KID MODAL ─────────────── -->
+<div class="modal-overlay" id="logModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Log Session</div>
+    <div class="modal-sub" id="logModalSub">Log a session for your player</div>
+    <div class="log-for-kid-wrap" id="logForKidWrap"></div>
+    <button class="modal-save-btn" onclick="submitLogForKid()">LOG SESSION</button>
+    <button onclick="closeLogModal()" style="width:100%;background:none;border:none;color:var(--sub);font-size:13px;padding:14px;cursor:pointer;margin-top:4px">Cancel</button>
+  </div>
+</div>
+
+<!-- ─────────────── MAIN APP ─────────────── -->
+<div id="app">
+  <!-- Top bar -->
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <div class="top-clock" id="clockHome"></div>
+      <div class="top-player" id="appPlayerName"></div>
+      <div class="top-streak" id="appPlayerStreak"></div>
+    </div>
+    <button class="logout-btn" onclick="exitToPlayerSelect()">↩ EXIT</button>
+  </div>
+
+  <!-- App screens container -->
+  <div class="app-screens">
+    <!-- HOME -->
+    <div class="app-screen active" id="screen-home">
+      <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+        <!-- Hero -->
+        <div class="home-hero">
+          <div class="home-avatar" id="homeAvatar"></div>
+          <div class="home-hero-info">
+            <div class="home-date" id="homeSubLabel"></div>
+            <div class="home-name" id="homePlayerName"></div>
+            <div class="home-streak" id="homeStreakBadge"></div>
+          </div>
+        </div>
+        <!-- Rank -->
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px">
+          <div class="rank-row">
+            <div class="rank-chip" id="rankChip"></div>
+            <div class="xp-bar-outer"><div class="xp-bar-inner" id="xpFill" style="width:0%"></div></div>
+            <div class="xp-count" id="xpCount"></div>
+          </div>
+        </div>
+        <!-- Touch progress -->
+        <div class="touch-prog-card">
+          <div class="touch-prog-row">
+            <div class="touch-count" id="touchCount">0</div>
+            <div class="touch-label">/ <span id="touchTarget">1,500</span> TOUCHES</div>
+          </div>
+          <div class="touch-bar"><div class="touch-bar-fill" id="touchProgFill" style="width:0%"></div></div>
+        </div>
+        <!-- Juggle -->
+        <div class="juggle-card">
+          <div class="juggle-icon">🎯</div>
+          <div class="juggle-label">Today's juggle count</div>
+          <input class="juggle-input" id="juggleToday" type="number" inputmode="numeric" placeholder="0" min="0">
+          <div class="juggle-pb-badge" id="jugglePbBadge">PB: --</div>
+        </div>
+        <!-- Difficulty -->
+        <div class="diff-card">
+          <div class="diff-label">Session Intensity</div>
+          <div class="diff-btns">
+            <button id="diff-hustle" class="diff-btn" onclick="setDifficulty('hustle')">💪 HUSTLE</button>
+            <button id="diff-consistent" class="diff-btn active-consistent" onclick="setDifficulty('consistent')">✅ CONSISTENT</button>
+            <button id="diff-limited" class="diff-btn" onclick="setDifficulty('limited')">🧊 LIMITED</button>
+          </div>
+        </div>
+        <!-- Ball Mastery Block -->
+        <div class="block-wrap" id="bmBlock">
+          <div class="block-header" onclick="toggleBlock('bm')">
+            <div class="block-title">⚽ BALL MASTERY</div>
+            <div class="block-touch-sub" id="bmTouchSub">0 / 900 touches</div>
+            <div class="block-progress-chip incomplete" id="bmChip">0/7</div>
+          </div>
+          <div class="block-bar-wrap"><div class="block-bar" id="bmBar" style="width:0%"></div></div>
+          <div class="block-skills" id="bmSkills"></div>
+        </div>
+        <!-- Movement Block -->
+        <div class="block-wrap" id="mvBlock">
+          <div class="block-header" onclick="toggleBlock('mv')">
+            <div class="block-title">🏃 MOVEMENT</div>
+            <div class="block-touch-sub" id="mvTouchSub">0 / 600 touches</div>
+            <div class="block-progress-chip incomplete" id="mvChip">0/6</div>
+          </div>
+          <div class="block-bar-wrap"><div class="block-bar" id="mvBar" style="width:0%"></div></div>
+          <div class="block-skills" id="mvSkills"></div>
+        </div>
+        <!-- Log button -->
+        <div class="log-btn-wrap">
+          <button class="log-btn" id="logBtn" onclick="logSession()">
+            LOG SESSION
+          </button>
+          <div class="log-btn-sub" id="logBtnSub">BM: 0/5 · MV: 0/4 — LOG PARTIAL?</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="app-screen" id="screen-profile">
+      <div class="profile-card">
+        <div class="profile-avatar" id="profileAvatar"></div>
+        <div class="profile-name" id="profileName"></div>
+        <div class="profile-club" id="profileClub"></div>
+        <div class="profile-rank" id="profileRank"></div>
+        <div class="profile-juggle-pb" id="statJugglePb" style="display:none"></div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-val" id="statStreak">0</div><div class="stat-lbl">STREAK</div></div>
+        <div class="stat-card"><div class="stat-val" id="statTouches">0K</div><div class="stat-lbl">TOUCHES</div></div>
+        <div class="stat-card"><div class="stat-val" id="statSessions">0</div><div class="stat-lbl">SESSIONS</div></div>
+      </div>
+      <div class="week-card">
+        <div class="week-title">THIS WEEK</div>
+        <div class="week-chart" id="weekBars"></div>
+        <div class="week-labels" id="weekLabels" style="display:flex;margin-top:6px"></div>
+      </div>
+      <div class="badges-card">
+        <div class="badges-title">BADGES</div>
+        <div class="badges-grid" id="badgesGrid"></div>
+      </div>
+    </div>
+
+    <!-- SKILLS -->
+    <div class="app-screen" id="screen-skills">
+      <div class="skills-section-title">⚽ BALL MASTERY</div>
+      <div id="skillListBM"></div>
+      <div class="skills-section-title" style="margin-top:8px">🏃 MOVEMENT</div>
+      <div id="skillListMV"></div>
+    </div>
+
+    <!-- CREW -->
+    <div class="app-screen" id="screen-crew">
+      <div class="crew-empty" id="crewEmpty">Sign in as Parent to manage your crew.</div>
+      <div id="crewList"></div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+      <button class="nav-btn active" id="nav-home" onclick="switchTab('home')">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M3 9.5L11 3l8 6.5V19a1 1 0 01-1 1H6a1 1 0 01-1-1V9.5z" stroke="#4a6080" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        <span>HOME</span>
+      </button>
+      <button class="nav-btn" id="nav-profile" onclick="switchTab('profile')">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <circle cx="11" cy="8" r="4" stroke="#4a6080" stroke-width="1.5"/>
+          <path d="M3 19c0-4 3.6-7 8-7s8 3 8 7" stroke="#4a6080" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span>PROFILE</span>
+      </button>
+      <button class="nav-btn" id="nav-skills" onclick="switchTab('skills')">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <rect x="3" y="4" width="7" height="14" rx="2" stroke="#4a6080" stroke-width="1.5"/>
+          <rect x="12" y="8" width="7" height="10" rx="2" stroke="#4a6080" stroke-width="1.5"/>
+        </svg>
+        <span>SKILLS</span>
+      </button>
+      <button class="nav-btn" id="nav-crew" onclick="switchTab('crew')">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <circle cx="8" cy="8" r="3" stroke="#4a6080" stroke-width="1.5"/>
+          <circle cx="16" cy="9" r="2.5" stroke="#4a6080" stroke-width="1.5"/>
+          <path d="M2 18c0-3 2.7-5 6-5s6 2 6 5" stroke="#4a6080" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M16 14c2 0 4 1 4 4" stroke="#4a6080" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span>CREW</span>
+      </button>
+    </div>
+  </div>
+</div>
 
 <script>
-// ─── CONFIG ───────────────────────────────────────────────
+// ─── CONSTANTS ───────────────────────────────────────
 const SB_URL = 'https://zrdtwiuekozfteaurrzp.supabase.co';
 const SB_KEY = 'sb_publishable_KFpa8NmzxgtF_r2UX2se_Q_8UoN1hbc';
 
 const RANKS = [
-  {name:'GRASSROOTS', min:0,    max:500,  color:'#6b7280'},
-  {name:'REC',        min:500,  max:1500, color:'#84cc16'},
-  {name:'SELECT',     min:1500, max:3500, color:'#06b6d4'},
-  {name:'ACADEMY',    min:3500, max:7000, color:'#6366f1'},
-  {name:'ECNL',       min:7000, max:13000,color:'#f97316'},
-  {name:'MLS NEXT',   min:13000,max:22000,color:'#eab308'},
-  {name:'PRO',        min:22000,max:99999,color:'#22c55e'},
+  {name:'GRASSROOTS', min:0,     max:500,   color:'#6b7fa0'},
+  {name:'REC',        min:500,   max:1500,  color:'#22c55e'},
+  {name:'SELECT',     min:1500,  max:3500,  color:'#4fc3f7'},
+  {name:'ACADEMY',    min:3500,  max:7000,  color:'#a78bfa'},
+  {name:'ECNL',       min:7000,  max:13000, color:'#f59e0b'},
+  {name:'MLS NEXT',   min:13000, max:22000, color:'#f97316'},
+  {name:'PRO',        min:22000, max:Infinity, color:'#ef4444'},
 ];
-
-const DIFFICULTY = {
-  hustle:     {label:'HUSTLING',     multiplier:2.0, baseXP:175, color:'#f87171'},
-  consistent: {label:'CONSISTENT',  multiplier:1.5, baseXP:130, color:'#f97316'},
-  limited:    {label:'LIMITED GEAR', multiplier:1.0, baseXP:80,  color:'#818cf8'},
-};
 
 const BM_SKILLS = [
-  {id:'toe-taps',       name:'Toe Taps',          touches:200, min:true},
-  {id:'v-poles',        name:'V Poles',            touches:100, min:true},
-  {id:'pull-push',      name:'Pull Push',          touches:100, min:true},
-  {id:'sole-rolls',     name:'Sole Rolls',         touches:100, min:true},
-  {id:'outside-inside', name:'Outside / Inside',   touches:100, min:true},
-  {id:'l-turns',        name:'L Turns',            touches:150, min:true},
-  {id:'lacrosse',       name:'Lacrosse Roll',      touches:150, min:true},
+  {id:'toe_taps',    name:'Toe Taps',      touches:200},
+  {id:'v_poles',     name:'V Poles',       touches:100},
+  {id:'pull_push',   name:'Pull Push',     touches:100},
+  {id:'sole_rolls',  name:'Sole Rolls',    touches:100},
+  {id:'out_in',      name:'Outside/Inside',touches:100},
+  {id:'l_turns',     name:'L Turns',       touches:150},
+  {id:'lac_roll',    name:'Lacrosse Roll', touches:150},
 ];
-const BM_MIN_REQUIRED = BM_SKILLS.length;
-const BM_TOTAL_TOUCHES = BM_SKILLS.reduce((s,k) => s + k.touches, 0);
-
 const MV_SKILLS = [
-  {id:'step-overs',     name:'Step Overs',         touches:100, min:true},
-  {id:'maradonas',      name:'Maradonas',          touches:100, min:true},
-  {id:'scissors',       name:'Scissors',           touches:100, min:true},
-  {id:'outside-cut',    name:'Outside Cut Combo',  touches:100, min:true},
-  {id:'cruyff',         name:'Cruyff Turn',        touches:100, min:true},
-  {id:'drag-back',      name:'Drag Back Combo',    touches:100, min:true},
+  {id:'step_overs',  name:'Step Overs',       touches:100},
+  {id:'maradonas',   name:'Maradonas',         touches:100},
+  {id:'scissors',    name:'Scissors',          touches:100},
+  {id:'out_cut',     name:'Outside Cut Combo', touches:100},
+  {id:'cruyff',      name:'Cruyff Turn',       touches:100},
+  {id:'drag_back',   name:'Drag Back Combo',   touches:100},
 ];
-const MV_MIN_REQUIRED = MV_SKILLS.length;
-const MV_TOTAL_TOUCHES = MV_SKILLS.reduce((s,k) => s + k.touches, 0);
-const TOTAL_TARGET = BM_TOTAL_TOUCHES + MV_TOTAL_TOUCHES;
+const TOTAL_TARGET = 1500;
+const BM_MIN_REQUIRED = 5;
+const MV_MIN_REQUIRED = 4;
+
+const DIFFICULTY = {
+  hustle:     {label:'HUSTLE',     baseXP:300, multiplier:1.3},
+  consistent: {label:'CONSISTENT', baseXP:300, multiplier:1.0},
+  limited:    {label:'LIMITED',    baseXP:300, multiplier:0.6},
+};
 
 const BADGES = [
-  {id:'streak7',    emoji:'🔥', name:'7 Day Streak',   cond: p => p.streak >= 7},
-  {id:'touches1k',  emoji:'👟', name:'1K Touches',     cond: p => p.total_touches >= 1000},
-  {id:'touches10k', emoji:'⚡', name:'10K Touches',    cond: p => p.total_touches >= 10000},
-  {id:'sessions10', emoji:'🏟️', name:'10 Sessions',    cond: p => p.sessions >= 10},
-  {id:'hustle5',    emoji:'💪', name:'5x Hustler',     cond: (p,s) => (s||[]).filter(x=>x.difficulty==='hustle').length >= 5},
-  {id:'streak30',   emoji:'🌟', name:'30 Day Streak',  cond: p => p.streak >= 30},
-  {id:'juggle50',   emoji:'🎯', name:'Juggle 50',      cond: p => (p.juggle_pb||0) >= 50},
-  {id:'juggle100',  emoji:'🏆', name:'Juggle 100',     cond: p => (p.juggle_pb||0) >= 100},
+  {id:'first_session', emoji:'🌱', name:'First Session', cond:p=>p.sessions>=1},
+  {id:'streak3',       emoji:'🔥', name:'3-Day Streak',  cond:p=>p.streak>=3},
+  {id:'streak7',       emoji:'⚡', name:'Week Warrior',  cond:p=>p.streak>=7},
+  {id:'streak30',      emoji:'👑', name:'Month King',    cond:p=>p.streak>=30},
+  {id:'xp1000',        emoji:'🎯', name:'1K XP',         cond:p=>p.xp>=1000},
+  {id:'xp5000',        emoji:'💎', name:'5K XP',         cond:p=>p.xp>=5000},
+  {id:'touches10k',    emoji:'🏆', name:'10K Touches',   cond:p=>p.total_touches>=10000},
+  {id:'juggle50',      emoji:'🤹', name:'Juggle 50',      cond:p=>(p.juggle_pb||0)>=50},
 ];
 
-// ─── STATE ────────────────────────────────────────────────
-let currentUser    = null;
-let currentPlayer  = null;
-let currentDiff    = 'consistent';
-let completedBM    = new Set();
-let completedMV    = new Set();
-let blocksCollapsed = {bm: false, mv: false};
-let pinBuffer      = '';
-let pendingPlayer  = null;
+// Default seeded players (no Supabase required)
+function getSeededPlayers() {
+  return [
+    {id:'caysen', name:'Caysen', club:'AZ Arsenal', pin:'0211', xp:0, streak:0, total_touches:0, sessions:0, juggle_pb:0, color:'#4fc3f7'},
+    {id:'emmitt', name:'Emmitt', club:'AZ Arsenal', pin:'1202', xp:0, streak:0, total_touches:0, sessions:0, juggle_pb:0, color:'#f59e0b'},
+    {id:'madden', name:'Madden', club:'AZ Arsenal', pin:'0926', xp:0, streak:0, total_touches:0, sessions:0, juggle_pb:0, color:'#39ff14'},
+  ];
+}
 
-// ─── SUPABASE HELPERS ─────────────────────────────────────
+// ─── STATE ───────────────────────────────────────────
+let currentUser = null;    // parent auth session
+let players = [];          // array of player objects
+let currentPlayer = null;  // active kid
+let pendingPlayer = null;
+let pinBuffer = '';
+let ppBuffer = '';
+let ppPendingPlayer = null;
+let currentDiff = 'consistent';
+let completedBM = new Set();
+let completedMV = new Set();
+let blocksCollapsed = {bm:false, mv:false};
+let logModalState = {player:null, bmDone:new Set(), mvDone:new Set(), diff:'consistent', juggle:0};
+
+// ─── SUPABASE HELPER ──────────────────────────────────
 async function sb(path, opts={}) {
-  const r = await fetch(`${SB_URL}/rest/v1/${path}`, {
-    headers: {
-      'apikey': SB_KEY,
-      'Authorization': `Bearer ${currentUser?.access_token || SB_KEY}`,
-      'Content-Type': 'application/json',
-      'Prefer': opts.prefer || 'return=representation',
-      ...opts.headers
-    },
-    ...opts
+  const headers = {
+    'apikey': SB_KEY,
+    'Content-Type': 'application/json',
+    'Prefer': opts.prefer || 'return=representation',
+  };
+  if (currentUser?.access_token) {
+    headers['Authorization'] = `Bearer ${currentUser.access_token}`;
+  }
+  const res = await fetch(`${SB_URL}/rest/v1/${path}`, {
+    method: opts.method || 'GET',
+    headers,
+    body: opts.body,
   });
-  if (!r.ok) throw new Error(await r.text());
-  return r.status === 204 ? null : r.json();
+  if (!res.ok) throw new Error(res.status);
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
-async function sbAuth(path, body) {
-  const r = await fetch(`${SB_URL}/auth/v1/${path}`, {
-    method: 'POST',
-    headers: {'apikey': SB_KEY, 'Content-Type': 'application/json'},
-    body: JSON.stringify(body)
-  });
-  return r.json();
-}
-
-// ─── GET USER UUID ────────────────────────────────────────
 async function getUserId() {
   try {
     const res = await fetch(`${SB_URL}/auth/v1/user`, {
-      headers: {'apikey': SB_KEY, 'Authorization': `Bearer ${currentUser.access_token}`}
+      headers: {'apikey':SB_KEY,'Authorization':`Bearer ${currentUser.access_token}`}
     });
-    if (res.ok) {
-      const u = await res.json();
-      return u.id;
-    }
+    if (res.ok) { const u = await res.json(); return u.id; }
   } catch(e) {}
   return null;
 }
 
-// ─── AUTH ─────────────────────────────────────────────────
+// ─── SCREEN ROUTING ───────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  // hide pin-screen when navigating away
+  document.getElementById('pin-screen').style.display='none';
+  document.getElementById('app').style.display='none';
+}
+
+// ─── LANDING ACTIONS ──────────────────────────────────
+function showPlayerPinEntry() {
+  // Load players (seeded or from localStorage if parent had set them)
+  const storedPlayers = localStorage.getItem('sfc_players');
+  const allPlayers = storedPlayers ? JSON.parse(storedPlayers) : getSeededPlayers();
+  // Merge stored stats
+  players = allPlayers.map(p => {
+    const stored = localStorage.getItem(`sfc_playerdata_${p.id}`);
+    return stored ? {...p, ...JSON.parse(stored)} : p;
+  });
+  showScreen('player-pin');
+  renderPlayerPinCards();
+}
+
+function showParentAuth() {
+  showScreen('auth-screen');
+  setTimeout(()=>document.getElementById('emailInput').focus(), 300);
+}
+
+// ─── PLAYER PIN ENTRY (from landing) ─────────────────
+function renderPlayerPinCards() {
+  const wrap = document.getElementById('playerPinCards');
+  wrap.innerHTML = '';
+  document.getElementById('playerPinKeypad').style.display = 'none';
+  wrap.style.display = 'flex';
+  const colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
+  players.forEach(p => {
+    const color = p.color || colors[p.id] || '#4fc3f7';
+    const card = document.createElement('div');
+    card.className = 'player-pin-card';
+    card.style.cssText = `--player-color:${color}`;
+    card.innerHTML = `
+      <div class="player-pin-avatar" style="background:${color}">${p.name[0]}</div>
+      <div class="player-pin-info">
+        <div class="player-pin-name">${p.name.toUpperCase()}</div>
+        <div class="player-pin-club">${p.club||'AZ Arsenal'} · 🔥${p.streak||0}</div>
+      </div>
+      <div class="player-pin-arrow">›</div>
+    `;
+    card.onclick = () => selectPPPlayer(p, color);
+    wrap.appendChild(card);
+  });
+}
+
+function selectPPPlayer(player, color) {
+  ppPendingPlayer = player;
+  ppBuffer = '';
+  document.getElementById('playerPinCards').style.display = 'none';
+  const kp = document.getElementById('playerPinKeypad');
+  kp.style.display = 'flex';
+  kp.style.flexDirection = 'column';
+  kp.style.alignItems = 'center';
+  kp.style.gap = '0';
+  document.getElementById('ppName').textContent = `HEY ${player.name.toUpperCase()}`;
+  document.getElementById('ppError').textContent = '';
+  updatePPDots();
+}
+
+function backToPlayerSelect() {
+  ppBuffer = '';
+  ppPendingPlayer = null;
+  document.getElementById('playerPinKeypad').style.display = 'none';
+  document.getElementById('playerPinCards').style.display = 'flex';
+}
+
+function ppTap(d) {
+  if (ppBuffer.length >= 4) return;
+  ppBuffer += d;
+  updatePPDots();
+  if (ppBuffer.length === 4) setTimeout(checkPP, 100);
+}
+
+function ppDel() {
+  ppBuffer = ppBuffer.slice(0,-1);
+  updatePPDots();
+  document.getElementById('ppError').textContent = '';
+}
+
+function updatePPDots() {
+  for (let i=0;i<4;i++) {
+    document.getElementById(`pp${i}`).classList.toggle('filled', i < ppBuffer.length);
+  }
+}
+
+function checkPP() {
+  if (ppBuffer === String(ppPendingPlayer.pin)) {
+    currentPlayer = ppPendingPlayer;
+    localStorage.setItem('sfc_player', JSON.stringify(currentPlayer));
+    showScreen('landing'); // hide screens
+    launchApp();
+  } else {
+    document.getElementById('ppError').textContent = 'Wrong PIN - try again';
+    ppBuffer = '';
+    updatePPDots();
+  }
+}
+
+// ─── AUTH (parent magic link) ──────────────────────────
+async function sendMagicLink() {
+  const email = document.getElementById('emailInput').value.trim();
+  if (!email || !email.includes('@')) {
+    document.getElementById('authStatus').textContent = 'Enter a valid email';
+    document.getElementById('authStatus').style.color = 'var(--red)';
+    return;
+  }
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  btn.textContent = 'SENDING...';
+  try {
+    const res = await fetch(`${SB_URL}/auth/v1/magiclink`, {
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+      body: JSON.stringify({email}),
+    });
+    if (res.ok) {
+      document.getElementById('authStatus').textContent = '✓ Check your email for the magic link!';
+      document.getElementById('authStatus').style.color = 'var(--green)';
+      btn.textContent = 'RESEND';
+    } else {
+      throw new Error();
+    }
+  } catch(e) {
+    document.getElementById('authStatus').textContent = 'Error sending - try again';
+    document.getElementById('authStatus').style.color = 'var(--red)';
+    btn.textContent = 'SEND MAGIC LINK';
+  }
+  btn.disabled = false;
+}
+
+// ─── INIT (handles magic link callback) ───────────────
 async function init() {
-  // Check for magic link token in hash FIRST before checking stored session
+  // Check for magic link hash first
   const hash = window.location.hash;
   if (hash.includes('access_token')) {
     const params = new URLSearchParams(hash.slice(1));
@@ -607,107 +1174,190 @@ async function init() {
       refresh_token: params.get('refresh_token'),
     };
     localStorage.setItem('sfc_session', JSON.stringify(currentUser));
-    // Clear the hash without triggering a reload
     window.history.replaceState({}, '', window.location.pathname);
-    showPlayerSelect();
+    await loadParentPlayers();
     return;
   }
 
-  // Then check stored session
+  // Check stored session
   const stored = localStorage.getItem('sfc_session');
   if (stored) {
     try {
       currentUser = JSON.parse(stored);
       const res = await fetch(`${SB_URL}/auth/v1/user`, {
-        headers: {'apikey': SB_KEY, 'Authorization': `Bearer ${currentUser.access_token}`}
+        headers:{'apikey':SB_KEY,'Authorization':`Bearer ${currentUser.access_token}`}
       });
-      if (res.ok) { showPlayerSelect(); return; }
+      if (res.ok) {
+        await loadParentPlayers();
+        return;
+      }
     } catch(e) {}
     localStorage.removeItem('sfc_session');
     currentUser = null;
   }
 
-  document.getElementById('auth-screen').style.display = 'flex';
-}
-
-async function sendMagicLink() {
-  const email = document.getElementById('authEmail').value.trim();
-  if (!email) return;
-  const msg = document.getElementById('authMsg');
-  msg.textContent = 'Sending...';
-  const res = await sbAuth('magiclink', {email, options:{emailRedirectTo: window.location.origin + '/'}});
-  if (res.error) {
-    msg.innerHTML = `<span style="color:#f87171">${res.error.message}</span>`;
-  } else {
-    msg.innerHTML = '✅ Check your email for the link!<br><span style="color:var(--text3);font-size:12px">Tap it on this device to sign in</span>';
+  // Check for remembered player (kid device flow)
+  const storedPlayer = localStorage.getItem('sfc_player');
+  if (storedPlayer) {
+    try {
+      currentPlayer = JSON.parse(storedPlayer);
+      showScreen('landing');
+      launchApp();
+      return;
+    } catch(e) {}
   }
+
+  // Default: show landing
+  showScreen('landing');
 }
 
-async function signOut() {
+// ─── PARENT FLOW ──────────────────────────────────────
+async function loadParentPlayers() {
+  const uid = await getUserId();
+  if (uid) {
+    try {
+      let fetched = await sb(`profiles?parent_id=eq.${encodeURIComponent(uid)}&order=name`, {method:'GET'});
+      if (fetched && fetched.length > 0) {
+        // Merge colors
+        const colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
+        players = fetched.map(p => ({...p, color: p.color || colors[p.name?.toLowerCase()] || '#4fc3f7'}));
+        localStorage.setItem('sfc_players', JSON.stringify(players));
+      } else {
+        players = getSeededPlayers();
+      }
+    } catch(e) {
+      players = getSeededPlayers();
+    }
+  } else {
+    players = getSeededPlayers();
+  }
+  showParentPortal();
+}
+
+function showParentPortal() {
+  showScreen('parent-portal');
+  renderParentPortal();
+}
+
+function renderParentPortal() {
+  const body = document.getElementById('portalBody');
+  body.innerHTML = '';
+
+  // Section: players
+  const label = document.createElement('div');
+  label.className = 'portal-section-label';
+  label.textContent = 'YOUR CREW';
+  body.appendChild(label);
+
+  const colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
+  players.forEach(p => {
+    const color = p.color || colors[p.id] || '#4fc3f7';
+    const rank = getRank(p.xp||0);
+    const card = document.createElement('div');
+    card.className = 'kid-card';
+    card.style.cssText = `--player-color:${color}`;
+    card.innerHTML = `
+      <div class="kid-card-accent-bar"></div>
+      <div class="kid-card-header">
+        <div class="kid-card-avatar" style="background:${color}">${p.name[0]}</div>
+        <div>
+          <div class="kid-card-name">${p.name.toUpperCase()}</div>
+          <div class="kid-card-rank">${rank.name} · ${(p.xp||0).toLocaleString()} XP</div>
+        </div>
+        <div class="kid-card-streak">🔥${p.streak||0}</div>
+      </div>
+      <div class="kid-stats">
+        <div class="kid-stat"><div class="kid-stat-val">${p.sessions||0}</div><div class="kid-stat-lbl">SESSIONS</div></div>
+        <div class="kid-stat"><div class="kid-stat-val">${((p.total_touches||0)/1000).toFixed(1)}K</div><div class="kid-stat-lbl">TOUCHES</div></div>
+        <div class="kid-stat"><div class="kid-stat-val">${p.juggle_pb||'--'}</div><div class="kid-stat-lbl">JUGGLE PB</div></div>
+      </div>
+      <div class="kid-card-actions">
+        <button class="kid-action-btn" onclick="openLogModal('${p.id}')">📋 LOG SESSION</button>
+        <button class="kid-action-btn" onclick="goTrainAs('${p.id}')">▶ TRAIN AS</button>
+      </div>
+    `;
+    body.appendChild(card);
+  });
+
+  // Action buttons
+  const actions = document.createElement('div');
+  actions.style.cssText = 'display:flex;gap:10px;margin-top:4px';
+  actions.innerHTML = `
+    <button class="kid-action-btn" style="flex:1;padding:14px" onclick="openPinModal()">🔐 MANAGE PINs</button>
+    <button class="kid-action-btn" style="flex:1;padding:14px" onclick="showPlayerSelectFromPortal()">👤 PLAYER SELECT</button>
+  `;
+  body.appendChild(actions);
+}
+
+function logout() {
   localStorage.removeItem('sfc_session');
   localStorage.removeItem('sfc_player');
   currentUser = null;
   currentPlayer = null;
-  document.getElementById('player-select').classList.remove('active');
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('auth-screen').style.display = 'flex';
+  showScreen('landing');
 }
 
-// ─── PLAYER SELECT ────────────────────────────────────────
-async function showPlayerSelect() {
-  document.getElementById('auth-screen').style.display = 'none';
-  document.getElementById('pin-screen').classList.remove('active');
-  document.getElementById('app').style.display = 'none';
-  const ps = document.getElementById('player-select');
-  ps.classList.add('active');
+function showPlayerSelectFromPortal() {
+  showScreen('player-select');
+  renderPlayerSelect();
+}
 
-  let players = [];
-  try {
-    // Use user UUID not access_token for parent_id lookup
-    const uid = await getUserId();
-    if (uid) {
-      players = await sb(`profiles?parent_id=eq.${encodeURIComponent(uid)}&order=name`, {method:'GET'});
-    }
-  } catch(e) {}
-  if (!players || players.length === 0) players = getSeededPlayers();
-
-  const grid = document.getElementById('playerGrid');
-  grid.innerHTML = '';
+// ─── PLAYER SELECT (parent auth flow) ─────────────────
+function renderPlayerSelect() {
+  const body = document.getElementById('playerSelectBody');
+  body.innerHTML = '';
+  const colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
   players.forEach(p => {
+    const color = p.color || colors[p.id] || '#4fc3f7';
+    const rank = getRank(p.xp||0);
+    const nextRank = RANKS[RANKS.indexOf(rank)+1];
+    const progress = nextRank ? ((p.xp||0 - rank.min)/(nextRank.min - rank.min)*100) : 100;
     const card = document.createElement('div');
-    card.className = 'player-card';
+    card.className = 'player-select-card';
+    card.style.cssText = `--player-color:${color}`;
     card.innerHTML = `
-      <div class="player-avatar"><span>${p.name[0].toUpperCase()}</span></div>
-      <div class="player-info">
-        <div class="player-name">${p.name.toUpperCase()}</div>
-        <div class="player-meta">${p.club || 'NO CLUB'} · ${getRank(p.xp||0).name}</div>
+      <div class="player-select-card-accent"></div>
+      <div class="ps-avatar" style="background:${color}">${p.name[0]}</div>
+      <div class="ps-info">
+        <div class="ps-name">${p.name.toUpperCase()}</div>
+        <div class="ps-meta">${p.club||'AZ Arsenal'} · ${rank.name}</div>
+        <div class="ps-xp-bar-wrap"><div class="ps-xp-bar" style="width:${Math.min(100,Math.max(0,progress))}%;background:${color}"></div></div>
       </div>
-      <div class="player-streak">🔥${p.streak||0}</div>
+      <div class="ps-streak-badge">🔥${p.streak||0}</div>
     `;
     card.onclick = () => selectPlayer(p);
-    grid.appendChild(card);
+    body.appendChild(card);
   });
-}
-
-function getSeededPlayers() {
-  return [
-    {id:'madden',  name:'Madden',  club:'AZ Arsenal', pin:'0926', xp:0, streak:0, total_touches:0, sessions:0, juggle_pb:0},
-    {id:'caysen',  name:'Caysen',  club:'AZ Arsenal', pin:'0211', xp:0, streak:0, total_touches:0, sessions:0, juggle_pb:0},
-    {id:'emmitt',  name:'Emmitt',  club:'AZ Arsenal', pin:'1202', xp:0, streak:0, total_touches:0, sessions:0, juggle_pb:0},
-  ];
+  document.getElementById('parentPortalLink').style.display = currentUser ? 'block' : 'none';
 }
 
 function selectPlayer(player) {
   pendingPlayer = player;
-  document.getElementById('player-select').classList.remove('active');
-  document.getElementById('pin-screen').classList.add('active');
+  const ps = document.getElementById('player-select');
+  ps.classList.remove('active');
+  const pin = document.getElementById('pin-screen');
+  pin.style.display = 'flex';
+  pin.style.flexDirection = 'column';
+  pin.style.alignItems = 'center';
+  pin.style.justifyContent = 'center';
+  pin.style.padding = '32px 24px';
   document.getElementById('pinName').textContent = `HEY ${player.name.toUpperCase()}`;
   document.getElementById('pinError').textContent = '';
   pinBuffer = '';
   updatePinDots();
 }
 
-// ─── PIN ──────────────────────────────────────────────────
+function exitPinBack() {
+  document.getElementById('pin-screen').style.display = 'none';
+  if (currentUser) {
+    showScreen('player-select');
+    renderPlayerSelect();
+  } else {
+    showScreen('landing');
+  }
+}
+
+// ─── PIN (from player-select) ─────────────────────────
 function pinTap(d) {
   if (pinBuffer.length >= 4) return;
   pinBuffer += d;
@@ -731,8 +1381,8 @@ function checkPin() {
   if (pinBuffer === String(pendingPlayer.pin)) {
     currentPlayer = pendingPlayer;
     localStorage.setItem('sfc_player', JSON.stringify(currentPlayer));
-    document.getElementById('pin-screen').classList.remove('active');
-    loadApp();
+    document.getElementById('pin-screen').style.display = 'none';
+    launchApp();
   } else {
     document.getElementById('pinError').textContent = 'Wrong PIN - try again';
     pinBuffer = '';
@@ -740,8 +1390,11 @@ function checkPin() {
   }
 }
 
-// ─── APP LOAD ─────────────────────────────────────────────
-async function loadApp() {
+// ─── APP LAUNCH ───────────────────────────────────────
+function launchApp() {
+  const colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
+  const color = currentPlayer.color || colors[currentPlayer.id] || '#4fc3f7';
+  document.documentElement.style.setProperty('--player-color', color);
   document.getElementById('app').style.display = 'flex';
   updateClock();
   setInterval(updateClock, 60000);
@@ -754,35 +1407,52 @@ async function loadApp() {
   window.addEventListener('offline', checkOnline);
 }
 
+function exitToPlayerSelect() {
+  document.getElementById('app').style.display = 'none';
+  if (currentUser) {
+    showScreen('player-select');
+    renderPlayerSelect();
+  } else {
+    showScreen('landing');
+  }
+}
+
 function updateClock() {
   const t = new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
-  ['Home','Profile','Skills','Crew'].forEach(s => {
-    const el = document.getElementById(`clock${s}`);
-    if (el) el.textContent = t;
-  });
+  const el = document.getElementById('clockHome');
+  if (el) el.textContent = t;
 }
 
 function checkOnline() {
   document.getElementById('offlineBar').classList.toggle('show', !navigator.onLine);
 }
 
-// ─── SESSION RESET ────────────────────────────────────────
+// ─── SESSION RESET ────────────────────────────────────
 function resetSession() {
   completedBM.clear();
   completedMV.clear();
-  blocksCollapsed = {bm: false, mv: false};
+  blocksCollapsed = {bm:false, mv:false};
   document.getElementById('juggleToday').value = '';
   renderBlockSkills();
   updateTouchProgress();
   updateLogBtn();
 }
 
-// ─── HOME RENDER ──────────────────────────────────────────
+// ─── HOME RENDER ──────────────────────────────────────
 function renderHome() {
   const p = currentPlayer;
+  const colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
+  const color = p.color || colors[p.id] || '#4fc3f7';
+
   document.getElementById('homeAvatar').textContent = p.name[0].toUpperCase();
-  document.getElementById('homeStreakBadge').textContent = `🔥${p.streak||0}`;
+  document.getElementById('homeAvatar').style.background = color;
+  document.getElementById('homePlayerName').textContent = p.name.toUpperCase();
+  document.getElementById('homeStreakBadge').textContent = `🔥 ${p.streak||0} DAY STREAK`;
   document.getElementById('homeSubLabel').textContent = getTodayLabel();
+
+  // Top bar
+  document.getElementById('appPlayerName').textContent = p.name.toUpperCase();
+  document.getElementById('appPlayerStreak').textContent = `🔥 ${p.streak||0}`;
 
   const rank = getRank(p.xp||0);
   document.getElementById('rankChip').textContent = rank.name;
@@ -791,13 +1461,12 @@ function renderHome() {
   document.getElementById('rankChip').style.background = rank.color + '22';
 
   const nextRank = RANKS[RANKS.indexOf(rank)+1];
-  const progress = nextRank ? ((p.xp - rank.min) / (nextRank.min - rank.min) * 100) : 100;
-  document.getElementById('xpFill').style.width = Math.min(100, progress) + '%';
+  const progress = nextRank ? ((p.xp - rank.min)/(nextRank.min - rank.min)*100) : 100;
+  document.getElementById('xpFill').style.width = Math.min(100,progress) + '%';
   document.getElementById('xpCount').textContent = `${(p.xp||0).toLocaleString()} / ${(nextRank?.min||rank.max).toLocaleString()} XP`;
 
   const pb = getJugglePB();
   document.getElementById('jugglePbBadge').textContent = pb > 0 ? `PB: ${pb}` : 'PB: --';
-  document.getElementById('juggleAllTimePb').textContent = pb > 0 ? pb : '--';
 
   setDifficulty(currentDiff);
 }
@@ -816,22 +1485,21 @@ function getJugglePB() {
   return Math.max(localPB, profilePB);
 }
 
-// ─── DIFFICULTY ───────────────────────────────────────────
+// ─── DIFFICULTY ───────────────────────────────────────
 function setDifficulty(d) {
   currentDiff = d;
-  const keys = ['hustle', 'consistent', 'limited'];
+  const keys = ['hustle','consistent','limited'];
   keys.forEach(k => {
     const btn = document.getElementById(`diff-${k}`);
-    btn.className = 'diff-btn' + (k === d ? ` active-${k}` : '');
+    btn.className = 'diff-btn' + (k===d ? ` active-${k}` : '');
   });
   updateLogBtn();
 }
 
-// ─── SKILL BLOCKS ─────────────────────────────────────────
+// ─── SKILL BLOCKS ─────────────────────────────────────
 function toggleBlock(block) {
   blocksCollapsed[block] = !blocksCollapsed[block];
-  const skillsEl = document.getElementById(`${block}Skills`);
-  skillsEl.style.display = blocksCollapsed[block] ? 'none' : 'flex';
+  document.getElementById(`${block}Skills`).style.display = blocksCollapsed[block] ? 'none' : 'flex';
 }
 
 function renderBlockSkills() {
@@ -842,7 +1510,6 @@ function renderBlockSkills() {
 function renderBlock(blockId, skills, completedSet) {
   const container = document.getElementById(`${blockId}Skills`);
   container.innerHTML = '';
-  // Ensure visible when not collapsed
   container.style.display = blocksCollapsed[blockId] ? 'none' : 'flex';
   skills.forEach(skill => {
     const done = completedSet.has(skill.id);
@@ -866,11 +1533,10 @@ function toggleBlockSkill(blockId, skill, row, completedSet) {
     row.querySelector('.skill-check-box').innerHTML = '';
   } else {
     completedSet.add(skill.id);
-    const doneClass = blockId === 'bm' ? 'skill-row done bm-done' : 'skill-row done';
-    row.className = doneClass;
+    row.className = blockId==='bm' ? 'skill-row done bm-done' : 'skill-row done';
     row.querySelector('.skill-check-box').innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6L5 9L10 3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   }
-  updateBlockProgress(blockId, completedSet, blockId === 'bm' ? BM_SKILLS : MV_SKILLS);
+  updateBlockProgress(blockId, completedSet, blockId==='bm' ? BM_SKILLS : MV_SKILLS);
   updateTouchProgress();
   updateLogBtn();
 }
@@ -878,29 +1544,28 @@ function toggleBlockSkill(blockId, skill, row, completedSet) {
 function updateBlockProgress(blockId, completedSet, skills) {
   const done = completedSet.size;
   const total = skills.length;
-  const pct = (done / total) * 100;
-  const touchesDone = skills.filter(s => completedSet.has(s.id)).reduce((a,b) => a + b.touches, 0);
-  const touchesTotal = skills.reduce((a,b) => a + b.touches, 0);
+  const pct = (done/total)*100;
+  const touchesDone = skills.filter(s=>completedSet.has(s.id)).reduce((a,b)=>a+b.touches,0);
+  const touchesTotal = skills.reduce((a,b)=>a+b.touches,0);
   const isComplete = done >= total;
-
-  document.getElementById(`${blockId}Bar`).style.width = pct + '%';
+  document.getElementById(`${blockId}Bar`).style.width = pct+'%';
   document.getElementById(`${blockId}Chip`).textContent = `${done}/${total}`;
-  document.getElementById(`${blockId}Chip`).className = `block-progress-chip ${isComplete ? 'complete' : 'incomplete'}`;
+  document.getElementById(`${blockId}Chip`).className = `block-progress-chip ${isComplete?'complete':'incomplete'}`;
   document.getElementById(`${blockId}TouchSub`).textContent = `${touchesDone.toLocaleString()} / ${touchesTotal.toLocaleString()} touches`;
 }
 
 function calcTouches() {
-  const bmT = BM_SKILLS.filter(s => completedBM.has(s.id)).reduce((a,b) => a + b.touches, 0);
-  const mvT = MV_SKILLS.filter(s => completedMV.has(s.id)).reduce((a,b) => a + b.touches, 0);
+  const bmT = BM_SKILLS.filter(s=>completedBM.has(s.id)).reduce((a,b)=>a+b.touches,0);
+  const mvT = MV_SKILLS.filter(s=>completedMV.has(s.id)).reduce((a,b)=>a+b.touches,0);
   return bmT + mvT;
 }
 
 function updateTouchProgress() {
   const total = calcTouches();
-  const pct = Math.min(100, (total / TOTAL_TARGET) * 100);
+  const pct = Math.min(100,(total/TOTAL_TARGET)*100);
   document.getElementById('touchCount').textContent = total.toLocaleString();
   document.getElementById('touchTarget').textContent = TOTAL_TARGET.toLocaleString();
-  document.getElementById('touchProgFill').style.width = pct + '%';
+  document.getElementById('touchProgFill').style.width = pct+'%';
 }
 
 function updateLogBtn() {
@@ -922,27 +1587,20 @@ function updateLogBtn() {
   }
 }
 
-// ─── LOG SESSION ──────────────────────────────────────────
+// ─── LOG SESSION ──────────────────────────────────────
 async function logSession() {
   const touches = calcTouches();
-  if (touches === 0) {
-    showToast('Complete some skills first!', 'error');
-    return;
-  }
-
+  if (touches === 0) { showToast('Complete some skills first!','error'); return; }
   const bmDone = completedBM.size >= BM_MIN_REQUIRED;
   const mvDone = completedMV.size >= MV_MIN_REQUIRED;
   const fullSession = bmDone && mvDone;
-
   const diff = DIFFICULTY[currentDiff];
   const xpEarned = fullSession
     ? Math.round(diff.baseXP * diff.multiplier)
-    : Math.round((diff.baseXP * diff.multiplier) * (touches / TOTAL_TARGET));
-
-  const juggle = parseInt(document.getElementById('juggleToday').value) || 0;
+    : Math.round((diff.baseXP * diff.multiplier) * (touches/TOTAL_TARGET));
+  const juggle = parseInt(document.getElementById('juggleToday').value)||0;
   const today = new Date().toISOString().slice(0,10);
 
-  // Update juggle PB if new best
   const oldPB = getJugglePB();
   if (juggle > oldPB) {
     localStorage.setItem(`sfc_juggle_${currentPlayer.id}`, String(juggle));
@@ -955,7 +1613,7 @@ async function logSession() {
   const session = {
     player_id: currentPlayer.id,
     date: today,
-    touches: touches,
+    touches,
     juggle_high: juggle,
     bm_skills: [...completedBM],
     mv_skills: [...completedMV],
@@ -964,13 +1622,9 @@ async function logSession() {
     xp_earned: xpEarned,
   };
 
-  try {
-    await sb('sessions', {method:'POST', body: JSON.stringify(session)});
-  } catch(e) {
-    queueOffline(session);
-  }
+  try { await sb('sessions', {method:'POST', body:JSON.stringify(session)}); }
+  catch(e) { queueOffline(session); }
 
-  // Update player locally - only increment streak if not already logged today
   const lastLog = localStorage.getItem(`sfc_lastlog_${currentPlayer.id}`);
   if (lastLog !== today) {
     currentPlayer.streak = (currentPlayer.streak||0) + 1;
@@ -980,29 +1634,22 @@ async function logSession() {
   currentPlayer.total_touches = (currentPlayer.total_touches||0) + touches;
   currentPlayer.sessions = (currentPlayer.sessions||0) + 1;
 
-  // Push to Supabase
   try {
     await sb(`profiles?id=eq.${currentPlayer.id}`, {
       method:'PATCH',
-      body: JSON.stringify({
-        xp: currentPlayer.xp,
-        streak: currentPlayer.streak,
-        total_touches: currentPlayer.total_touches,
-        sessions: currentPlayer.sessions,
-        juggle_pb: currentPlayer.juggle_pb || 0,
-      }),
-      prefer: 'return=minimal'
+      body:JSON.stringify({xp:currentPlayer.xp, streak:currentPlayer.streak,
+        total_touches:currentPlayer.total_touches, sessions:currentPlayer.sessions,
+        juggle_pb:currentPlayer.juggle_pb||0}),
+      prefer:'return=minimal'
     });
   } catch(e) {}
 
+  // Save locally
   localStorage.setItem('sfc_player', JSON.stringify(currentPlayer));
+  localStorage.setItem(`sfc_playerdata_${currentPlayer.id}`, JSON.stringify(currentPlayer));
   checkBadges();
-  showToast(`+${xpEarned} XP · ${fullSession ? 'FULL SESSION 🔥' : 'PARTIAL SESSION'}`, 'success');
-
-  if (juggle > oldPB && juggle > 0) {
-    setTimeout(() => showToast(`🎯 NEW JUGGLE PB: ${juggle}!`, 'success'), 1600);
-  }
-
+  showToast(`+${xpEarned} XP · ${fullSession?'FULL SESSION 🔥':'PARTIAL SESSION'}`, 'success');
+  if (juggle > oldPB && juggle > 0) setTimeout(()=>showToast(`🎯 NEW JUGGLE PB: ${juggle}!`,'success'),1600);
   resetSession();
   renderHome();
   renderProfile();
@@ -1015,25 +1662,189 @@ function queueOffline(session) {
   localStorage.setItem('sfc_queue', JSON.stringify(q));
 }
 
-// ─── BADGES ───────────────────────────────────────────────
-function checkBadges() {
-  const p = currentPlayer;
-  const earned = JSON.parse(localStorage.getItem(`sfc_badges_${p.id}`)||'[]');
-  const newBadges = [];
-  BADGES.forEach(b => {
-    if (!earned.includes(b.id) && b.cond(p)) {
-      earned.push(b.id);
-      newBadges.push(`${b.emoji} ${b.name}!`);
-    }
-  });
-  localStorage.setItem(`sfc_badges_${p.id}`, JSON.stringify(earned));
-  if (newBadges.length) setTimeout(() => showToast('BADGE: ' + newBadges[0], 'success'), 3000);
+// ─── PARENT: LOG FOR KID ──────────────────────────────
+function openLogModal(playerId) {
+  const p = players.find(x=>x.id===playerId);
+  if (!p) return;
+  logModalState = {player:p, bmDone:new Set(), mvDone:new Set(), diff:'consistent', juggle:0};
+  document.getElementById('logModalSub').textContent = `Logging for ${p.name}`;
+  renderLogModal();
+  document.getElementById('logModal').classList.add('open');
 }
 
-// ─── PROFILE RENDER ───────────────────────────────────────
+function closeLogModal() {
+  document.getElementById('logModal').classList.remove('open');
+}
+
+function renderLogModal() {
+  const wrap = document.getElementById('logForKidWrap');
+  wrap.innerHTML = '';
+
+  // BM skills
+  const bmGroup = document.createElement('div');
+  bmGroup.className = 'log-modal-skill-group';
+  bmGroup.innerHTML = '<div class="log-modal-group-label">⚽ BALL MASTERY</div>';
+  const bmSkillsWrap = document.createElement('div');
+  bmSkillsWrap.className = 'log-modal-skills';
+  BM_SKILLS.forEach(s => {
+    const chip = document.createElement('div');
+    chip.className = 'log-modal-skill-chip' + (logModalState.bmDone.has(s.id)?' done':'');
+    chip.textContent = s.name;
+    chip.onclick = () => {
+      logModalState.bmDone.has(s.id) ? logModalState.bmDone.delete(s.id) : logModalState.bmDone.add(s.id);
+      renderLogModal();
+    };
+    bmSkillsWrap.appendChild(chip);
+  });
+  bmGroup.appendChild(bmSkillsWrap);
+  wrap.appendChild(bmGroup);
+
+  // MV skills
+  const mvGroup = document.createElement('div');
+  mvGroup.className = 'log-modal-skill-group';
+  mvGroup.innerHTML = '<div class="log-modal-group-label">🏃 MOVEMENT</div>';
+  const mvSkillsWrap = document.createElement('div');
+  mvSkillsWrap.className = 'log-modal-skills';
+  MV_SKILLS.forEach(s => {
+    const chip = document.createElement('div');
+    chip.className = 'log-modal-skill-chip' + (logModalState.mvDone.has(s.id)?' done':'');
+    chip.textContent = s.name;
+    chip.onclick = () => {
+      logModalState.mvDone.has(s.id) ? logModalState.mvDone.delete(s.id) : logModalState.mvDone.add(s.id);
+      renderLogModal();
+    };
+    mvSkillsWrap.appendChild(chip);
+  });
+  mvGroup.appendChild(mvSkillsWrap);
+  wrap.appendChild(mvGroup);
+
+  // Juggle
+  const juggleRow = document.createElement('div');
+  juggleRow.className = 'log-modal-juggle';
+  juggleRow.innerHTML = `
+    <div class="log-modal-juggle-label">🎯 Juggle count</div>
+    <input class="log-modal-juggle-input" id="logModalJuggle" type="number" inputmode="numeric" placeholder="0" value="${logModalState.juggle||''}">
+  `;
+  wrap.appendChild(juggleRow);
+  document.getElementById('logModalJuggle')?.addEventListener('change',e=>{logModalState.juggle=parseInt(e.target.value)||0});
+
+  // Difficulty
+  const diffRow = document.createElement('div');
+  diffRow.className = 'diff-row';
+  ['hustle','consistent','limited'].forEach(d => {
+    const btn = document.createElement('button');
+    btn.className = 'log-diff-btn' + (d===logModalState.diff?` active-${d}`:'');
+    btn.textContent = d.toUpperCase();
+    btn.onclick = () => { logModalState.diff = d; renderLogModal(); };
+    diffRow.appendChild(btn);
+  });
+  wrap.appendChild(diffRow);
+}
+
+async function submitLogForKid() {
+  const p = logModalState.player;
+  const touches = BM_SKILLS.filter(s=>logModalState.bmDone.has(s.id)).reduce((a,b)=>a+b.touches,0)
+                + MV_SKILLS.filter(s=>logModalState.mvDone.has(s.id)).reduce((a,b)=>a+b.touches,0);
+  if (touches === 0) { showToast('Select some skills first!','error'); return; }
+  const fullSession = logModalState.bmDone.size>=BM_MIN_REQUIRED && logModalState.mvDone.size>=MV_MIN_REQUIRED;
+  const diff = DIFFICULTY[logModalState.diff];
+  const xp = fullSession
+    ? Math.round(diff.baseXP * diff.multiplier)
+    : Math.round((diff.baseXP * diff.multiplier) * (touches/TOTAL_TARGET));
+  const today = new Date().toISOString().slice(0,10);
+  const juggle = logModalState.juggle || 0;
+
+  const session = {
+    player_id: p.id, date:today, touches,
+    juggle_high:juggle,
+    bm_skills:[...logModalState.bmDone], mv_skills:[...logModalState.mvDone],
+    difficulty:logModalState.diff, full_session:fullSession, xp_earned:xp
+  };
+
+  try { await sb('sessions',{method:'POST',body:JSON.stringify(session)}); } catch(e) {}
+
+  // Update player stats
+  const lastLog = localStorage.getItem(`sfc_lastlog_${p.id}`);
+  if (lastLog !== today) {
+    p.streak = (p.streak||0)+1;
+    localStorage.setItem(`sfc_lastlog_${p.id}`, today);
+  }
+  p.xp = (p.xp||0)+xp;
+  p.total_touches = (p.total_touches||0)+touches;
+  p.sessions = (p.sessions||0)+1;
+  if (juggle > (p.juggle_pb||0)) p.juggle_pb = juggle;
+
+  try {
+    await sb(`profiles?id=eq.${p.id}`,{method:'PATCH',
+      body:JSON.stringify({xp:p.xp,streak:p.streak,total_touches:p.total_touches,sessions:p.sessions,juggle_pb:p.juggle_pb||0}),
+      prefer:'return=minimal'
+    });
+  } catch(e) {}
+
+  localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p));
+  closeLogModal();
+  renderParentPortal();
+  showToast(`+${xp} XP logged for ${p.name} 🔥`,'success');
+}
+
+// ─── PIN MODAL ────────────────────────────────────────
+function openPinModal() {
+  const wrap = document.getElementById('pinSetWrap');
+  wrap.innerHTML = '';
+  const colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
+  players.forEach(p => {
+    const color = p.color || colors[p.id] || '#4fc3f7';
+    const row = document.createElement('div');
+    row.className = 'pin-set-player-row';
+    row.style.cssText = `--player-color:${color}`;
+    row.innerHTML = `
+      <div class="pin-set-avatar" style="background:${color}">${p.name[0]}</div>
+      <div class="pin-set-name">${p.name}</div>
+      <input class="pin-set-input" id="newpin_${p.id}" type="number" inputmode="numeric" maxlength="4" placeholder="****" value="${p.pin||''}">
+    `;
+    wrap.appendChild(row);
+  });
+  document.getElementById('pinModal').classList.add('open');
+}
+
+function closePinModal() {
+  document.getElementById('pinModal').classList.remove('open');
+}
+
+async function savePins() {
+  players.forEach(p => {
+    const input = document.getElementById(`newpin_${p.id}`);
+    if (input) {
+      const val = input.value.replace(/\D/g,'').slice(0,4);
+      if (val.length === 4) p.pin = val;
+    }
+  });
+  localStorage.setItem('sfc_players', JSON.stringify(players));
+  // Try to push to Supabase
+  for (const p of players) {
+    try { await sb(`profiles?id=eq.${p.id}`,{method:'PATCH',body:JSON.stringify({pin:p.pin}),prefer:'return=minimal'}); } catch(e) {}
+  }
+  closePinModal();
+  showToast('PINs saved!','success');
+}
+
+// ─── TRAIN AS (parent logs in as kid) ─────────────────
+function goTrainAs(playerId) {
+  const p = players.find(x=>x.id===playerId);
+  if (!p) return;
+  currentPlayer = p;
+  localStorage.setItem('sfc_player', JSON.stringify(p));
+  showScreen('parent-portal');
+  launchApp();
+}
+
+// ─── PROFILE ──────────────────────────────────────────
 function renderProfile() {
   const p = currentPlayer;
+  const colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
+  const color = p.color || colors[p.id] || '#4fc3f7';
   document.getElementById('profileAvatar').textContent = p.name[0].toUpperCase();
+  document.getElementById('profileAvatar').style.background = color;
   document.getElementById('profileName').textContent = p.name.toUpperCase();
   document.getElementById('profileClub').textContent = (p.club||'').toUpperCase();
   const rank = getRank(p.xp||0);
@@ -1041,13 +1852,9 @@ function renderProfile() {
   document.getElementById('statStreak').textContent = p.streak||0;
   document.getElementById('statTouches').textContent = ((p.total_touches||0)/1000).toFixed(1)+'K';
   document.getElementById('statSessions').textContent = p.sessions||0;
-
   const pb = getJugglePB();
   const pbEl = document.getElementById('statJugglePb');
-  if (pb > 0) {
-    pbEl.style.display = 'block';
-    pbEl.textContent = `🎯 PB: ${pb}`;
-  }
+  if (pb > 0) { pbEl.style.display='block'; pbEl.textContent=`🎯 PB: ${pb}`; }
   renderWeekChart();
   renderBadges();
 }
@@ -1057,21 +1864,21 @@ function renderWeekChart() {
   const today = new Date().getDay();
   const bars = document.getElementById('weekBars');
   const labels = document.getElementById('weekLabels');
-  bars.innerHTML = ''; labels.innerHTML = '';
-  const mockData = [0,0,0,0,0,0,0];
-  if (currentPlayer.sessions > 0) mockData[today] = calcTouches() || 800;
-  const max = Math.max(...mockData, 100);
-  for (let i=0; i<7; i++) {
-    const pct = (mockData[i]/max)*100;
-    const isToday = i === today;
-    const bw = document.createElement('div');
-    bw.className = 'week-bar-wrap';
-    bw.innerHTML = `<div style="flex:1;display:flex;align-items:flex-end;width:100%"><div class="week-bar${isToday?' today':''}" style="height:${Math.max(pct,4)}%"></div></div>`;
+  bars.innerHTML=''; labels.innerHTML='';
+  const mockData=[0,0,0,0,0,0,0];
+  if (currentPlayer.sessions>0) mockData[today]=calcTouches()||800;
+  const max=Math.max(...mockData,100);
+  for (let i=0;i<7;i++) {
+    const pct=(mockData[i]/max)*100;
+    const isToday=i===today;
+    const bw=document.createElement('div');
+    bw.className='week-bar-wrap';
+    bw.style='flex:1;display:flex;flex-direction:column;align-items:center;height:100%';
+    bw.innerHTML=`<div style="flex:1;display:flex;align-items:flex-end;width:100%"><div class="week-bar${isToday?' today':''}" style="height:${Math.max(pct,4)}%;width:100%"></div></div>`;
     bars.appendChild(bw);
-    const lbl = document.createElement('div');
-    lbl.style.flex = '1';
-    lbl.style.textAlign = 'center';
-    lbl.innerHTML = `<div class="week-day${isToday?' today':''}">${days[i]}</div>`;
+    const lbl=document.createElement('div');
+    lbl.style='flex:1;text-align:center';
+    lbl.innerHTML=`<div class="week-day${isToday?' today':''}">${days[i]}</div>`;
     labels.appendChild(lbl);
   }
 }
@@ -1089,29 +1896,40 @@ function renderBadges() {
   });
 }
 
-// ─── SKILLS LIST ─────────────────────────────────────────
+function checkBadges() {
+  const p = currentPlayer;
+  const earned = JSON.parse(localStorage.getItem(`sfc_badges_${p.id}`)||'[]');
+  const newBadges = [];
+  BADGES.forEach(b => {
+    if (!earned.includes(b.id) && b.cond(p)) {
+      earned.push(b.id);
+      newBadges.push(`${b.emoji} ${b.name}!`);
+    }
+  });
+  localStorage.setItem(`sfc_badges_${p.id}`, JSON.stringify(earned));
+  if (newBadges.length) setTimeout(()=>showToast('BADGE: '+newBadges[0],'success'),3000);
+}
+
+// ─── SKILLS LIST ──────────────────────────────────────
 function renderSkillsList() {
   const bmList = document.getElementById('skillListBM');
   const mvList = document.getElementById('skillListMV');
-  bmList.innerHTML = '';
-  mvList.innerHTML = '';
-
+  bmList.innerHTML=''; mvList.innerHTML='';
   BM_SKILLS.forEach(s => {
-    const item = document.createElement('div');
-    item.className = 'skill-list-item';
-    item.innerHTML = `<div class="skill-list-name">${s.name}</div><div class="skill-list-meta">${s.touches} TOUCHES · BALL MASTERY</div>`;
+    const item=document.createElement('div');
+    item.className='skill-list-item';
+    item.innerHTML=`<div class="skill-list-name">${s.name}</div><div class="skill-list-meta">${s.touches} TOUCHES · BALL MASTERY</div>`;
     bmList.appendChild(item);
   });
-
   MV_SKILLS.forEach(s => {
-    const item = document.createElement('div');
-    item.className = 'skill-list-item';
-    item.innerHTML = `<div class="skill-list-name">${s.name}</div><div class="skill-list-meta">${s.touches} TOUCHES · MOVEMENT</div>`;
+    const item=document.createElement('div');
+    item.className='skill-list-item';
+    item.innerHTML=`<div class="skill-list-name">${s.name}</div><div class="skill-list-meta">${s.touches} TOUCHES · MOVEMENT</div>`;
     mvList.appendChild(item);
   });
 }
 
-// ─── NAV ─────────────────────────────────────────────────
+// ─── NAV ──────────────────────────────────────────────
 function switchTab(tab) {
   ['home','profile','skills','crew'].forEach(t => {
     document.getElementById(`screen-${t}`).classList.toggle('active', t===tab);
@@ -1123,22 +1941,20 @@ function switchTab(tab) {
   });
 }
 
-// ─── TOAST ────────────────────────────────────────────────
+// ─── TOAST ────────────────────────────────────────────
 let toastTimer;
 function showToast(msg, type='') {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.className = `toast ${type} show`;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2800);
 }
 
-// ─── SERVICE WORKER ───────────────────────────────────────
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(()=>{});
-}
+// ─── SERVICE WORKER ───────────────────────────────────
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
 
-// ─── START ────────────────────────────────────────────────
+// ─── START ────────────────────────────────────────────
 init();
 </script>
 </body>
