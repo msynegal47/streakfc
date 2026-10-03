@@ -26,7 +26,7 @@
 }
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;overflow:hidden}
 #app{height:100%;display:flex;flex-direction:column;max-width:480px;margin:0 auto;position:relative}
-.screen{flex:1;overflow-y:auto;overflow-x:hidden;display:none;flex-direction:column;padding-bottom:calc(68px + var(--safe-bot))}
+.screen{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;display:none;flex-direction:column;padding-bottom:calc(68px + var(--safe-bot))}
 .screen.active{display:flex}
 .status-bar{height:calc(44px + var(--safe-top));padding-top:var(--safe-top);display:flex;align-items:center;justify-content:space-between;padding-left:20px;padding-right:20px;flex-shrink:0}
 .status-time{font-size:13px;font-weight:600}
@@ -506,15 +506,12 @@ const RANKS = [
   {name:'PRO',        min:22000,max:99999,color:'#22c55e'},
 ];
 
-// Difficulty: base XP per full session (both blocks complete = 1,500 touches)
 const DIFFICULTY = {
   hustle:     {label:'HUSTLING',     multiplier:2.0, baseXP:175, color:'#f87171'},
   consistent: {label:'CONSISTENT',  multiplier:1.5, baseXP:130, color:'#f97316'},
   limited:    {label:'LIMITED GEAR', multiplier:1.0, baseXP:80,  color:'#818cf8'},
 };
 
-// Ball Mastery block - each skill has a touch count
-// Total block = 900 touches minimum (all 7 required)
 const BM_SKILLS = [
   {id:'toe-taps',       name:'Toe Taps',          touches:200, min:true},
   {id:'v-poles',        name:'V Poles',            touches:100, min:true},
@@ -524,11 +521,9 @@ const BM_SKILLS = [
   {id:'l-turns',        name:'L Turns',            touches:150, min:true},
   {id:'lacrosse',       name:'Lacrosse Roll',      touches:150, min:true},
 ];
-const BM_MIN_REQUIRED = BM_SKILLS.length; // all 7
-const BM_TOTAL_TOUCHES = BM_SKILLS.reduce((s,k) => s + k.touches, 0); // 900
+const BM_MIN_REQUIRED = BM_SKILLS.length;
+const BM_TOTAL_TOUCHES = BM_SKILLS.reduce((s,k) => s + k.touches, 0);
 
-// Movement block - each skill has a touch count
-// Total block = 600 touches minimum (all 6 required)
 const MV_SKILLS = [
   {id:'step-overs',     name:'Step Overs',         touches:100, min:true},
   {id:'maradonas',      name:'Maradonas',          touches:100, min:true},
@@ -537,10 +532,9 @@ const MV_SKILLS = [
   {id:'cruyff',         name:'Cruyff Turn',        touches:100, min:true},
   {id:'drag-back',      name:'Drag Back Combo',    touches:100, min:true},
 ];
-const MV_MIN_REQUIRED = MV_SKILLS.length; // all 6
-const MV_TOTAL_TOUCHES = MV_SKILLS.reduce((s,k) => s + k.touches, 0); // 600
-
-const TOTAL_TARGET = BM_TOTAL_TOUCHES + MV_TOTAL_TOUCHES; // 1500
+const MV_MIN_REQUIRED = MV_SKILLS.length;
+const MV_TOTAL_TOUCHES = MV_SKILLS.reduce((s,k) => s + k.touches, 0);
+const TOTAL_TARGET = BM_TOTAL_TOUCHES + MV_TOTAL_TOUCHES;
 
 const BADGES = [
   {id:'streak7',    emoji:'🔥', name:'7 Day Streak',   cond: p => p.streak >= 7},
@@ -557,8 +551,8 @@ const BADGES = [
 let currentUser    = null;
 let currentPlayer  = null;
 let currentDiff    = 'consistent';
-let completedBM    = new Set(); // BM skill IDs done this session
-let completedMV    = new Set(); // MV skill IDs done this session
+let completedBM    = new Set();
+let completedMV    = new Set();
 let blocksCollapsed = {bm: false, mv: false};
 let pinBuffer      = '';
 let pendingPlayer  = null;
@@ -588,8 +582,38 @@ async function sbAuth(path, body) {
   return r.json();
 }
 
+// ─── GET USER UUID ────────────────────────────────────────
+async function getUserId() {
+  try {
+    const res = await fetch(`${SB_URL}/auth/v1/user`, {
+      headers: {'apikey': SB_KEY, 'Authorization': `Bearer ${currentUser.access_token}`}
+    });
+    if (res.ok) {
+      const u = await res.json();
+      return u.id;
+    }
+  } catch(e) {}
+  return null;
+}
+
 // ─── AUTH ─────────────────────────────────────────────────
 async function init() {
+  // Check for magic link token in hash FIRST before checking stored session
+  const hash = window.location.hash;
+  if (hash.includes('access_token')) {
+    const params = new URLSearchParams(hash.slice(1));
+    currentUser = {
+      access_token: params.get('access_token'),
+      refresh_token: params.get('refresh_token'),
+    };
+    localStorage.setItem('sfc_session', JSON.stringify(currentUser));
+    // Clear the hash without triggering a reload
+    window.history.replaceState({}, '', window.location.pathname);
+    showPlayerSelect();
+    return;
+  }
+
+  // Then check stored session
   const stored = localStorage.getItem('sfc_session');
   if (stored) {
     try {
@@ -600,19 +624,9 @@ async function init() {
       if (res.ok) { showPlayerSelect(); return; }
     } catch(e) {}
     localStorage.removeItem('sfc_session');
+    currentUser = null;
   }
-  const hash = window.location.hash;
-  if (hash.includes('access_token')) {
-    const params = new URLSearchParams(hash.slice(1));
-    currentUser = {
-      access_token: params.get('access_token'),
-      refresh_token: params.get('refresh_token'),
-    };
-    localStorage.setItem('sfc_session', JSON.stringify(currentUser));
-    window.history.replaceState({}, '', '/');
-    showPlayerSelect();
-    return;
-  }
+
   document.getElementById('auth-screen').style.display = 'flex';
 }
 
@@ -621,7 +635,7 @@ async function sendMagicLink() {
   if (!email) return;
   const msg = document.getElementById('authMsg');
   msg.textContent = 'Sending...';
-  const res = await sbAuth('magiclink', {email, options:{emailRedirectTo: window.location.origin}});
+  const res = await sbAuth('magiclink', {email, options:{emailRedirectTo: window.location.origin + '/'}});
   if (res.error) {
     msg.innerHTML = `<span style="color:#f87171">${res.error.message}</span>`;
   } else {
@@ -649,10 +663,12 @@ async function showPlayerSelect() {
 
   let players = [];
   try {
-    players = await sb(`profiles?parent_id=eq.${encodeURIComponent(currentUser.access_token)}&order=name`, {method:'GET'});
-  } catch(e) {
-    players = getSeededPlayers();
-  }
+    // Use user UUID not access_token for parent_id lookup
+    const uid = await getUserId();
+    if (uid) {
+      players = await sb(`profiles?parent_id=eq.${encodeURIComponent(uid)}&order=name`, {method:'GET'});
+    }
+  } catch(e) {}
   if (!players || players.length === 0) players = getSeededPlayers();
 
   const grid = document.getElementById('playerGrid');
@@ -754,6 +770,7 @@ function checkOnline() {
 function resetSession() {
   completedBM.clear();
   completedMV.clear();
+  blocksCollapsed = {bm: false, mv: false};
   document.getElementById('juggleToday').value = '';
   renderBlockSkills();
   updateTouchProgress();
@@ -778,7 +795,6 @@ function renderHome() {
   document.getElementById('xpFill').style.width = Math.min(100, progress) + '%';
   document.getElementById('xpCount').textContent = `${(p.xp||0).toLocaleString()} / ${(nextRank?.min||rank.max).toLocaleString()} XP`;
 
-  // Juggle PB
   const pb = getJugglePB();
   document.getElementById('jugglePbBadge').textContent = pb > 0 ? `PB: ${pb}` : 'PB: --';
   document.getElementById('juggleAllTimePb').textContent = pb > 0 ? pb : '--';
@@ -826,6 +842,8 @@ function renderBlockSkills() {
 function renderBlock(blockId, skills, completedSet) {
   const container = document.getElementById(`${blockId}Skills`);
   container.innerHTML = '';
+  // Ensure visible when not collapsed
+  container.style.display = blocksCollapsed[blockId] ? 'none' : 'flex';
   skills.forEach(skill => {
     const done = completedSet.has(skill.id);
     const row = document.createElement('div');
@@ -891,7 +909,7 @@ function updateLogBtn() {
   const allDone = bmDone && mvDone;
   const btn = document.getElementById('logBtn');
   const sub = document.getElementById('logBtnSub');
-  btn.disabled = false; // allow partial logging too, but inform user
+  btn.disabled = false;
   if (allDone) {
     const diff = DIFFICULTY[currentDiff];
     const xp = Math.round(diff.baseXP * diff.multiplier);
@@ -952,9 +970,13 @@ async function logSession() {
     queueOffline(session);
   }
 
-  // Update player locally
+  // Update player locally - only increment streak if not already logged today
+  const lastLog = localStorage.getItem(`sfc_lastlog_${currentPlayer.id}`);
+  if (lastLog !== today) {
+    currentPlayer.streak = (currentPlayer.streak||0) + 1;
+    localStorage.setItem(`sfc_lastlog_${currentPlayer.id}`, today);
+  }
   currentPlayer.xp = (currentPlayer.xp||0) + xpEarned;
-  currentPlayer.streak = (currentPlayer.streak||0) + 1;
   currentPlayer.total_touches = (currentPlayer.total_touches||0) + touches;
   currentPlayer.sessions = (currentPlayer.sessions||0) + 1;
 
@@ -1037,7 +1059,6 @@ function renderWeekChart() {
   const labels = document.getElementById('weekLabels');
   bars.innerHTML = ''; labels.innerHTML = '';
   const mockData = [0,0,0,0,0,0,0];
-  // Mark today if session was just logged
   if (currentPlayer.sessions > 0) mockData[today] = calcTouches() || 800;
   const max = Math.max(...mockData, 100);
   for (let i=0; i<7; i++) {
@@ -1068,7 +1089,7 @@ function renderBadges() {
   });
 }
 
-// ─── SKILLS LIST (reference tab) ─────────────────────────
+// ─── SKILLS LIST ─────────────────────────────────────────
 function renderSkillsList() {
   const bmList = document.getElementById('skillListBM');
   const mvList = document.getElementById('skillListMV');
