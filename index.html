@@ -1492,6 +1492,7 @@ function renderParentPortal() {
         <button class="kid-action-btn" onclick="goTrainAs('${p.id}')">▶ TRAIN AS</button>
         <button class="kid-action-btn" onclick="openRewardModal('${p.id}')">🎁 REWARD</button>
       </div>
+      ${statusLine(p)}
       ${rewardLine(p)}
     `;
     body.appendChild(card);
@@ -1505,6 +1506,7 @@ function renderParentPortal() {
     <button class="kid-action-btn" style="flex:1;padding:14px" onclick="showPlayerSelectFromPortal()">👤 PLAYER SELECT</button>
   `;
   body.appendChild(actions);
+  body.appendChild(testPanel());
 }
 
 function logout() {
@@ -2545,6 +2547,64 @@ function sfx(kind) {
     if (kind==='build') { o.type='sawtooth'; o.frequency.setValueAtTime(180,t); o.frequency.exponentialRampToValueAtTime(700,t+.7); g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.06,t+.5); g.gain.exponentialRampToValueAtTime(.0001,t+.75); o.start(t); o.stop(t+.8); }
     else { o.type='triangle'; o.frequency.setValueAtTime(880,t); o.frequency.exponentialRampToValueAtTime(1320,t+.12); g.gain.setValueAtTime(.12,t); g.gain.exponentialRampToValueAtTime(.0001,t+.35); o.start(t); o.stop(t+.4); }
   } catch(e) {}
+}
+
+// ─── PARENT OVERSIGHT LINE ────────────────────────────
+function statusLine(p) {
+  const today = localStorage.getItem(`sfc_lastlog_${p.id}`) === localDate();
+  const have = getUnlocks(p.id), next = MILESTONES.find(m => !have.includes(m.id)), b = bestStreak(p);
+  const unlockTxt = next ? `Next unlock: ${next.id==='samba'?'Mystery kit':next.reveal.toLowerCase()} in ${Math.max(0,next.day-b)} day${next.day-b===1?'':'s'}` : 'All streak unlocks earned';
+  return `<div style="margin-top:10px;display:flex;justify-content:space-between;gap:8px;font-size:11px;font-weight:700">
+    <span style="color:${today?'var(--green)':'var(--sub)'}">${today?'✅ Trained today':'⏳ Not yet today'}</span>
+    <span style="color:var(--sub)">🔓 ${unlockTxt}</span></div>`;
+}
+
+// ─── BETA TEST TOOLS (parent dashboard) ───────────────
+function testPanel() {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'margin-top:24px;border:1px dashed #f59e0b66;border-radius:14px;padding:14px';
+  wrap.innerHTML = `<div style="font-size:11px;letter-spacing:2px;color:var(--amber);font-weight:800;margin-bottom:4px">🧪 BETA TEST TOOLS</div>
+    <div style="font-size:11px;color:var(--sub);margin-bottom:12px">Fast-forward streaks to test unlocks. Only affects this phone.</div>
+    ${players.map(p=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <div style="flex:1;font-size:13px;font-weight:800">${p.name} <span style="color:var(--sub);font-weight:600">🔥${liveStreak(p)}</span></div>
+      <button class="kid-action-btn" style="flex:0 0 auto;padding:8px 10px" onclick="testAddDays('${p.id}',1)">+1 DAY</button>
+      <button class="kid-action-btn" style="flex:0 0 auto;padding:8px 10px" onclick="testAddDays('${p.id}',6)">+6</button>
+      <button class="kid-action-btn" style="flex:0 0 auto;padding:8px 10px;color:var(--red)" onclick="testReset('${p.id}')">RESET</button>
+    </div>`).join('')}
+    <button class="kid-action-btn" style="width:100%;padding:12px;margin-top:4px" onclick="testPreviewReveals()">▶ PREVIEW ALL REVEALS</button>`;
+  return wrap;
+}
+// Pretend the kid also trained on the N days before today (streak continues if they log today)
+function testAddDays(id, n) {
+  const p = players.find(x=>x.id===id); if (!p) return;
+  const hist = JSON.parse(localStorage.getItem(`sfc_history_${id}`)||'{}');
+  const last = localStorage.getItem(`sfc_lastlog_${id}`);
+  const base = (last===localDate() || last===yesterdayStr()) ? (p.streak||0) : 0;
+  p.streak = base + n;
+  for (let i=1;i<=p.streak;i++) { const d=new Date(); d.setDate(d.getDate()-i); const k=localDate(d); hist[k]=hist[k]||1000; }
+  localStorage.setItem(`sfc_history_${id}`, JSON.stringify(hist));
+  if (last !== localDate()) localStorage.setItem(`sfc_lastlog_${id}`, yesterdayStr());
+  const best = parseInt(localStorage.getItem(`sfc_beststreak_${id}`)||'0');
+  localStorage.setItem(`sfc_beststreak_${id}`, String(Math.max(best, p.streak)));
+  localStorage.setItem(`sfc_playerdata_${id}`, JSON.stringify(p));
+  if (currentPlayer && currentPlayer.id===id) localStorage.setItem('sfc_player', JSON.stringify(p));
+  renderParentPortal();
+  showToast(`${p.name}: ${p.streak}-day streak. Log a session to trigger unlocks.`,'success');
+}
+function testReset(id) {
+  Object.keys(localStorage).filter(k => k.includes(`_${id}`)).forEach(k => localStorage.removeItem(k));
+  const p = players.find(x=>x.id===id);
+  if (p) Object.assign(p, {xp:0, streak:0, total_touches:0, sessions:0, juggle_pb:0});
+  renderParentPortal();
+  showToast('Reset done');
+}
+function testPreviewReveals() {
+  currentPlayer = currentPlayer || players[0];
+  showReveals([
+    {type:'rank', rank:RANKS[1]},
+    ...MILESTONES.map(m=>({type:'unlock', unlock:m})),
+    {type:'done', xp:300, full:true, pb:0},
+  ]);
 }
 
 // ─── SERVICE WORKER ───────────────────────────────────
