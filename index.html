@@ -160,7 +160,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .auth-desc{font-size:13px;color:var(--sub);text-align:center;line-height:1.6}
 .auth-input{
   width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:12px;
-  color:var(--text);font-size:15px;padding:14px 16px;outline:none;
+  color:var(--text);font-size:16px;padding:14px 16px;outline:none;
   transition:border-color .2s;
 }
 .auth-input:focus{border-color:var(--accent)}
@@ -592,6 +592,76 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 }
 .app-screen > *{flex-shrink:0}
 
+/* ── ENGAGEMENT ── */
+.av-wrap{border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.av-wrap svg{width:86%;height:86%}
+.unlock-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.unlock-title{font-size:11px;color:var(--sub);letter-spacing:2px;margin-bottom:10px}
+.unlock-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.unlock-tile{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:10px 6px;text-align:center;position:relative}
+.unlock-tile.done{border-color:var(--green)}
+.unlock-tile.next{border-color:var(--accent)}
+.unlock-ico{height:44px;display:flex;align-items:center;justify-content:center;font-size:28px}
+.unlock-ico svg{height:44px;width:44px}
+.unlock-name{font-size:11px;font-weight:800;margin-top:4px}
+.unlock-day{font-size:10px;color:var(--sub);margin-top:2px}
+.unlock-bar{height:3px;background:var(--border);border-radius:2px;margin-top:6px;overflow:hidden}
+.unlock-bar>div{height:3px;background:var(--accent)}
+.reward-card{background:linear-gradient(135deg,#1a1405,#0f1520);border:1px solid #f59e0b55;border-radius:var(--radius);padding:14px}
+.reward-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.reward-name{font-size:15px;font-weight:800}
+.reward-count{font-size:12px;color:var(--amber);font-weight:800}
+.reward-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.reward-bar>div{height:8px;background:linear-gradient(90deg,#f59e0b,#fbbf24);border-radius:4px;transition:width .5s}
+.edit-av-btn{margin-top:6px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:11px;font-weight:800;padding:8px 14px;letter-spacing:1px;cursor:pointer}
+.swatches{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 14px}
+.swatch{width:32px;height:32px;border-radius:50%;border:2px solid transparent;cursor:pointer}
+.swatch.sel{border-color:#fff;transform:scale(1.1)}
+.opt-row{display:flex;gap:8px;margin:6px 0 14px;flex-wrap:wrap}
+.opt-btn{flex:1;min-width:80px;padding:10px 6px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:12px;font-weight:700;cursor:pointer}
+.opt-btn.sel{border-color:var(--accent);color:var(--accent)}
+.opt-btn:disabled{opacity:.4}
+.av-preview{width:110px;height:110px;margin:0 auto 14px}
+.field-lbl{font-size:10px;letter-spacing:2px;color:var(--sub)}
+.bot-tag{font-size:9px;font-weight:800;letter-spacing:1px;color:var(--sub);border:1px solid var(--border);border-radius:6px;padding:1px 5px;margin-left:6px}
+
+/* Pack reveal overlay */
+#reveal{position:fixed;inset:0;z-index:300;background:radial-gradient(ellipse at center,#14203a 0%,#000 70%);display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow:hidden}
+#reveal.open{display:flex}
+.rays{position:absolute;width:900px;height:900px;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.06) 0deg 8deg,transparent 8deg 20deg);animation:spin 18s linear infinite;opacity:0;transition:opacity .6s}
+#reveal.flipped .rays{opacity:1}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pack{width:230px;height:320px;perspective:1000px;position:relative;z-index:2}
+.pack-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .9s cubic-bezier(.2,.8,.2,1)}
+#reveal.shake .pack-inner{animation:shake .7s ease-in-out}
+@keyframes shake{0%,100%{transform:rotate(0)}20%{transform:rotate(-4deg) scale(1.03)}40%{transform:rotate(4deg) scale(1.06)}60%{transform:rotate(-3deg) scale(1.08)}80%{transform:rotate(2deg) scale(1.1)}}
+#reveal.flipped .pack-inner{transform:rotateY(180deg)}
+.pack-face{position:absolute;inset:0;border-radius:18px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:18px;text-align:center}
+.pack-back{background:linear-gradient(135deg,#f97316,#fbbf24 50%,#f97316);box-shadow:0 0 40px #f9731688;border:3px solid #fde68a}
+.pack-back img{width:110px;filter:drop-shadow(0 0 12px rgba(0,0,0,.4))}
+.pack-back-txt{font-weight:900;letter-spacing:3px;color:#1a1000;font-size:14px}
+.pack-front{transform:rotateY(180deg);background:linear-gradient(160deg,#1c2740,#0a0f1a);border:3px solid var(--rv-color,#f97316);box-shadow:0 0 60px var(--rv-color,#f97316)}
+.rv-eyebrow{font-size:11px;letter-spacing:3px;color:var(--sub)}
+.rv-big{font-size:34px;font-weight:900;letter-spacing:1px;color:var(--rv-color,#fff);line-height:1.05}
+.rv-sub{font-size:13px;color:var(--text);opacity:.85}
+.rv-art{width:120px;height:120px;display:flex;align-items:center;justify-content:center;font-size:72px}
+.rv-art svg{width:120px;height:120px}
+.rv-continue{margin-top:28px;z-index:2;background:var(--accent);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:800;padding:14px 40px;letter-spacing:1px;cursor:pointer;opacity:0;transition:opacity .4s}
+#reveal.flipped .rv-continue,#reveal.plain .rv-continue{opacity:1}
+.done-wrap{z-index:2;text-align:center;display:none;flex-direction:column;align-items:center;gap:10px}
+#reveal.plain .done-wrap{display:flex}
+#reveal.plain .pack{display:none}
+.done-flame{font-size:84px;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.12)}}
+.done-title{font-size:30px;font-weight:900;letter-spacing:1px}
+.done-stats{display:flex;gap:10px;margin-top:6px}
+.done-stat{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:10px 14px;min-width:86px}
+.done-stat b{display:block;font-size:20px}
+.done-stat span{font-size:10px;color:var(--sub);letter-spacing:1px}
+.done-next{font-size:13px;color:var(--sub);margin-top:8px}
+.confetti{position:absolute;top:-10px;width:8px;height:14px;z-index:1;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+
 /* ── OFFLINE BAR ── */
 .offline-bar{
   position:fixed;top:0;left:0;right:0;z-index:999;
@@ -622,6 +692,49 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 <div class="field-bg"></div>
 <div class="offline-bar" id="offlineBar">NO CONNECTION · OFFLINE MODE</div>
 <div class="toast" id="toast"></div>
+
+<!-- Pack reveal / done-for-today overlay -->
+<div id="reveal">
+  <div class="rays"></div>
+  <div class="pack" onclick="flipPack()">
+    <div class="pack-inner">
+      <div class="pack-face pack-back"><img src="/logo.png" alt=""><div class="pack-back-txt">TAP TO OPEN</div></div>
+      <div class="pack-face pack-front" id="rvFront"></div>
+    </div>
+  </div>
+  <div class="done-wrap" id="doneWrap"></div>
+  <button class="rv-continue" onclick="nextReveal()">CONTINUE</button>
+</div>
+
+<!-- Avatar editor -->
+<div class="modal-overlay" id="avModal">
+  <div class="modal-sheet" style="max-height:88vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Your Kit</div>
+    <div class="modal-sub">Build your avatar. Unlock new kits by keeping your streak.</div>
+    <div class="av-preview av-wrap" id="avPreview"></div>
+    <div id="avEditorBody"></div>
+    <button class="modal-save-btn" onclick="saveAvatar()">SAVE</button>
+    <button onclick="closeModal('avModal')" style="width:100%;background:none;border:none;color:var(--sub);font-size:13px;padding:14px;cursor:pointer;margin-top:4px">Cancel</button>
+  </div>
+</div>
+
+<!-- Parent: set reward -->
+<div class="modal-overlay" id="rewardModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Set a Reward</div>
+    <div class="modal-sub" id="rewardModalSub">Pick a real reward and how many training days it takes.</div>
+    <div class="opt-row" id="rewardPresets"></div>
+    <div class="field-lbl">REWARD</div>
+    <input class="auth-input" id="rewardName" placeholder="e.g. New cleats" style="margin:6px 0 14px">
+    <div class="field-lbl">TRAINING DAYS TO EARN IT</div>
+    <div class="opt-row" id="rewardDays"></div>
+    <button class="modal-save-btn" onclick="saveReward()">SAVE REWARD</button>
+    <button id="rewardClearBtn" onclick="clearReward()" style="width:100%;background:none;border:none;color:var(--red);font-size:13px;padding:10px;cursor:pointer">Remove reward</button>
+    <button onclick="closeModal('rewardModal')" style="width:100%;background:none;border:none;color:var(--sub);font-size:13px;padding:10px;cursor:pointer">Cancel</button>
+  </div>
+</div>
 
 <!-- ─────────────── LANDING ─────────────── -->
 <div class="screen active" id="landing">
@@ -823,6 +936,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
             <div class="xp-count" id="xpCount"></div>
           </div>
         </div>
+        <!-- Reward progress (parent-set) -->
+        <div class="reward-card" id="rewardCard" style="display:none"></div>
+        <!-- Unlock road -->
+        <div class="unlock-card" id="unlockCard"></div>
         <!-- Touch progress -->
         <div class="touch-prog-card">
           <div class="touch-prog-row">
@@ -844,7 +961,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
           <div class="diff-btns">
             <button id="diff-hustle" class="diff-btn" onclick="setDifficulty('hustle')">💪 HUSTLE</button>
             <button id="diff-consistent" class="diff-btn active-consistent" onclick="setDifficulty('consistent')">✅ CONSISTENT</button>
-            <button id="diff-limited" class="diff-btn" onclick="setDifficulty('limited')">🧊 LIMITED</button>
+            <button id="diff-limited" class="diff-btn" onclick="setDifficulty('limited')">🌙 LIGHT</button>
           </div>
         </div>
         <!-- Ball Mastery Block -->
@@ -881,6 +998,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
     <div class="app-screen" id="screen-profile">
       <div class="profile-card">
         <div class="profile-avatar" id="profileAvatar"></div>
+        <button class="edit-av-btn" id="editAvBtn" onclick="openAvatarEditor()" style="display:none">✏️ EDIT AVATAR</button>
         <div class="profile-name" id="profileName"></div>
         <div class="profile-club" id="profileClub"></div>
         <div class="profile-rank" id="profileRank"></div>
@@ -990,7 +1108,7 @@ const MV_MIN_REQUIRED = 4;
 const DIFFICULTY = {
   hustle:     {label:'HUSTLE',     baseXP:300, multiplier:1.3},
   consistent: {label:'CONSISTENT', baseXP:300, multiplier:1.0},
-  limited:    {label:'LIMITED',    baseXP:300, multiplier:0.6},
+  limited:    {label:'LIGHT',    baseXP:300, multiplier:0.6},
 };
 
 const BADGES = [
@@ -1372,7 +1490,9 @@ function renderParentPortal() {
       <div class="kid-card-actions">
         <button class="kid-action-btn" onclick="openLogModal('${p.id}')">📋 LOG SESSION</button>
         <button class="kid-action-btn" onclick="goTrainAs('${p.id}')">▶ TRAIN AS</button>
+        <button class="kid-action-btn" onclick="openRewardModal('${p.id}')">🎁 REWARD</button>
       </div>
+      ${rewardLine(p)}
     `;
     body.appendChild(card);
   });
@@ -1571,6 +1691,8 @@ function applyStreak(p, today) {
   if (last === today) return;
   p.streak = (last === yesterdayStr()) ? (p.streak||0)+1 : 1;
   localStorage.setItem(`sfc_lastlog_${p.id}`, today);
+  const best = parseInt(localStorage.getItem(`sfc_beststreak_${p.id}`)||'0');
+  if (p.streak > best) localStorage.setItem(`sfc_beststreak_${p.id}`, String(p.streak));
 }
 function addHistory(id, date, touches) {
   const key = `sfc_history_${id}`;
@@ -1613,8 +1735,9 @@ function renderHome() {
   const colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
   const color = p.color || colors[p.id] || '#4fc3f7';
 
-  document.getElementById('homeAvatar').textContent = p.name[0].toUpperCase();
-  document.getElementById('homeAvatar').style.background = color;
+  paintAvatar(document.getElementById('homeAvatar'), p, color);
+  renderUnlocks();
+  renderRewardCard();
   document.getElementById('homePlayerName').textContent = p.name.toUpperCase();
   document.getElementById('homeStreakBadge').textContent = `🔥 ${liveStreak(p)} DAY STREAK`;
   document.getElementById('homeSubLabel').textContent = getTodayLabel();
@@ -1750,7 +1873,7 @@ function updateLogBtn() {
   if (allDone) {
     const diff = DIFFICULTY[currentDiff];
     const xp = Math.round(diff.baseXP * diff.multiplier);
-    sub.textContent = `${xp} XP · ${currentDiff.toUpperCase()} · ${calcTouches().toLocaleString()} TOUCHES`;
+    sub.textContent = `${xp} XP · ${DIFFICULTY[currentDiff].label} · ${calcTouches().toLocaleString()} TOUCHES`;
   } else {
     const parts = [];
     if (!bmDone) parts.push(`BM: ${completedBM.size}/${BM_MIN_REQUIRED}`);
@@ -1767,11 +1890,13 @@ async function logSession() {
   const mvDone = completedMV.size >= MV_MIN_REQUIRED;
   const fullSession = bmDone && mvDone;
   const diff = DIFFICULTY[currentDiff];
-  const xpEarned = fullSession
+  const rawXP = fullSession
     ? Math.round(diff.baseXP * diff.multiplier)
     : Math.round((diff.baseXP * diff.multiplier) * (touches/TOTAL_TARGET));
   const juggle = parseInt(document.getElementById('juggleToday').value)||0;
   const today = localDate();
+  const xpEarned = capDailyXP(currentPlayer.id, today, rawXP);
+  const rankBefore = getRank(currentPlayer.xp||0).name;
 
   const oldPB = getJugglePB();
   if (juggle > oldPB) {
@@ -1810,8 +1935,12 @@ async function logSession() {
   localStorage.setItem('sfc_player', JSON.stringify(currentPlayer));
   localStorage.setItem(`sfc_playerdata_${currentPlayer.id}`, JSON.stringify(currentPlayer));
   checkBadges();
-  showToast(`+${xpEarned} XP · ${fullSession?'FULL SESSION 🔥':'PARTIAL SESSION'}`, 'success');
-  if (juggle > oldPB && juggle > 0) setTimeout(()=>showToast(`🎯 NEW JUGGLE PB: ${juggle}!`,'success'),1600);
+  const reveals = [];
+  const rankAfter = getRank(currentPlayer.xp||0);
+  if (rankAfter.name !== rankBefore) reveals.push({type:'rank', rank:rankAfter});
+  newUnlocks(currentPlayer).forEach(u => reveals.push({type:'unlock', unlock:u}));
+  reveals.push({type:'done', xp:xpEarned, capped:xpEarned<rawXP, full:fullSession, pb:(juggle>oldPB&&juggle>0)?juggle:0});
+  showReveals(reveals);
   resetSession();
   renderHome();
   renderProfile();
@@ -2004,8 +2133,8 @@ function renderProfile() {
   const p = currentPlayer;
   const colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
   const color = p.color || colors[p.id] || '#4fc3f7';
-  document.getElementById('profileAvatar').textContent = p.name[0].toUpperCase();
-  document.getElementById('profileAvatar').style.background = color;
+  paintAvatar(document.getElementById('profileAvatar'), p, color);
+  document.getElementById('editAvBtn').style.display = hasUnlock(p.id,'avatar') ? 'inline-block' : 'none';
   document.getElementById('profileName').textContent = p.name.toUpperCase();
   document.getElementById('profileClub').textContent = (p.club||'').toUpperCase();
   const rank = getRank(p.xp||0);
@@ -2108,9 +2237,12 @@ function renderCrew() {
   const empty = document.getElementById('crewEmpty');
   let roster = players.length ? players : getSeededPlayers();
   roster = mergeLocal(roster).map(p => p.id===currentPlayer?.id ? currentPlayer : p);
+  roster = roster.concat(paceBots());
   roster.sort((a,b)=>(b.xp||0)-(a.xp||0));
   empty.style.display = 'none';
   list.innerHTML = '<div class="skills-section-title" style="margin-bottom:10px">CREW LEADERBOARD · XP</div>';
+  const note = '<div style="font-size:11px;color:var(--sub);margin:-4px 0 12px">🤖 Pace bots train the same amount every day. Stay consistent to pass them.</div>';
+  list.innerHTML += note;
   const colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
   roster.forEach((p,i) => {
     const color = p.color || colors[p.id] || '#4fc3f7';
@@ -2118,10 +2250,18 @@ function renderCrew() {
     card.className = 'crew-card';
     card.style.marginBottom = '10px';
     if (p.id===currentPlayer?.id) card.style.borderColor = color;
-    card.innerHTML = `<div style="width:18px;color:var(--sub);font-weight:800">${i+1}</div>
-      <div class="crew-avatar" style="background:${color}">${p.name[0]}</div>
-      <div><div class="crew-name">${p.name}</div><div class="crew-rank">${getRank(p.xp||0).name} · ${(p.xp||0).toLocaleString()} XP</div></div>
-      <div class="crew-streak">🔥${liveStreak(p)}</div>`;
+    if (p.bot) {
+      card.style.opacity = '.75';
+      card.innerHTML = `<div style="width:18px;color:var(--sub);font-weight:800">${i+1}</div>
+        <div class="crew-avatar" style="background:#1e2a3d;font-size:18px">🤖</div>
+        <div><div class="crew-name">${p.name}<span class="bot-tag">PACE BOT</span></div><div class="crew-rank">${getRank(p.xp).name} · ${p.xp.toLocaleString()} XP · trains ${p.rate}/day</div></div>`;
+    } else {
+      card.innerHTML = `<div style="width:18px;color:var(--sub);font-weight:800">${i+1}</div>
+        <div class="crew-avatar av-wrap" data-pid="${p.id}" style="background:${color}">${p.name[0]}</div>
+        <div><div class="crew-name">${p.name}</div><div class="crew-rank">${getRank(p.xp||0).name} · ${(p.xp||0).toLocaleString()} XP</div></div>
+        <div class="crew-streak">🔥${liveStreak(p)}</div>`;
+      paintAvatar(card.querySelector('.crew-avatar'), p, color);
+    }
     list.appendChild(card);
   });
 }
@@ -2146,6 +2286,265 @@ function showToast(msg, type='') {
   t.className = `toast ${type} show`;
   clearTimeout(toastTimer);
   toastTimer = setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+// ─── ENGAGEMENT: UNLOCKS / AVATAR / REWARDS / BOTS / REVEALS ───
+const DAILY_XP_CAP = 450;   // grinding all day earns nothing extra
+const MILESTONES = [
+  {day:7,  id:'avatar', name:'AVATAR',  ico:'🧑‍🎤', reveal:'AVATAR BUILDER', sub:'Build your kit, pick your number.'},
+  {day:14, id:'samba',  name:'???',     ico:'kit', reveal:'SAMBA KIT #7', sub:'The golden 7 is yours.'},
+  {day:21, id:'test',   name:'TEST DAY',ico:'📊', reveal:'OFFICIAL TEST', sub:'Your first rating unlocks soon.'},
+];
+const KIT_COLORS = ['#4fc3f7','#f59e0b','#39ff14','#ef4444','#a78bfa','#f97316','#ffffff','#111827','#ec4899','#14b8a6'];
+const TRIM_COLORS = ['#ffffff','#111827','#f59e0b','#0b6b3a','#1e3a8a','#ef4444'];
+const SAMBA = {primary:'#f7d117', trim:'#0b6b3a', number:'7', pattern:'samba'};
+
+function bestStreak(p) {
+  return Math.max(parseInt(localStorage.getItem(`sfc_beststreak_${p.id}`)||'0'), liveStreak(p));
+}
+function getUnlocks(id) { try { return JSON.parse(localStorage.getItem(`sfc_unlocks_${id}`)||'[]'); } catch(e) { return []; } }
+function hasUnlock(id, key) { return getUnlocks(id).includes(key); }
+// Unlocks are permanent once earned (losing a streak later never re-locks them)
+function newUnlocks(p) {
+  const have = getUnlocks(p.id), b = bestStreak(p), fresh = [];
+  MILESTONES.forEach(m => { if (b >= m.day && !have.includes(m.id)) { have.push(m.id); fresh.push(m); } });
+  localStorage.setItem(`sfc_unlocks_${p.id}`, JSON.stringify(have));
+  return fresh;
+}
+function capDailyXP(id, date, xp) {
+  const k = `sfc_dayxp_${id}_${date}`, used = parseInt(localStorage.getItem(k)||'0');
+  const give = Math.max(0, Math.min(xp, DAILY_XP_CAP - used));
+  localStorage.setItem(k, String(used + give));
+  return give;
+}
+
+// Jersey SVG (generic kit, no crests / names / logos)
+function jerseySVG(cfg, locked) {
+  const pc = locked ? '#1f2937' : cfg.primary, tc = locked ? '#374151' : cfg.trim;
+  const body = 'M30 20 L42 13 Q50 20 58 13 L70 20 L88 33 L79 47 L70 42 L70 90 L30 90 L30 42 L21 47 L12 33 Z';
+  let pattern = '';
+  if (!locked && cfg.pattern==='stripes') pattern = `<g clip-path="url(#jc)"><rect x="38" y="0" width="8" height="100" fill="${tc}" opacity=".55"/><rect x="54" y="0" width="8" height="100" fill="${tc}" opacity=".55"/></g>`;
+  if (!locked && cfg.pattern==='sash') pattern = `<g clip-path="url(#jc)"><path d="M20 30 L34 20 L84 92 L70 100 Z" fill="${tc}" opacity=".55"/></g>`;
+  if (!locked && cfg.pattern==='samba') pattern = `<g clip-path="url(#jc)"><path d="M30 55 Q26 70 30 90 L33 90 Q30 70 34 55Z" fill="#2dd4bf" opacity=".8"/><path d="M70 55 Q74 70 70 90 L67 90 Q70 70 66 55Z" fill="#2dd4bf" opacity=".8"/></g>`;
+  const num = locked ? '?' : (cfg.number||'');
+  return `<svg viewBox="0 0 100 100"><defs><clipPath id="jc"><path d="${body}"/></clipPath></defs>
+    <path d="${body}" fill="${pc}" stroke="${locked?'#4b5563':'rgba(0,0,0,.25)'}" stroke-width="1.5"/>${pattern}
+    <path d="M42 13 Q50 26 58 13 L56 13 Q50 22 44 13Z" fill="${tc}"/>
+    <path d="M12 33 L16 27 L23 41 L21 47Z M88 33 L84 27 L77 41 L79 47Z" fill="${tc}"/>
+    <text x="50" y="68" text-anchor="middle" font-size="${locked?30:26}" font-weight="900" font-family="-apple-system,Arial" fill="${locked?'#6b7280':tc}">${num}</text>
+    ${locked?'<text x="50" y="86" text-anchor="middle" font-size="12">🔒</text>':''}</svg>`;
+}
+function getAvatar(p, color) {
+  let a = null; try { a = JSON.parse(localStorage.getItem(`sfc_avatar_${p.id}`)||'null'); } catch(e) {}
+  return a || {primary:color, trim:'#ffffff', number:'10', pattern:'solid', kit:'custom'};
+}
+function kitCfg(a) { return a.kit==='samba' ? SAMBA : a; }
+function paintAvatar(el, p, color) {
+  if (!el) return;
+  el.classList.add('av-wrap');
+  if (hasUnlock(p.id,'avatar')) {
+    const a = getAvatar(p, color);
+    el.style.background = '#0b1220';
+    el.innerHTML = jerseySVG(kitCfg(a));
+  } else {
+    el.style.background = color;
+    el.textContent = p.name[0].toUpperCase();
+  }
+}
+
+// Home: unlock road
+function renderUnlocks() {
+  const p = currentPlayer, b = bestStreak(p), have = getUnlocks(p.id);
+  const nextIdx = MILESTONES.findIndex(m => !have.includes(m.id));
+  const card = document.getElementById('unlockCard');
+  if (nextIdx === -1) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  card.innerHTML = `<div class="unlock-title">STREAK UNLOCKS</div><div class="unlock-row">${MILESTONES.map((m,i) => {
+    const done = have.includes(m.id), isNext = i===nextIdx;
+    const pct = Math.min(100, Math.round(b/m.day*100));
+    let ico = m.ico==='kit' ? jerseySVG(SAMBA, !done) : m.ico;
+    if (m.id==='avatar') ico = done ? jerseySVG(kitCfg(getAvatar(p, p.color||'#4fc3f7'))) : '🔒';
+    const name = done ? m.reveal.split(' ')[0] : m.name;
+    return `<div class="unlock-tile ${done?'done':''} ${isNext?'next':''}">
+      <div class="unlock-ico">${ico}</div>
+      <div class="unlock-name">${done?'✓ '+name:name}</div>
+      <div class="unlock-day">${done?'UNLOCKED':'DAY '+m.day+' STREAK'}</div>
+      ${!done?`<div class="unlock-bar"><div style="width:${pct}%"></div></div>`:''}
+    </div>`; }).join('')}</div>`;
+}
+
+// Rewards (parent-set, real world)
+const REWARD_PRESETS = ['New cleats','New ball','Pizza night','Pick dinner','Jersey','Movie night'];
+const REWARD_DAYS = [10,20,30,50];
+let rewardFor = null, rewardDaysSel = 20;
+function getReward(id) { try { return JSON.parse(localStorage.getItem(`sfc_reward_${id}`)||'null'); } catch(e) { return null; } }
+function rewardProgress(id, r) {
+  const hist = JSON.parse(localStorage.getItem(`sfc_history_${id}`)||'{}');
+  return Object.keys(hist).filter(d => d >= r.start && hist[d] > 0).length;
+}
+function rewardLine(p) {
+  const r = getReward(p.id); if (!r) return '';
+  const n = Math.min(r.days, rewardProgress(p.id, r));
+  return `<div style="margin-top:10px;font-size:11px;color:var(--amber);font-weight:700">🎁 ${r.name}: ${n}/${r.days} days${n>=r.days?' · EARNED!':''}</div>`;
+}
+function renderRewardCard() {
+  const el = document.getElementById('rewardCard'), r = getReward(currentPlayer.id);
+  if (!r) { el.style.display = 'none'; return; }
+  const n = Math.min(r.days, rewardProgress(currentPlayer.id, r));
+  el.style.display = 'block';
+  el.innerHTML = `<div class="reward-top"><div class="reward-name">🎁 ${r.name}</div><div class="reward-count">${n} / ${r.days} DAYS</div></div>
+    <div class="reward-bar"><div style="width:${n/r.days*100}%"></div></div>
+    <div style="font-size:11px;color:var(--sub);margin-top:6px">${n>=r.days?'You earned it! Go tell your parents 🎉':(r.days-n)+' more training days to earn it'}</div>`;
+}
+function openRewardModal(id) {
+  rewardFor = id;
+  const p = players.find(x=>x.id===id), r = getReward(id);
+  document.getElementById('rewardModalSub').textContent = `Reward for ${p?p.name:''}. Counts days they train.`;
+  document.getElementById('rewardName').value = r ? r.name : '';
+  rewardDaysSel = r ? r.days : 20;
+  document.getElementById('rewardPresets').innerHTML = REWARD_PRESETS.map(x=>`<button class="opt-btn" onclick="document.getElementById('rewardName').value='${x}'">${x}</button>`).join('');
+  paintRewardDays();
+  document.getElementById('rewardClearBtn').style.display = r ? 'block' : 'none';
+  document.getElementById('rewardModal').classList.add('open');
+}
+function paintRewardDays() {
+  document.getElementById('rewardDays').innerHTML = REWARD_DAYS.map(d=>`<button class="opt-btn ${d===rewardDaysSel?'sel':''}" onclick="rewardDaysSel=${d};paintRewardDays()">${d} days</button>`).join('');
+}
+function saveReward() {
+  const name = document.getElementById('rewardName').value.trim();
+  if (!name) { showToast('Name the reward','error'); return; }
+  const old = getReward(rewardFor);
+  localStorage.setItem(`sfc_reward_${rewardFor}`, JSON.stringify({name, days:rewardDaysSel, start: old && old.name===name ? old.start : localDate()}));
+  closeModal('rewardModal'); renderParentPortal(); showToast('Reward set 🎁','success');
+}
+function clearReward() { localStorage.removeItem(`sfc_reward_${rewardFor}`); closeModal('rewardModal'); renderParentPortal(); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Avatar editor
+let avDraft = null;
+function openAvatarEditor() {
+  const p = currentPlayer, colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
+  avDraft = {...getAvatar(p, p.color || colors[p.id] || '#4fc3f7')};
+  paintAvatarEditor();
+  document.getElementById('avModal').classList.add('open');
+}
+function paintAvatarEditor() {
+  const sambaOK = hasUnlock(currentPlayer.id,'samba');
+  document.getElementById('avPreview').innerHTML = jerseySVG(kitCfg(avDraft));
+  document.getElementById('avPreview').style.background = '#0b1220';
+  const custom = avDraft.kit !== 'samba';
+  document.getElementById('avEditorBody').innerHTML = `
+    <div class="field-lbl">KIT</div>
+    <div class="opt-row">
+      <button class="opt-btn ${custom?'sel':''}" onclick="avDraft.kit='custom';paintAvatarEditor()">CUSTOM</button>
+      <button class="opt-btn ${!custom?'sel':''}" ${sambaOK?'':'disabled'} onclick="avDraft.kit='samba';paintAvatarEditor()">${sambaOK?'SAMBA #7':'🔒 DAY 14'}</button>
+    </div>
+    ${custom ? `
+    <div class="field-lbl">SHIRT COLOR</div>
+    <div class="swatches">${KIT_COLORS.map(c=>`<div class="swatch ${avDraft.primary===c?'sel':''}" style="background:${c}" onclick="avDraft.primary='${c}';paintAvatarEditor()"></div>`).join('')}</div>
+    <div class="field-lbl">TRIM + NUMBER COLOR</div>
+    <div class="swatches">${TRIM_COLORS.map(c=>`<div class="swatch ${avDraft.trim===c?'sel':''}" style="background:${c}" onclick="avDraft.trim='${c}';paintAvatarEditor()"></div>`).join('')}</div>
+    <div class="field-lbl">STYLE</div>
+    <div class="opt-row">${['solid','stripes','sash'].map(s=>`<button class="opt-btn ${avDraft.pattern===s?'sel':''}" onclick="avDraft.pattern='${s}';paintAvatarEditor()">${s.toUpperCase()}</button>`).join('')}</div>
+    <div class="field-lbl">NUMBER</div>
+    <input class="auth-input" type="text" inputmode="numeric" maxlength="2" value="${avDraft.number}" style="margin:6px 0 4px;text-align:center;font-size:22px;font-weight:900"
+      oninput="this.value=this.value.replace(/\\D/g,'');avDraft.number=this.value;document.getElementById('avPreview').innerHTML=jerseySVG(kitCfg(avDraft))">
+    ` : `<div style="font-size:12px;color:var(--sub);margin-bottom:8px">The golden 7. Earned with a 14-day streak.</div>`}
+  `;
+}
+function saveAvatar() {
+  localStorage.setItem(`sfc_avatar_${currentPlayer.id}`, JSON.stringify(avDraft));
+  closeModal('avModal'); renderHome(); renderProfile(); renderCrew(); showToast('Kit saved','success');
+}
+
+// Pace bots: clearly labeled, fixed daily pace, never pretend to be real kids
+function paceBots() {
+  if (!currentPlayer) return [];
+  const k = `sfc_firstday_${currentPlayer.id}`;
+  let first = localStorage.getItem(k);
+  if (!first) { first = localDate(); localStorage.setItem(k, first); }
+  const days = Math.max(1, Math.round((new Date(localDate()) - new Date(first)) / 86400000) + 1);
+  return [
+    {name:'Tiki', rate:120, off:50},
+    {name:'Toka', rate:240, off:150},
+    {name:'Blitz', rate:360, off:300},
+  ].map(b => ({id:'bot_'+b.name, bot:true, name:b.name, rate:b.rate, xp:b.off + b.rate*days}));
+}
+
+// Reveal queue: FIFA-pack style cards, then "done for today"
+let revealQueue = [], revealCur = null;
+function showReveals(list) { revealQueue = list.slice(); nextReveal(); }
+function nextReveal() {
+  const ov = document.getElementById('reveal');
+  ov.className = '';
+  revealCur = revealQueue.shift();
+  if (!revealCur) { ov.classList.remove('open'); return; }
+  void ov.offsetWidth;
+  ov.classList.add('open');
+  if (revealCur.type === 'done') return showDone(revealCur);
+  const front = document.getElementById('rvFront');
+  if (revealCur.type === 'rank') {
+    const r = revealCur.rank;
+    front.style.setProperty('--rv-color', r.color);
+    front.innerHTML = `<div class="rv-eyebrow">RANK UP</div><div class="rv-art">🏆</div><div class="rv-big">${r.name}</div><div class="rv-sub">You moved up a level. Keep the streak alive.</div>`;
+  } else {
+    const m = revealCur.unlock;
+    front.style.setProperty('--rv-color', m.id==='samba' ? '#f7d117' : '#39ff14');
+    const art = m.id==='samba' ? jerseySVG(SAMBA) : (m.id==='avatar' ? jerseySVG(getAvatar(currentPlayer, currentPlayer.color||'#4fc3f7')) : m.ico);
+    front.innerHTML = `<div class="rv-eyebrow">DAY ${m.day} UNLOCK</div><div class="rv-art">${art}</div><div class="rv-big" style="font-size:26px">${m.reveal}</div><div class="rv-sub">${m.sub}</div>`;
+  }
+  ov.classList.add('shake');
+  sfx('build');
+  const cur = revealCur;
+  setTimeout(()=>{ if (revealCur===cur) flipPack(); }, 2600); // auto-open if they don't tap
+}
+function flipPack() {
+  const ov = document.getElementById('reveal');
+  if (!revealCur || revealCur.type==='done' || ov.classList.contains('flipped')) return;
+  ov.classList.add('flipped');
+  sfx('pop'); confetti();
+}
+function showDone(d) {
+  const ov = document.getElementById('reveal'), p = currentPlayer;
+  ov.classList.add('plain');
+  const have = getUnlocks(p.id), next = MILESTONES.find(m => !have.includes(m.id)), b = bestStreak(p);
+  const nextTxt = next ? `${Math.max(0,next.day-b)} more day${next.day-b===1?'':'s'} to unlock ${next.id==='samba'?'a mystery kit 🔒':next.reveal.toLowerCase()}` : 'All streak unlocks earned 👑';
+  document.getElementById('doneWrap').innerHTML = `
+    <div class="done-flame">🔥</div>
+    <div class="done-title">DONE FOR TODAY</div>
+    <div class="done-stats">
+      <div class="done-stat"><b>+${d.xp}</b><span>XP</span></div>
+      <div class="done-stat"><b>${liveStreak(p)}</b><span>DAY STREAK</span></div>
+      <div class="done-stat"><b>${(calcHistToday())}</b><span>TOUCHES</span></div>
+    </div>
+    ${d.pb?`<div style="color:var(--green);font-weight:800;margin-top:6px">🎯 NEW JUGGLE PB: ${d.pb}</div>`:''}
+    ${d.capped?`<div class="done-next">Max XP for today reached. Rest up, more tomorrow.</div>`:''}
+    <div class="done-next">${nextTxt}</div>
+    <div class="done-next" style="color:var(--text)">See you tomorrow, ${p.name}.</div>`;
+  sfx('pop');
+}
+function calcHistToday() {
+  const h = JSON.parse(localStorage.getItem(`sfc_history_${currentPlayer.id}`)||'{}');
+  return (h[localDate()]||0).toLocaleString();
+}
+function confetti() {
+  const ov = document.getElementById('reveal'), cols = ['#f97316','#fbbf24','#39ff14','#4fc3f7','#ffffff'];
+  for (let i=0;i<40;i++) {
+    const c = document.createElement('div'); c.className = 'confetti';
+    c.style.left = Math.random()*100+'vw'; c.style.background = cols[i%cols.length];
+    c.style.animationDuration = (1.6+Math.random()*1.6)+'s'; c.style.animationDelay = (Math.random()*.4)+'s';
+    ov.appendChild(c); setTimeout(()=>c.remove(), 3600);
+  }
+}
+let audioCtx = null;
+function sfx(kind) {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    if (kind==='build') { o.type='sawtooth'; o.frequency.setValueAtTime(180,t); o.frequency.exponentialRampToValueAtTime(700,t+.7); g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.06,t+.5); g.gain.exponentialRampToValueAtTime(.0001,t+.75); o.start(t); o.stop(t+.8); }
+    else { o.type='triangle'; o.frequency.setValueAtTime(880,t); o.frequency.exponentialRampToValueAtTime(1320,t+.12); g.gain.setValueAtTime(.12,t); g.gain.exponentialRampToValueAtTime(.0001,t+.35); o.start(t); o.stop(t+.4); }
+  } catch(e) {}
 }
 
 // ─── SERVICE WORKER ───────────────────────────────────
