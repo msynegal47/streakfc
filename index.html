@@ -3,15 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#080c14">
+<meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>StreakFC</title>
 <link rel="manifest" href="/manifest.json">
-<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="/icon-192.png">
 <style>
 :root {
-  --bg:    #080c14;
+  --bg:    #000000;
   --bg2:   #0f1520;
   --bg3:   #151d2e;
   --border:#1e2a3d;
@@ -47,8 +48,17 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 ───────────────────────────────────── */
 #landing {
   align-items:center;justify-content:center;padding:32px 24px;gap:0;
-  background: radial-gradient(ellipse at 50% 0%, #1a2540 0%, #080c14 65%);
+  background: radial-gradient(ellipse at 50% 0%, #0f1a12 0%, #000000 65%);
 }
+#landing{overflow-y:auto;justify-content:safe center}
+@media (max-height:720px){
+  .landing-mark{width:84px !important;margin-bottom:6px !important}
+  .landing-logo{font-size:34px !important}
+  .landing-tagline{margin-bottom:20px !important}
+  .path-card{padding:16px 18px !important}
+  .landing-divider{margin:14px 0 !important}
+}
+.landing-mark{width:132px;height:auto;margin-bottom:12px;filter:drop-shadow(0 0 28px rgba(57,255,20,.25))}
 .landing-logo {
   font-size:42px;font-weight:900;letter-spacing:-1px;
   background:linear-gradient(135deg,#f97316,#fbbf24);
@@ -57,7 +67,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 }
 .landing-tagline {
   font-size:12px;letter-spacing:3px;color:var(--sub);text-transform:uppercase;
-  margin-bottom:48px;
+  margin-bottom:32px;
 }
 .landing-divider {
   font-size:11px;color:var(--sub);letter-spacing:2px;text-transform:uppercase;
@@ -615,6 +625,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 
 <!-- ─────────────── LANDING ─────────────── -->
 <div class="screen active" id="landing">
+  <img class="landing-mark" src="/logo.png" alt="StreakFC">
   <div class="landing-logo">STREAKFC</div>
   <div class="landing-tagline">Train. Track. Dominate.</div>
 
