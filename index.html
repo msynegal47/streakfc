@@ -890,8 +890,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 <div class="modal-overlay" id="pinModal">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title">Manage PINs</div>
-    <div class="modal-sub">Set or update each player's 4-digit PIN</div>
+    <div class="modal-title">PINs + Juggle Minimums</div>
+    <div class="modal-sub">4-digit PIN · daily juggle minimum (total, not in a row)</div>
     <div class="pin-set-wrap" id="pinSetWrap"></div>
     <button class="modal-save-btn" onclick="savePins()">SAVE PINS</button>
     <button onclick="closePinModal()" style="width:100%;background:none;border:none;color:var(--sub);font-size:13px;padding:14px;cursor:pointer;margin-top:4px">Cancel</button>
@@ -957,11 +957,19 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
           <div class="touch-bar"><div class="touch-bar-fill" id="touchProgFill" style="width:0%"></div></div>
         </div>
         <!-- Juggle -->
-        <div class="juggle-card">
-          <div class="juggle-icon">🎯</div>
-          <div class="juggle-label">Today's juggle count</div>
-          <input class="juggle-input" id="juggleToday" type="number" inputmode="numeric" placeholder="0" min="0" oninput="saveWip()">
-          <div class="juggle-pb-badge" id="jugglePbBadge">PB: --</div>
+        <div class="juggle-card" style="flex-direction:column;align-items:stretch;gap:10px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="juggle-icon">🎯</div>
+            <div class="juggle-label">Total juggles today<br><span id="juggleMinLbl" style="font-size:11px">Daily minimum: 150</span></div>
+            <input class="juggle-input" id="juggleToday" type="number" inputmode="numeric" placeholder="0" min="0" oninput="saveWip();updateJuggleBar()">
+          </div>
+          <div class="touch-bar"><div class="touch-bar-fill" id="juggleBar" style="width:0%;background:linear-gradient(90deg,#22c55e,#86efac)"></div></div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="juggle-icon">🔥</div>
+            <div class="juggle-label">Best in a row today</div>
+            <input class="juggle-input" id="juggleStreak" type="number" inputmode="numeric" placeholder="0" min="0" oninput="saveWip()">
+            <div class="juggle-pb-badge" id="jugglePbBadge">PB: --</div>
+          </div>
         </div>
         <!-- Difficulty -->
         <div class="diff-card">
@@ -1717,7 +1725,8 @@ function saveWip() {
   if (!currentPlayer) return;
   localStorage.setItem(wipKey(), JSON.stringify({
     bm:[...completedBM], mv:[...completedMV], diff:currentDiff,
-    juggle:document.getElementById('juggleToday').value
+    juggle:document.getElementById('juggleToday').value,
+    jrow:document.getElementById('juggleStreak').value
   }));
 }
 function loadWip() {
@@ -1728,6 +1737,8 @@ function loadWip() {
   currentDiff = w.diff || 'consistent';
   blocksCollapsed = {bm:false, mv:false};
   document.getElementById('juggleToday').value = w.juggle || '';
+  document.getElementById('juggleStreak').value = w.jrow || '';
+  updateJuggleBar();
   renderBlockSkills();
   updateTouchProgress();
   updateLogBtn();
@@ -1769,6 +1780,7 @@ function renderHome() {
 
   const pb = getJugglePB();
   document.getElementById('jugglePbBadge').textContent = pb > 0 ? `PB: ${pb}` : 'PB: --';
+  updateJuggleBar();
 
   setDifficulty(currentDiff);
 }
@@ -1903,9 +1915,14 @@ async function logSession() {
   const rawXP = fullSession
     ? Math.round(diff.baseXP * diff.multiplier)
     : Math.round((diff.baseXP * diff.multiplier) * (touches/TOTAL_TARGET));
-  const juggle = parseInt(document.getElementById('juggleToday').value)||0;
+  const juggle = parseInt(document.getElementById('juggleStreak').value)||0;      // best in a row -> PB
+  const juggleTotal = parseInt(document.getElementById('juggleToday').value)||0; // daily total vs minimum
+  const juggleMinHit = juggleTotal >= juggleMin(currentPlayer);
   const today = localDate();
-  const xpEarned = capDailyXP(currentPlayer.id, today, rawXP);
+  const jKey = `sfc_jugglemin_hit_${currentPlayer.id}_${today}`;
+  const jBonus = (juggleMinHit && !localStorage.getItem(jKey)) ? JUGGLE_BONUS_XP : 0;  // once per day
+  if (jBonus) localStorage.setItem(jKey, '1');
+  const xpEarned = capDailyXP(currentPlayer.id, today, rawXP + jBonus);
   const rankBefore = getRank(currentPlayer.xp||0).name;
 
   const oldPB = getJugglePB();
@@ -1924,6 +1941,7 @@ async function logSession() {
     date: today,
     touches,
     juggle_high: juggle,
+    juggle_total: juggleTotal,
     bm_skills: [...completedBM],
     mv_skills: [...completedMV],
     difficulty: currentDiff,
@@ -1949,7 +1967,7 @@ async function logSession() {
   const rankAfter = getRank(currentPlayer.xp||0);
   if (rankAfter.name !== rankBefore) reveals.push({type:'rank', rank:rankAfter});
   newUnlocks(currentPlayer).forEach(u => reveals.push({type:'unlock', unlock:u}));
-  reveals.push({type:'done', xp:xpEarned, capped:xpEarned<rawXP, full:fullSession, pb:(juggle>oldPB&&juggle>0)?juggle:0});
+  reveals.push({type:'done', xp:xpEarned, capped:xpEarned<rawXP+jBonus, full:fullSession, pb:(juggle>oldPB&&juggle>0)?juggle:0, jmin:jBonus>0});
   showReveals(reveals);
   resetSession();
   renderHome();
@@ -2033,7 +2051,7 @@ function renderLogModal() {
   const juggleRow = document.createElement('div');
   juggleRow.className = 'log-modal-juggle';
   juggleRow.innerHTML = `
-    <div class="log-modal-juggle-label">🎯 Juggle count</div>
+    <div class="log-modal-juggle-label">🔥 Juggles: best in a row</div>
     <input class="log-modal-juggle-input" id="logModalJuggle" type="number" inputmode="numeric" placeholder="0" value="${logModalState.juggle||''}">
   `;
   wrap.appendChild(juggleRow);
@@ -2102,6 +2120,7 @@ function openPinModal() {
       <div class="pin-set-avatar" style="background:${color}">${p.name[0]}</div>
       <div class="pin-set-name">${p.name}</div>
       <input class="pin-set-input" id="newpin_${p.id}" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="****" value="${p.pin||''}">
+      <input class="pin-set-input" id="jmin_${p.id}" type="text" inputmode="numeric" maxlength="3" style="width:70px;letter-spacing:1px;font-size:16px" title="Daily juggle minimum" value="${juggleMin(p)}">
     `;
     wrap.appendChild(row);
   });
@@ -2119,6 +2138,8 @@ async function savePins() {
       const val = input.value.replace(/\D/g,'').slice(0,4);
       if (val.length === 4) p.pin = val;
     }
+    const jm = parseInt((document.getElementById(`jmin_${p.id}`)||{}).value);
+    if (jm > 0) { p.juggle_min = jm; localStorage.setItem(`sfc_jugglemin_${p.id}`, String(jm)); }
   });
   localStorage.setItem('sfc_players', JSON.stringify(players));
   // Try to push to Supabase
@@ -2527,7 +2548,8 @@ function showDone(d) {
       <div class="done-stat"><b>${liveStreak(p)}</b><span>DAY STREAK</span></div>
       <div class="done-stat"><b>${(calcHistToday())}</b><span>TOUCHES</span></div>
     </div>
-    ${d.pb?`<div style="color:var(--green);font-weight:800;margin-top:6px">🎯 NEW JUGGLE PB: ${d.pb}</div>`:''}
+    ${d.pb?`<div style="color:var(--green);font-weight:800;margin-top:6px">🔥 NEW JUGGLE PB: ${d.pb} IN A ROW</div>`:''}
+    ${d.jmin?`<div style="color:var(--green);font-weight:700;margin-top:2px">🎯 Daily juggle minimum hit +${JUGGLE_BONUS_XP} XP</div>`:''}
     ${d.capped?`<div class="done-next">Max XP for today reached. Rest up, more tomorrow.</div>`:''}
     <div class="done-next">${nextTxt}</div>
     <div class="done-next" style="color:var(--text)">See you tomorrow, ${p.name}.</div>`;
@@ -2555,6 +2577,20 @@ function sfx(kind) {
     if (kind==='build') { o.type='sawtooth'; o.frequency.setValueAtTime(180,t); o.frequency.exponentialRampToValueAtTime(700,t+.7); g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.06,t+.5); g.gain.exponentialRampToValueAtTime(.0001,t+.75); o.start(t); o.stop(t+.8); }
     else { o.type='triangle'; o.frequency.setValueAtTime(880,t); o.frequency.exponentialRampToValueAtTime(1320,t+.12); g.gain.setValueAtTime(.12,t); g.gain.exponentialRampToValueAtTime(.0001,t+.35); o.start(t); o.stop(t+.4); }
   } catch(e) {}
+}
+
+// ─── JUGGLING: daily total minimum + best-in-a-row PB ──
+const JUGGLE_MIN_DEFAULT = 150;
+const JUGGLE_BONUS_XP = 25;
+function juggleMin(p) {
+  return parseInt(localStorage.getItem(`sfc_jugglemin_${p.id}`)) || p.juggle_min || JUGGLE_MIN_DEFAULT;
+}
+function updateJuggleBar() {
+  if (!currentPlayer) return;
+  const min = juggleMin(currentPlayer), tot = parseInt(document.getElementById('juggleToday').value)||0;
+  document.getElementById('juggleBar').style.width = Math.min(100, tot/min*100) + '%';
+  document.getElementById('juggleMinLbl').textContent = tot >= min ? `✅ Daily minimum hit (${min})` : `Daily minimum: ${tot} / ${min}`;
+  document.getElementById('juggleMinLbl').style.color = tot >= min ? 'var(--green)' : '';
 }
 
 // ─── PARENT OVERSIGHT LINE ────────────────────────────
