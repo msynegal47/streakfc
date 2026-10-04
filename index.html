@@ -681,6 +681,79 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
   .modal-overlay{justify-content:center}
 }
 
+/* ── TODAY CARD / SESSION ENGINE ── */
+.today-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.today-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.today-title{font-size:11px;letter-spacing:2px;color:var(--sub);font-weight:800}
+.today-daytype{font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;background:var(--bg3);border:1px solid var(--border)}
+.today-hint{font-size:12px;color:var(--sub);margin-top:8px;line-height:1.4}
+.ms-bar{position:relative;height:10px;background:var(--border);border-radius:5px;margin:8px 0 18px}
+.ms-fill{position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:linear-gradient(90deg,#f97316,#fbbf24);transition:width .4s}
+.ms-tick{position:absolute;top:-3px;width:2px;height:16px;background:var(--bg)}
+.ms-lbl{position:absolute;top:16px;font-size:9px;color:var(--sub);transform:translateX(-50%);font-weight:700}
+.ms-lbl.hit{color:var(--accent)}
+.mode-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.mode-btn{display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;padding:16px 8px;border-radius:14px;border:1px solid var(--border);background:var(--bg3);color:var(--text);cursor:pointer;width:100%}
+.mode-btn b{font-size:15px;font-weight:900;letter-spacing:.5px}
+.mode-btn span{font-size:10px;color:var(--sub);letter-spacing:.5px}
+.mode-row .mode-btn:first-child{background:linear-gradient(135deg,#f97316,#fb923c);border-color:#f97316}
+.mode-row .mode-btn:first-child span{color:#fff;opacity:.85}
+.mode-btn.rec{margin-top:10px;flex-direction:row;justify-content:space-between;padding:12px 14px}
+.resume-btn{width:100%;margin-top:10px;background:#22c55e22;border:1px solid var(--green);color:var(--green);border-radius:12px;padding:12px;font-weight:800;font-size:13px;cursor:pointer}
+#sess{position:fixed;inset:0;z-index:250;background:#05080d;display:none;flex-direction:column}
+#sess.open{display:flex}
+@media (min-width:640px){#sess{max-width:560px;margin:0 auto}}
+.sess-top{display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top,12px) + 10px) 16px 10px;border-bottom:1px solid var(--border)}
+.sess-x{background:none;border:1px solid var(--border);color:var(--sub);border-radius:10px;width:40px;height:40px;font-size:16px;cursor:pointer}
+.sess-prog{flex:1;font-size:12px;letter-spacing:2px;color:var(--sub);font-weight:800}
+.sess-total{text-align:right}.sess-total b{display:block;font-size:20px}.sess-total span{font-size:9px;color:var(--sub);letter-spacing:1px}
+.sess-body{flex:1;overflow-y:auto;padding:20px 18px calc(30px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
+.sk-block{font-size:11px;letter-spacing:2px;font-weight:800;color:var(--accent)}
+.sk-name{font-size:32px;font-weight:900;line-height:1.05}
+.sk-desc{font-size:14px;color:var(--sub);line-height:1.5}
+.sk-chips{display:flex;gap:8px;flex-wrap:wrap}
+.sk-chip{font-size:11px;font-weight:800;padding:5px 10px;border-radius:20px;background:var(--bg3);border:1px solid var(--border)}
+.sk-chip.foot{border-color:var(--accent);color:var(--accent)}
+.big-btn{width:100%;padding:20px;border-radius:16px;border:none;background:var(--accent);color:#fff;font-size:20px;font-weight:900;letter-spacing:1px;cursor:pointer}
+.big-btn.ghost{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:14px;padding:14px}
+.big-btn.green{background:var(--green)}
+.ring-wrap{position:relative;width:240px;height:240px;margin:10px auto}
+.ring-wrap svg{width:240px;height:240px;transform:rotate(-90deg)}
+.ring-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-num b{font-size:72px;font-weight:900;line-height:1}
+.ring-num span{font-size:12px;color:var(--sub);letter-spacing:2px;margin-top:6px}
+.count-in{width:100%;background:var(--bg2);border:2px solid var(--accent);border-radius:18px;color:var(--text);font-size:56px;font-weight:900;text-align:center;padding:14px;outline:none}
+.pb-line{text-align:center;font-size:13px;color:var(--sub)}
+.pb-line.new{color:var(--green);font-weight:900;font-size:16px}
+.warn{color:var(--red);font-size:13px;text-align:center;min-height:18px}
+.rest-pill{align-self:center;font-size:12px;font-weight:800;color:var(--sub);background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:6px 14px}
+.goal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.goal-btn{padding:18px 6px;border-radius:14px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:20px;font-weight:900;cursor:pointer}
+.goal-btn.sel{border-color:var(--accent);color:var(--accent);background:#f9731618}
+.goal-btn small{display:block;font-size:9px;color:var(--sub);font-weight:700;margin-top:4px;letter-spacing:1px}
+.gi{display:flex;align-items:center;gap:12px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer}
+.gi.done{border-color:var(--green);background:#22c55e10}
+.gi .ck{width:24px;height:24px;border-radius:7px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.gi.done .ck{background:var(--green);border-color:var(--green)}
+.gi-name{flex:1;font-weight:800;font-size:15px}
+.gi-name small{display:block;font-size:11px;color:var(--sub);font-weight:600;margin-top:2px}
+.gi-cnt{font-weight:900;font-size:17px}
+.step{display:flex;align-items:center;gap:8px}
+.step button{width:34px;height:34px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:18px;font-weight:900;cursor:pointer}
+.blk-h{font-size:11px;letter-spacing:2px;color:var(--sub);font-weight:800;margin-top:6px}
+.sum-big{text-align:center}.sum-big b{font-size:64px;font-weight:900;display:block;line-height:1}.sum-big span{font-size:12px;color:var(--sub);letter-spacing:2px}
+.day-chips{display:flex;gap:6px;margin:6px 0 14px}
+.day-chip{flex:1;padding:10px 0;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--sub);font-weight:800;font-size:12px;cursor:pointer}
+.day-chip.sel{border-color:var(--accent);color:var(--accent);background:#f9731618}
+.cat-item{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer}
+.cat-top{display:flex;align-items:center;gap:10px}
+.cat-name{flex:1;font-weight:800;font-size:14px}
+.cat-tag{font-size:9px;font-weight:800;letter-spacing:1px;padding:3px 7px;border-radius:6px;border:1px solid var(--border);color:var(--sub)}
+.cat-pb{font-size:12px;font-weight:800;color:var(--green)}
+.cat-desc{display:none;font-size:13px;color:var(--sub);line-height:1.5;margin-top:8px}
+.cat-item.open .cat-desc{display:block}
+.cat-item.locked{opacity:.45}
+
 /* ── OFFLINE BAR ── */
 .offline-bar{
   position:fixed;top:0;left:0;right:0;z-index:999;
@@ -711,6 +784,28 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 <div class="field-bg"></div>
 <div class="offline-bar" id="offlineBar">NO CONNECTION · OFFLINE MODE</div>
 <div class="toast" id="toast"></div>
+
+<!-- ─────────────── SESSION PLAYER ─────────────── -->
+<div id="sess">
+  <div class="sess-top">
+    <button class="sess-x" onclick="pauseSession()">✕</button>
+    <div class="sess-prog" id="sessProg"></div>
+    <div class="sess-total"><b id="sessTotal">0</b><span>TODAY</span></div>
+  </div>
+  <div class="sess-body" id="sessBody"></div>
+</div>
+
+<!-- Parent: per-kid plan settings -->
+<div class="modal-overlay" id="planModal">
+  <div class="modal-sheet" style="max-height:90vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="planTitle">Plan</div>
+    <div class="modal-sub">Sets how big each day is. The timer self-adjusts; the app will suggest level changes.</div>
+    <div id="planBody"></div>
+    <button class="modal-save-btn" onclick="savePlan()">SAVE PLAN</button>
+    <button onclick="closeModal('planModal')" style="width:100%;background:none;border:none;color:var(--sub);font-size:13px;padding:14px;cursor:pointer;margin-top:4px">Cancel</button>
+  </div>
+</div>
 
 <!-- Pack reveal / done-for-today overlay -->
 <div id="reveal">
@@ -977,16 +1072,27 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
         <div class="reward-card" id="rewardCard" style="display:none"></div>
         <!-- Unlock road -->
         <div class="unlock-card" id="unlockCard"></div>
-        <!-- Touch progress -->
-        <div class="touch-prog-card">
-          <div class="touch-prog-row">
-            <div class="touch-count" id="touchCount">0</div>
-            <div class="touch-label">/ <span id="touchTarget">1,500</span> TOUCHES</div>
+        <!-- TODAY: session launcher -->
+        <div class="today-card" id="todayCard">
+          <div class="today-top"><div class="today-title">TODAY</div><div class="today-daytype" id="todayDayType"></div></div>
+          <div class="touch-prog-row"><div class="touch-count" id="touchCount">0</div><div class="touch-label" id="touchLabel">TOUCHES TODAY</div></div>
+          <div class="ms-bar" id="msBar"></div>
+          <div class="today-hint" id="todayHint"></div>
+          <div id="resumeRow"></div>
+          <div class="diff-label" style="margin-top:14px">INTENSITY</div>
+          <div class="diff-btns">
+            <button id="diff-limited" class="diff-btn" onclick="setDifficulty('limited')">🌙 LIGHT</button>
+            <button id="diff-consistent" class="diff-btn active-consistent" onclick="setDifficulty('consistent')">✅ STANDARD</button>
+            <button id="diff-hustle" class="diff-btn" onclick="setDifficulty('hustle')">💪 HUSTLE</button>
           </div>
-          <div class="touch-bar"><div class="touch-bar-fill" id="touchProgFill" style="width:0%"></div></div>
+          <div class="mode-row">
+            <button class="mode-btn" onclick="startTimed()"><b>⏱ TIMED</b><span id="timedSub">rounds · PBs</span></button>
+            <button class="mode-btn" onclick="openGoal()"><b>🎯 TOUCH GOAL</b><span id="goalSub">pick a target</span></button>
+          </div>
+          <button class="mode-btn rec" onclick="startRecovery()"><b>🌙 RECOVERY DAY</b><span>~8 min mobility · keeps the streak</span></button>
         </div>
         <!-- Juggle -->
-        <div class="juggle-card" style="flex-direction:column;align-items:stretch;gap:10px">
+        <div class="juggle-card" style="flex-direction:column;align-items:stretch;gap:10px;margin-bottom:12px">
           <div style="display:flex;align-items:center;gap:12px">
             <div class="juggle-icon">🎯</div>
             <div class="juggle-label">Total juggles today<br><span id="juggleMinLbl" style="font-size:11px">Daily minimum: 150</span></div>
@@ -999,42 +1105,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
             <input class="juggle-input" id="juggleStreak" type="number" inputmode="numeric" placeholder="0" min="0" oninput="saveWip()">
             <div class="juggle-pb-badge" id="jugglePbBadge">PB: --</div>
           </div>
-        </div>
-        <!-- Difficulty -->
-        <div class="diff-card">
-          <div class="diff-label">Session Intensity</div>
-          <div class="diff-btns">
-            <button id="diff-hustle" class="diff-btn" onclick="setDifficulty('hustle')">💪 HUSTLE</button>
-            <button id="diff-consistent" class="diff-btn active-consistent" onclick="setDifficulty('consistent')">✅ CONSISTENT</button>
-            <button id="diff-limited" class="diff-btn" onclick="setDifficulty('limited')">🌙 LIGHT</button>
-          </div>
-        </div>
-        <!-- Ball Mastery Block -->
-        <div class="block-wrap" id="bmBlock">
-          <div class="block-header" onclick="toggleBlock('bm')">
-            <div class="block-title">⚽ BALL MASTERY</div>
-            <div class="block-touch-sub" id="bmTouchSub">0 / 900 touches</div>
-            <div class="block-progress-chip incomplete" id="bmChip">0/7</div>
-          </div>
-          <div class="block-bar-wrap"><div class="block-bar" id="bmBar" style="width:0%"></div></div>
-          <div class="block-skills" id="bmSkills"></div>
-        </div>
-        <!-- Movement Block -->
-        <div class="block-wrap" id="mvBlock">
-          <div class="block-header" onclick="toggleBlock('mv')">
-            <div class="block-title">🏃 MOVEMENT</div>
-            <div class="block-touch-sub" id="mvTouchSub">0 / 600 touches</div>
-            <div class="block-progress-chip incomplete" id="mvChip">0/6</div>
-          </div>
-          <div class="block-bar-wrap"><div class="block-bar" id="mvBar" style="width:0%"></div></div>
-          <div class="block-skills" id="mvSkills"></div>
-        </div>
-        <!-- Log button -->
-        <div class="log-btn-wrap">
-          <button class="log-btn" id="logBtn" onclick="logSession()">
-            LOG SESSION
-          </button>
-          <div class="log-btn-sub" id="logBtnSub">BM: 0/5 · MV: 0/4 — LOG PARTIAL?</div>
         </div>
       </div>
     </div>
@@ -1067,10 +1137,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 
     <!-- SKILLS -->
     <div class="app-screen" id="screen-skills">
-      <div class="skills-section-title">⚽ BALL MASTERY</div>
-      <div id="skillListBM"></div>
-      <div class="skills-section-title" style="margin-top:8px">🏃 MOVEMENT</div>
-      <div id="skillListMV"></div>
+      <div id="skillCatalog"></div>
     </div>
 
     <!-- CREW -->
@@ -1231,9 +1298,12 @@ function hydratePlayer(data) {
   if (p.juggle_pb) set(`sfc_juggle_${id}`, String(Math.max(p.juggle_pb, parseInt(localStorage.getItem(`sfc_juggle_${id}`)||'0'))));
   if (p.created_at && !localStorage.getItem(`sfc_firstday_${id}`)) set(`sfc_firstday_${id}`, String(p.created_at).slice(0,10));
   if (data.history) set(`sfc_history_${id}`, data.history);
+  if (p.pbs) { const loc = JSON.parse(localStorage.getItem(`sfc_pbs_${id}`)||'{}'); const m = {...p.pbs};
+    Object.entries(loc).forEach(([k,v]) => { if (!m[k] || v > m[k]) m[k] = v; }); set(`sfc_pbs_${id}`, m); }
   const player = {id, name:p.nickname, color:p.color||'#4fc3f7', age_group:p.age_group||'', club:p.age_group||'',
     xp:p.xp||0, streak:p.streak||0, best_streak:best, total_touches:p.total_touches||0, sessions:p.sessions||0,
-    juggle_pb:p.juggle_pb||0, juggle_min:p.juggle_min||150, created_at:p.created_at};
+    juggle_pb:p.juggle_pb||0, juggle_min:p.juggle_min||150, created_at:p.created_at,
+    skill_level:p.skill_level||'developing', schedule:p.schedule||{}, growing:!!p.growing};
   localStorage.setItem(`sfc_playerdata_${id}`, JSON.stringify(player));
   return player;
 }
@@ -1241,7 +1311,8 @@ function playerState(p) {
   const j = k => { try { return JSON.parse(localStorage.getItem(k)||'null'); } catch(e) { return null; } };
   return {xp:p.xp||0, streak:p.streak||0, best_streak:bestStreak(p), last_log:localStorage.getItem(`sfc_lastlog_${p.id}`),
     total_touches:p.total_touches||0, sessions:p.sessions||0, juggle_pb:Math.max(p.juggle_pb||0, parseInt(localStorage.getItem(`sfc_juggle_${p.id}`)||'0')),
-    avatar:j(`sfc_avatar_${p.id}`), unlocks:j(`sfc_unlocks_${p.id}`)||[], badges:j(`sfc_badges_${p.id}`)||[]};
+    avatar:j(`sfc_avatar_${p.id}`), unlocks:j(`sfc_unlocks_${p.id}`)||[], badges:j(`sfc_badges_${p.id}`)||[],
+    pbs:j(`sfc_pbs_${p.id}`)||{}};
 }
 // Save progress to the server (queued if offline)
 async function pushState(p) {
@@ -1640,6 +1711,12 @@ function showOnboard(step) {
         <div class="field-lbl">AGE GROUP (SCHOOL-YEAR, AUG 1 CUTOFF)</div>
         <select class="ob-select" id="obAge" onchange="document.getElementById('obJug').value=defaultJuggleMin(this.value)">
           ${AGE_GROUPS.map(g=>`<option ${g==='U10'?'selected':''}>${g}</option>`).join('')}</select>
+        <div class="field-lbl">SKILL LEVEL (CHANGE ANYTIME IN PLAN)</div>
+        <select class="ob-select" id="obLevel">
+          <option value="beginner">Beginner: new to ball work</option>
+          <option value="developing" selected>Developing: rec / new to club</option>
+          <option value="advanced">Advanced: solid club player</option>
+          <option value="elite">Elite: top team / academy</option></select>
         <div class="field-lbl">COLOR</div>
         <div class="swatches" id="obSw">${KIT_COLORS.map(c=>`<div class="swatch ${c===obColor?'sel':''}" style="background:${c}" onclick="obColor='${c}';document.querySelectorAll('#obSw .swatch').forEach(x=>x.classList.toggle('sel',x.style.background===this.style.background))"></div>`).join('')}</div>
         <div class="ob-row">
@@ -1686,7 +1763,7 @@ async function obAddPlayer() {
   const btn = document.getElementById('obAddBtn'); btn.disabled = true;
   try {
     const fams = family ? [family] : await sb('sfc_families?select=id'); family = family || fams[0];
-    const rows = await sb('sfc_players', {method:'POST', body:JSON.stringify({family_id:family.id, nickname:nick, age_group:age, color:obColor, juggle_min:jug})});
+    const rows = await sb('sfc_players', {method:'POST', body:JSON.stringify({family_id:family.id, nickname:nick, age_group:age, color:obColor, juggle_min:jug, skill_level:document.getElementById('obLevel').value})});
     await rpc('sfc_set_pin', {p_player: rows[0].id, p_pin: p1});
     players.push(hydratePlayer({player:rows[0], history:{}}));
     showOnboard('players');
@@ -1784,6 +1861,7 @@ function renderParentPortal() {
         <button class="kid-action-btn" onclick="goTrainAs('${p.id}')">▶ TRAIN AS</button>
         <button class="kid-action-btn" onclick="openRewardModal('${p.id}')">🎁 REWARD</button>
       </div>
+      <button class="kid-action-btn" style="width:100%;margin-top:8px;padding:10px" onclick="openPlanModal('${p.id}')">⚙️ PLAN · ${(LEVELS[levelIdx(p)]||'').toUpperCase()} · ${scheduleText(p)}</button>
       ${statusLine(p)}
       ${rewardLine(p)}
     `;
@@ -1910,7 +1988,7 @@ function wipKey() { return `sfc_wip_${currentPlayer?.id||'none'}_${localDate()}`
 function saveWip() {
   if (!currentPlayer) return;
   localStorage.setItem(wipKey(), JSON.stringify({
-    bm:[...completedBM], mv:[...completedMV], diff:currentDiff,
+    diff:currentDiff,
     juggle:document.getElementById('juggleToday').value,
     jrow:document.getElementById('juggleStreak').value
   }));
@@ -1918,16 +1996,11 @@ function saveWip() {
 function loadWip() {
   let w = {};
   try { w = JSON.parse(localStorage.getItem(wipKey())||'{}'); } catch(e) {}
-  completedBM = new Set(w.bm||[]);
-  completedMV = new Set(w.mv||[]);
-  currentDiff = w.diff || 'consistent';
-  blocksCollapsed = {bm:false, mv:false};
+  currentDiff = w.diff || (currentPlayer ? dayInfo(currentPlayer).suggest : 'consistent');
   document.getElementById('juggleToday').value = w.juggle || '';
   document.getElementById('juggleStreak').value = w.jrow || '';
   updateJuggleBar();
-  renderBlockSkills();
   updateTouchProgress();
-  updateLogBtn();
 }
 
 // ─── SESSION RESET ────────────────────────────────────
@@ -1969,6 +2042,7 @@ function renderHome() {
   updateJuggleBar();
 
   setDifficulty(currentDiff);
+  renderToday();
 }
 
 function getTodayLabel() {
@@ -1990,181 +2064,22 @@ function setDifficulty(d) {
   currentDiff = d;
   const keys = ['hustle','consistent','limited'];
   keys.forEach(k => {
-    const btn = document.getElementById(`diff-${k}`);
-    btn.className = 'diff-btn' + (k===d ? ` active-${k}` : '');
+    const b = document.getElementById(`diff-${k}`);
+    if (b) b.className = 'diff-btn' + (k===d ? ` active-${k}` : '');
   });
-  updateLogBtn();
   saveWip();
+  if (currentPlayer) renderToday();
 }
 
 // ─── SKILL BLOCKS ─────────────────────────────────────
-function toggleBlock(block) {
-  blocksCollapsed[block] = !blocksCollapsed[block];
-  document.getElementById(`${block}Skills`).style.display = blocksCollapsed[block] ? 'none' : 'flex';
-}
-
-function renderBlockSkills() {
-  renderBlock('bm', BM_SKILLS, completedBM);
-  renderBlock('mv', MV_SKILLS, completedMV);
-}
-
-function renderBlock(blockId, skills, completedSet) {
-  const container = document.getElementById(`${blockId}Skills`);
-  container.innerHTML = '';
-  container.style.display = blocksCollapsed[blockId] ? 'none' : 'flex';
-  skills.forEach(skill => {
-    const done = completedSet.has(skill.id);
-    const row = document.createElement('div');
-    row.className = `skill-row${done ? (blockId==='bm' ? ' done bm-done' : ' done') : ''}`;
-    row.innerHTML = `
-      <div class="skill-check-box">${done ? '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6L5 9L10 3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}</div>
-      <div class="skill-row-name">${skill.name}</div>
-      <div class="skill-touch-count">${skill.touches}</div>
-    `;
-    row.onclick = () => toggleBlockSkill(blockId, skill, row, completedSet);
-    container.appendChild(row);
-  });
-  updateBlockProgress(blockId, completedSet, skills);
-}
-
-function toggleBlockSkill(blockId, skill, row, completedSet) {
-  if (completedSet.has(skill.id)) {
-    completedSet.delete(skill.id);
-    row.className = 'skill-row';
-    row.querySelector('.skill-check-box').innerHTML = '';
-  } else {
-    completedSet.add(skill.id);
-    row.className = blockId==='bm' ? 'skill-row done bm-done' : 'skill-row done';
-    row.querySelector('.skill-check-box').innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6L5 9L10 3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  }
-  updateBlockProgress(blockId, completedSet, blockId==='bm' ? BM_SKILLS : MV_SKILLS);
-  updateTouchProgress();
-  updateLogBtn();
-  saveWip();
-  renderSkillsList();
-}
-
-function updateBlockProgress(blockId, completedSet, skills) {
-  const done = completedSet.size;
-  const total = skills.length;
-  const pct = (done/total)*100;
-  const touchesDone = skills.filter(s=>completedSet.has(s.id)).reduce((a,b)=>a+b.touches,0);
-  const touchesTotal = skills.reduce((a,b)=>a+b.touches,0);
-  const isComplete = done >= total;
-  document.getElementById(`${blockId}Bar`).style.width = pct+'%';
-  document.getElementById(`${blockId}Chip`).textContent = `${done}/${total}`;
-  document.getElementById(`${blockId}Chip`).className = `block-progress-chip ${isComplete?'complete':'incomplete'}`;
-  document.getElementById(`${blockId}TouchSub`).textContent = `${touchesDone.toLocaleString()} / ${touchesTotal.toLocaleString()} touches`;
-}
-
-function calcTouches() {
-  const bmT = BM_SKILLS.filter(s=>completedBM.has(s.id)).reduce((a,b)=>a+b.touches,0);
-  const mvT = MV_SKILLS.filter(s=>completedMV.has(s.id)).reduce((a,b)=>a+b.touches,0);
-  return bmT + mvT;
-}
-
-function updateTouchProgress() {
-  const total = calcTouches();
-  const pct = Math.min(100,(total/TOTAL_TARGET)*100);
-  document.getElementById('touchCount').textContent = total.toLocaleString();
-  document.getElementById('touchTarget').textContent = TOTAL_TARGET.toLocaleString();
-  document.getElementById('touchProgFill').style.width = pct+'%';
-}
-
-function updateLogBtn() {
-  const bmDone = completedBM.size >= BM_MIN_REQUIRED;
-  const mvDone = completedMV.size >= MV_MIN_REQUIRED;
-  const allDone = bmDone && mvDone;
-  const btn = document.getElementById('logBtn');
-  const sub = document.getElementById('logBtnSub');
-  btn.disabled = false;
-  if (allDone) {
-    const diff = DIFFICULTY[currentDiff];
-    const xp = Math.round(diff.baseXP * diff.multiplier);
-    sub.textContent = `${xp} XP · ${DIFFICULTY[currentDiff].label} · ${calcTouches().toLocaleString()} TOUCHES`;
-  } else {
-    const parts = [];
-    if (!bmDone) parts.push(`BM: ${completedBM.size}/${BM_MIN_REQUIRED}`);
-    if (!mvDone) parts.push(`MV: ${completedMV.size}/${MV_MIN_REQUIRED}`);
-    sub.textContent = parts.join(' · ') + ' — LOG PARTIAL?';
-  }
-}
+// Old fixed-block checklist replaced by the session engine (timed / goal / recovery)
+function renderBlockSkills() {}
+function updateLogBtn() {}
+function calcTouches() { return todayTouches(); }
+function updateTouchProgress() { if (currentPlayer) renderToday(); }
 
 // ─── LOG SESSION ──────────────────────────────────────
-async function logSession() {
-  const touches = calcTouches();
-  if (touches === 0) { showToast('Complete some skills first!','error'); return; }
-  const bmDone = completedBM.size >= BM_MIN_REQUIRED;
-  const mvDone = completedMV.size >= MV_MIN_REQUIRED;
-  const fullSession = bmDone && mvDone;
-  const diff = DIFFICULTY[currentDiff];
-  const rawXP = fullSession
-    ? Math.round(diff.baseXP * diff.multiplier)
-    : Math.round((diff.baseXP * diff.multiplier) * (touches/TOTAL_TARGET));
-  const juggle = parseInt(document.getElementById('juggleStreak').value)||0;      // best in a row -> PB
-  const juggleTotal = parseInt(document.getElementById('juggleToday').value)||0; // daily total vs minimum
-  const juggleMinHit = juggleTotal >= juggleMin(currentPlayer);
-  const today = localDate();
-  const jKey = `sfc_jugglemin_hit_${currentPlayer.id}_${today}`;
-  const jBonus = (juggleMinHit && !localStorage.getItem(jKey)) ? JUGGLE_BONUS_XP : 0;  // once per day
-  if (jBonus) localStorage.setItem(jKey, '1');
-  const xpEarned = capDailyXP(currentPlayer.id, today, rawXP + jBonus);
-  const rankBefore = getRank(currentPlayer.xp||0).name;
-
-  const oldPB = getJugglePB();
-  if (juggle > oldPB) {
-    localStorage.setItem(`sfc_juggle_${currentPlayer.id}`, String(juggle));
-    currentPlayer.juggle_pb = juggle;
-  }
-
-  const btn = document.getElementById('logBtn');
-  if (btn.disabled) return;
-  btn.disabled = true;
-  const p = currentPlayer;
-
-  const session = {
-    player_id: currentPlayer.id,
-    date: today,
-    touches,
-    juggle_high: juggle,
-    juggle_total: juggleTotal,
-    bm_skills: [...completedBM],
-    mv_skills: [...completedMV],
-    difficulty: currentDiff,
-    full_session: fullSession,
-    xp_earned: xpEarned,
-  };
-
-  applyStreak(currentPlayer, today);
-  addHistory(currentPlayer.id, today, touches);
-  currentPlayer.xp = (currentPlayer.xp||0) + xpEarned;
-  currentPlayer.total_touches = (currentPlayer.total_touches||0) + touches;
-  currentPlayer.sessions = (currentPlayer.sessions||0) + 1;
-
-
-  // Save locally
-  localStorage.setItem('sfc_player', JSON.stringify(currentPlayer));
-  localStorage.setItem(`sfc_playerdata_${currentPlayer.id}`, JSON.stringify(currentPlayer));
-  checkBadges();
-  const reveals = [];
-  const fresh = newUnlocks(currentPlayer);
-  const rankAfter = getRank(currentPlayer.xp||0);
-  if (rankAfter.name !== rankBefore) reveals.push({type:'rank', rank:rankAfter});
-  fresh.forEach(u => reveals.push({type:'unlock', unlock:u}));
-  // Background sync to the family account (queued if offline). UI never waits on the network.
-  if (deviceToken()) callOrQueue('sfc_log_session', {p_token:deviceToken(), p_player:p.id, p_session:session, p_state:playerState(p)});
-  reveals.push({type:'done', xp:xpEarned, capped:xpEarned<rawXP+jBonus, full:fullSession, pb:(juggle>oldPB&&juggle>0)?juggle:0, jmin:jBonus>0});
-  showReveals(reveals);
-  resetSession();
-  renderHome();
-  renderProfile();
-  renderSkillsList();
-  renderCrew();
-  btn.disabled = false;
-  document.getElementById('screen-home').scrollTo({top:0, behavior:'smooth'});
-}
-
-
+async function logSession() { /* replaced by commitSession() in the session engine */ }
 
 function queueOffline(session) {
   const q = JSON.parse(localStorage.getItem('sfc_queue')||'[]');
@@ -2176,7 +2091,7 @@ function queueOffline(session) {
 function openLogModal(playerId) {
   const p = players.find(x=>x.id===playerId);
   if (!p) return;
-  logModalState = {player:p, bmDone:new Set(), mvDone:new Set(), diff:'consistent', juggle:0};
+  logModalState = {player:p, touches:'', diff:'consistent', juggle:0};
   document.getElementById('logModalSub').textContent = `Logging for ${p.name}`;
   renderLogModal();
   document.getElementById('logModal').classList.add('open');
@@ -2188,64 +2103,18 @@ function closeLogModal() {
 
 function renderLogModal() {
   const wrap = document.getElementById('logForKidWrap');
-  wrap.innerHTML = '';
-
-  // BM skills
-  const bmGroup = document.createElement('div');
-  bmGroup.className = 'log-modal-skill-group';
-  bmGroup.innerHTML = '<div class="log-modal-group-label">⚽ BALL MASTERY</div>';
-  const bmSkillsWrap = document.createElement('div');
-  bmSkillsWrap.className = 'log-modal-skills';
-  BM_SKILLS.forEach(s => {
-    const chip = document.createElement('div');
-    chip.className = 'log-modal-skill-chip' + (logModalState.bmDone.has(s.id)?' done':'');
-    chip.textContent = s.name;
-    chip.onclick = () => {
-      logModalState.bmDone.has(s.id) ? logModalState.bmDone.delete(s.id) : logModalState.bmDone.add(s.id);
-      renderLogModal();
-    };
-    bmSkillsWrap.appendChild(chip);
-  });
-  bmGroup.appendChild(bmSkillsWrap);
-  wrap.appendChild(bmGroup);
-
-  // MV skills
-  const mvGroup = document.createElement('div');
-  mvGroup.className = 'log-modal-skill-group';
-  mvGroup.innerHTML = '<div class="log-modal-group-label">🏃 MOVEMENT</div>';
-  const mvSkillsWrap = document.createElement('div');
-  mvSkillsWrap.className = 'log-modal-skills';
-  MV_SKILLS.forEach(s => {
-    const chip = document.createElement('div');
-    chip.className = 'log-modal-skill-chip' + (logModalState.mvDone.has(s.id)?' done':'');
-    chip.textContent = s.name;
-    chip.onclick = () => {
-      logModalState.mvDone.has(s.id) ? logModalState.mvDone.delete(s.id) : logModalState.mvDone.add(s.id);
-      renderLogModal();
-    };
-    mvSkillsWrap.appendChild(chip);
-  });
-  mvGroup.appendChild(mvSkillsWrap);
-  wrap.appendChild(mvGroup);
-
-  // Juggle
-  const juggleRow = document.createElement('div');
-  juggleRow.className = 'log-modal-juggle';
-  juggleRow.innerHTML = `
-    <div class="log-modal-juggle-label">🔥 Juggles: best in a row</div>
-    <input class="log-modal-juggle-input" id="logModalJuggle" type="number" inputmode="numeric" placeholder="0" value="${logModalState.juggle||''}">
-  `;
-  wrap.appendChild(juggleRow);
-  document.getElementById('logModalJuggle')?.addEventListener('change',e=>{logModalState.juggle=parseInt(e.target.value)||0});
-
-  // Difficulty
+  wrap.innerHTML = `
+    <div class="log-modal-juggle"><div class="log-modal-juggle-label">⚽ Total touches</div>
+      <input class="log-modal-juggle-input" id="logModalTouches" type="number" inputmode="numeric" placeholder="0" value="${logModalState.touches||''}"></div>
+    <div class="log-modal-juggle"><div class="log-modal-juggle-label">🔥 Juggles: best in a row</div>
+      <input class="log-modal-juggle-input" id="logModalJuggle" type="number" inputmode="numeric" placeholder="0" value="${logModalState.juggle||''}"></div>`;
   const diffRow = document.createElement('div');
   diffRow.className = 'diff-row';
-  ['hustle','consistent','limited'].forEach(d => {
+  ['limited','consistent','hustle'].forEach(d => {
     const btn = document.createElement('button');
     btn.className = 'log-diff-btn' + (d===logModalState.diff?` active-${d}`:'');
-    btn.textContent = d.toUpperCase();
-    btn.onclick = () => { logModalState.diff = d; renderLogModal(); };
+    btn.textContent = DIFFICULTY[d].label;
+    btn.onclick = () => { logModalState.touches = document.getElementById('logModalTouches').value; logModalState.juggle = document.getElementById('logModalJuggle').value; logModalState.diff = d; renderLogModal(); };
     diffRow.appendChild(btn);
   });
   wrap.appendChild(diffRow);
@@ -2253,21 +2122,17 @@ function renderLogModal() {
 
 async function submitLogForKid() {
   const p = logModalState.player;
-  const touches = BM_SKILLS.filter(s=>logModalState.bmDone.has(s.id)).reduce((a,b)=>a+b.touches,0)
-                + MV_SKILLS.filter(s=>logModalState.mvDone.has(s.id)).reduce((a,b)=>a+b.touches,0);
-  if (touches === 0) { showToast('Select some skills first!','error'); return; }
-  const fullSession = logModalState.bmDone.size>=BM_MIN_REQUIRED && logModalState.mvDone.size>=MV_MIN_REQUIRED;
-  const diff = DIFFICULTY[logModalState.diff];
-  const xp = fullSession
-    ? Math.round(diff.baseXP * diff.multiplier)
-    : Math.round((diff.baseXP * diff.multiplier) * (touches/TOTAL_TARGET));
+  const touches = Math.min(20000, parseInt(document.getElementById('logModalTouches')?.value)||0);
+  if (touches <= 0) { showToast('Enter total touches','error'); return; }
+  const fullSession = touches >= expectedTouches(p);
+  const xp = Math.min(600, Math.round(300 * touches * 1.35 / (expectedTouches(p) * 1.35)));
   const today = localDate();
   const juggle = parseInt(document.getElementById('logModalJuggle')?.value) || logModalState.juggle || 0;
 
   const session = {
     player_id: p.id, date:today, touches,
     juggle_high:juggle,
-    bm_skills:[...logModalState.bmDone], mv_skills:[...logModalState.mvDone],
+    bm_skills:[], mv_skills:[], mode:'parent',
     difficulty:logModalState.diff, full_session:fullSession, xp_earned:xp
   };
 
@@ -2423,31 +2288,18 @@ function checkBadges() {
 
 // ─── SKILLS LIST ──────────────────────────────────────
 function renderSkillsList() {
-  const groups = [
-    {el:'skillListBM', skills:BM_SKILLS, set:completedBM, label:'BALL MASTERY'},
-    {el:'skillListMV', skills:MV_SKILLS, set:completedMV, label:'MOVEMENT'},
-  ];
-  groups.forEach(g => {
-    const list = document.getElementById(g.el);
-    list.innerHTML = '';
-    g.skills.forEach(s => {
-      const done = g.set.has(s.id);
-      const item = document.createElement('div');
-      item.className = 'skill-list-item' + (done ? ' done' : '');
-      item.innerHTML = `<div style="flex:1"><div class="skill-list-name">${s.name}</div>
-        <div class="skill-list-meta">${s.touches} TOUCHES · ${g.label}</div></div>
-        <div class="skill-list-check">${done ? '✓ DONE' : 'TAP WHEN DONE'}</div>`;
-      item.onclick = () => {
-        g.set.has(s.id) ? g.set.delete(s.id) : g.set.add(s.id);
-        renderBlockSkills();
-        updateTouchProgress();
-        updateLogBtn();
-        saveWip();
-        renderSkillsList();
-      };
-      list.appendChild(item);
-    });
-  });
+  const el = document.getElementById('skillCatalog'); if (!el || !currentPlayer) return;
+  const lvl = levelIdx(currentPlayer), pbs = getPBs(currentPlayer.id);
+  const groups = [['bm','⚽ BALL MASTERY'],['wall','🧱 WALL / FIRST TOUCH'],['mv','🏃 MOVES / 1v1'],['rec','🌙 RECOVERY']];
+  el.innerHTML = groups.map(([g,label]) => `<div class="skills-section-title" style="margin:10px 0 8px">${label}</div>` +
+    Object.entries(SKILLS).filter(([,k])=>k.block===g).map(([id,k]) => {
+      const best = Object.entries(pbs).filter(([key])=>key.startsWith(id+'_')).map(([key,v])=>`${v} in ${key.split('_').pop()}s`).join(' · ');
+      const locked = k.lvl > lvl;
+      return `<div class="cat-item ${locked?'locked':''}" onclick="this.classList.toggle('open')">
+        <div class="cat-top"><div class="cat-name">${k.name}</div>
+          ${locked?`<span class="cat-tag">🔒 ${LEVELS[k.lvl].toUpperCase()}</span>`:`<span class="cat-tag">${UNIT_LBL[k.unit]}</span>`}
+          ${best?`<span class="cat-pb">PB ${best}</span>`:''}</div>
+        <div class="cat-desc">${k.desc}</div></div>`; }).join('')).join('');
 }
 
 // ─── CREW (sibling leaderboard) ───────────────────────
@@ -2508,7 +2360,7 @@ function showToast(msg, type='') {
 }
 
 // ─── ENGAGEMENT: UNLOCKS / AVATAR / REWARDS / BOTS / REVEALS ───
-const DAILY_XP_CAP = 450;   // grinding all day earns nothing extra
+const DAILY_XP_CAP = 600;   // grinding all day earns nothing extra
 const MILESTONES = [
   {day:7,  id:'avatar', name:'AVATAR',  ico:'🧑‍🎤', reveal:'AVATAR BUILDER', sub:'Build your kit, pick your number.'},
   {day:14, id:'samba',  name:'???',     ico:'kit', reveal:'SAMBA KIT #7', sub:'The golden 7 is yours.'},
@@ -2745,6 +2597,9 @@ function showDone(d) {
     </div>
     ${d.pb?`<div style="color:var(--green);font-weight:800;margin-top:6px">🔥 NEW JUGGLE PB: ${d.pb} IN A ROW</div>`:''}
     ${d.jmin?`<div style="color:var(--green);font-weight:700;margin-top:2px">🎯 Daily juggle minimum hit +${JUGGLE_BONUS_XP} XP</div>`:''}
+    ${(d.milestones||[]).map(m=>`<div style="color:var(--accent);font-weight:900;margin-top:2px">🏁 ${m.toLocaleString()} TOUCHES TODAY</div>`).join('')}
+    ${(d.pbs||[]).length?`<div style="color:var(--green);font-weight:800;margin-top:2px">⚡ ${d.pbs.length} NEW PB${d.pbs.length>1?'S':''}: ${d.pbs.join(', ')}</div>`:''}
+    ${d.levelHint?`<div class="done-next" style="color:var(--amber)">${d.levelHint}</div>`:''}
     ${d.capped?`<div class="done-next">Max XP for today reached. Rest up, more tomorrow.</div>`:''}
     <div class="done-next">${nextTxt}</div>
     <div class="done-next" style="color:var(--text)">See you tomorrow, ${p.name}.</div>`;
@@ -2850,6 +2705,409 @@ function testPreviewReveals() {
     ...MILESTONES.map(m=>({type:'unlock', unlock:m})),
     {type:'done', xp:300, full:true, pb:0},
   ]);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SESSION ENGINE: plans are DATA (age group × skill level × intensity)
+//  Modes: timed rounds (PBs) · touch goal (choose/randomize) · recovery
+// ═══════════════════════════════════════════════════════════════
+const LEVELS = ['beginner','developing','advanced','elite'];
+const LEVEL_PACE = [0.8, 1, 1.25, 1.5];                      // expected-touches multiplier per level
+const UNIT_LBL = {touches:'TOUCHES', reps:'REPS', passes:'PASSES', time:'TIMED'};
+const TIER_W = {1:1, 2:1.5, 3:2, 4:2.5, w:1.2, r:0.5};        // XP weight per counted unit
+// max: generous ceiling per second, used only to catch impossible counts
+const SKILLS = {
+  toe_taps:   {name:'Toe Taps', block:'bm', tier:1, unit:'touches', max:4.5, lvl:0, desc:'Alternate tapping the top of the ball with the bottom of each foot. Stay light on your toes. Count every tap.'},
+  sole_rolls: {name:'Sole Rolls', block:'bm', tier:1, unit:'touches', max:3.5, lvl:0, desc:'Roll the ball side to side across your body with the bottom of your foot, switching feet. Count every roll.'},
+  in_out:     {name:'Inside / Outside', block:'bm', tier:1, unit:'touches', max:3.5, lvl:0, desc:'Tap the ball with the inside, then the outside of the same foot, keeping it close. Switch feet halfway.'},
+  pull_push:  {name:'Pull Push', block:'bm', tier:2, unit:'reps', max:2, lvl:0, desc:'Pull the ball back with your sole, then push it forward with your laces. Same foot. One pull + push = 1 rep.'},
+  v_pulls:    {name:'V Pulls', block:'bm', tier:2, unit:'reps', max:1.8, lvl:1, desc:'Pull back with your sole, push out diagonally with the inside of the same foot, making a V. Alternate feet.'},
+  lac_roll:   {name:'Lacrosse Roll', block:'bm', tier:2, unit:'reps', max:1.4, lvl:1, desc:'Drag the ball back and around behind your standing leg with your sole, like cradling it, then push forward.'},
+  wall_2t:    {name:'Two-Touch Wall Passes', block:'wall', tier:'w', unit:'passes', max:1.6, lvl:0, desc:'Pass off the wall, control with one touch, pass again. Count passes. Stand 3-5 yards back.'},
+  wall_1t:    {name:'One-Touch Wall Passes', block:'wall', tier:'w', unit:'passes', max:2.2, lvl:1, desc:'Pass straight back off the wall with one touch. Quick, firm, accurate. Count passes.'},
+  wall_back:  {name:'Receive Back Foot + Pass', block:'wall', tier:'w', unit:'passes', max:1.3, lvl:1, desc:'Open your body, receive across you with your back foot, then pass. Builds scanning and first touch.'},
+  wall_outin: {name:'Receive Outside, Play Inside', block:'wall', tier:'w', unit:'passes', max:1.2, lvl:2, desc:'Receive with the outside of your foot, then pass with the inside of the same foot.'},
+  wall_turn:  {name:'Pass, Turn, Turn Back', block:'wall', tier:'w', unit:'passes', max:0.8, lvl:2, desc:'Pass, receive and turn away from the wall, then turn back and pass again. Count passes.'},
+  l_turns:    {name:'L Turns', block:'mv', tier:2, unit:'reps', max:1.4, lvl:0, desc:'Pull the ball back with your sole, then push it behind your standing leg with the inside of the same foot, making an L. Alternate feet.'},
+  step_overs: {name:'Step Overs', block:'mv', tier:3, unit:'reps', max:1.4, lvl:0, desc:'Step over the ball like you\'re going one way, take it the other way with the outside of your other foot. Alternate.'},
+  scissors:   {name:'Scissors', block:'mv', tier:3, unit:'reps', max:1.4, lvl:1, desc:'Swing your foot around the front of the ball to fake, land, and explode the other way.'},
+  drag_back:  {name:'Drag Back Turn', block:'mv', tier:3, unit:'reps', max:1.2, lvl:1, desc:'Drag the ball back with your sole, spin, and go the other way. Chain into a push or cut.'},
+  cruyff:     {name:'Cruyff Turn', block:'mv', tier:3, unit:'reps', max:1.1, lvl:1, desc:'Fake a pass or shot, then drag the ball behind your standing leg with the inside of your foot and turn.'},
+  out_cut:    {name:'Outside Cut + Burst', block:'mv', tier:3, unit:'reps', max:1, lvl:2, desc:'Cut the ball sharply with the outside of your foot to change direction, then accelerate 3 steps.'},
+  maradona:   {name:'Maradona', block:'mv', tier:4, unit:'reps', max:0.9, lvl:3, desc:'Step on the ball, spin with your back to the defender dragging it with one sole then the other, finish facing forward.'},
+  combo_so_cr:{name:'Combo: Step Over → Cruyff', block:'mv', tier:4, unit:'reps', max:0.6, lvl:3, desc:'Step over, then Cruyff the other way, then burst. One full combo = 1 rep.'},
+  mob_hips:   {name:'Hip Circles', block:'rec', tier:'r', unit:'time', lvl:0, desc:'Stand tall, knee up, draw big slow circles out to the side. Switch legs halfway.'},
+  mob_swing:  {name:'Leg Swings', block:'rec', tier:'r', unit:'time', lvl:0, desc:'Hold a wall. Swing one leg forward and back, then side to side. Switch legs halfway.'},
+  mob_ham:    {name:'Hamstring Sweeps', block:'rec', tier:'r', unit:'time', lvl:0, desc:'Heel forward, toes up, hinge at the hips and sweep your hands to the ground. Alternate legs.'},
+  mob_calf:   {name:'Calf + Ankle', block:'rec', tier:'r', unit:'time', lvl:0, desc:'Hands on a wall, one foot back, heel down. Lean in slowly. Then roll ankles both ways.'},
+  mob_squat:  {name:'Deep Squat Hold', block:'rec', tier:'r', unit:'time', lvl:0, desc:'Sink into a deep squat, heels down, elbows push knees out. Breathe slowly.'},
+  rec_sole:   {name:'Easy Sole Rolls', block:'rec', tier:'r', unit:'time', lvl:0, desc:'Slow, relaxed sole rolls. Smooth, not fast. Just feel the ball.'},
+  rec_juggle: {name:'Easy Juggles', block:'rec', tier:'r', unit:'touches', max:3, lvl:0, desc:'Relaxed juggling. Count your total touches (drops are fine).'},
+};
+const BLOCK_LBL = {bm:'BALL MASTERY', wall:'WALL / FIRST TOUCH', mv:'MOVES / 1v1', rec:'RECOVERY'};
+const MILESTONES_T = [500, 750, 1000, 1500, 2000];
+
+function ageNum(p) { const g = String(p.age_group||'U10'); if (/college|adult/i.test(g)) return 19; return parseInt(g.replace(/\D/g,'')) || 10; }
+function ageCfg(p) {
+  const n = ageNum(p);
+  if (n <= 8)  return {secs:30, rest:15, mix:{bm:5, wall:5, mv:2},  expected:500,  recSecs:45};
+  if (n <= 10) return {secs:45, rest:15, mix:{bm:5, wall:5, mv:5},  expected:750,  recSecs:60};
+  if (n <= 12) return {secs:60, rest:15, mix:{bm:6, wall:5, mv:5},  expected:1000, recSecs:60};
+  if (n <= 14) return {secs:60, rest:20, mix:{bm:5, wall:8, mv:7},  expected:1300, recSecs:60, mob:true};
+  return              {secs:60, rest:20, mix:{bm:6, wall:10, mv:8}, expected:1600, recSecs:60, mob:true};
+}
+function levelIdx(p) { const i = LEVELS.indexOf(p.skill_level||'developing'); return i < 0 ? 1 : i; }
+function expectedTouches(p) { return Math.round(ageCfg(p).expected * LEVEL_PACE[levelIdx(p)] / 50) * 50; }
+const INTENSITY_MULT = {limited:0.5, consistent:1, hustle:1.34};
+function poolFor(p, block) { const l = levelIdx(p); return Object.keys(SKILLS).filter(k => SKILLS[k].block===block && SKILLS[k].lvl <= l); }
+
+// Deterministic daily rotation (same plan if they reopen the app today)
+function seeded(str) { let h = 1779033703 ^ str.length; for (let i=0;i<str.length;i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; }
+  return () => { h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); return ((h ^= h >>> 16) >>> 0) / 4294967296; }; }
+function shuffled(arr, rnd) { const a = arr.slice(); for (let i=a.length-1;i>0;i--) { const j = Math.floor(rnd()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; } return a; }
+
+function buildTimedPlan(p, intensity, salt='') {
+  const cfg = ageCfg(p), m = INTENSITY_MULT[intensity]||1, rnd = seeded(p.id + localDate() + intensity + salt), plan = [];
+  ['bm','wall','mv'].forEach(block => {
+    const n = Math.max(1, Math.round(cfg.mix[block] * m)), pool = shuffled(poolFor(p, block), rnd);
+    for (let i=0;i<n;i++) {
+      const skill = pool[i % pool.length];
+      plan.push({skill, secs:cfg.secs, foot: block==='wall' ? (i%2 ? 'LEFT FOOT' : 'RIGHT FOOT') : (block==='mv' ? 'ALTERNATE FEET' : '')});
+    }
+  });
+  return plan;
+}
+function extraRound(p) {
+  const blocks = ['bm','wall','mv'], b = blocks[Math.floor(Math.random()*3)], pool = poolFor(p, b);
+  return {skill: pool[Math.floor(Math.random()*pool.length)], secs: ageCfg(p).secs, foot: b==='wall' ? 'WEAK FOOT' : (b==='mv'?'ALTERNATE FEET':'')};
+}
+function recoveryPlan(p) {
+  const secs = ageCfg(p).recSecs;
+  return ['mob_hips','mob_swing','mob_ham','mob_calf','mob_squat','rec_sole','rec_juggle'].map(skill => ({skill, secs, foot:''}));
+}
+// Touch-goal split: target touches across blocks using the age mix, rounded to friendly numbers
+function buildGoalItems(p, target, salt='') {
+  const cfg = ageCfg(p), tot = cfg.mix.bm + cfg.mix.wall + cfg.mix.mv, rnd = seeded(p.id + localDate() + 'goal' + target + salt), items = [];
+  ['bm','wall','mv'].forEach(block => {
+    const share = target * cfg.mix[block] / tot, pool = shuffled(poolFor(p, block), rnd);
+    const k = Math.max(1, Math.min(pool.length, block==='mv' ? 3 : 3));
+    const step = block==='mv' ? 10 : 25;
+    for (let i=0;i<k;i++) items.push({skill:pool[i], count: Math.max(step, Math.round(share/k/step)*step), done:false,
+      foot: block==='wall' ? 'split both feet' : (block==='mv' ? 'half each foot' : '')});
+  });
+  // nudge last item so the list sums exactly to the target
+  const sum = items.reduce((a,b)=>a+b.count,0); items[0].count = Math.max(25, items[0].count + (target - sum));
+  return items;
+}
+function weighted(items) { return items.reduce((a,it) => a + (it.count||0) * (TIER_W[SKILLS[it.skill]?.tier] || 1), 0); }
+function sessionXP(p, items, mode) {
+  if (mode === 'recovery') return 60;
+  return Math.max(0, Math.min(600, Math.round(300 * weighted(items) / (expectedTouches(p) * 1.35))));
+}
+function todayTouches() {
+  if (!currentPlayer) return 0;
+  const h = JSON.parse(localStorage.getItem(`sfc_history_${currentPlayer.id}`)||'{}');
+  return h[localDate()] || 0;
+}
+function getPBs(id) { try { return JSON.parse(localStorage.getItem(`sfc_pbs_${id}`)||'{}'); } catch(e) { return {}; } }
+
+// Day type from the parent-set team schedule
+function dayInfo(p) {
+  const sch = p.schedule || {}, wd = new Date().getDay(), yd = (wd + 6) % 7;
+  const has = (arr, d) => Array.isArray(arr) && arr.includes(d);
+  if (has(sch.game, wd))      return {type:'game',      label:'⚽ GAME DAY',     suggest:'limited', hint:'Game day. A Light session keeps the streak and wakes up your feet. Save your legs.'};
+  if (has(sch.game, yd))      return {type:'aftergame', label:'🌙 RECOVERY DAY', suggest:'limited', hint:'Day after a game. Recovery Day is recommended: mobility + easy touches.'};
+  if (has(sch.practice, wd))  return {type:'practice',  label:'🏟 PRACTICE DAY', suggest:'limited', hint:'Team practice today. A Light session keeps the streak without overloading.'};
+  if (p.growing)              return {type:'free',      label:'💪 TRAINING DAY', suggest:'consistent', hint:'Growing fast: make at least 1-2 days a week Recovery days.'};
+  return                             {type:'free',      label:'💪 TRAINING DAY', suggest:'consistent', hint:'Full training day. Go get your touches.'};
+}
+function scheduleText(p) {
+  const sch = p.schedule || {}, D = ['Su','M','Tu','W','Th','F','Sa'];
+  const pr = (sch.practice||[]).map(d=>D[d]).join('/'), gm = (sch.game||[]).map(d=>D[d]).join('/');
+  return (pr || gm) ? `${pr?'PRACTICE '+pr:''}${pr&&gm?' · ':''}${gm?'GAMES '+gm:''}` : 'NO SCHEDULE';
+}
+
+// ─── TODAY CARD ─────────────────────────────────────────
+function renderToday() {
+  const p = currentPlayer; if (!p) return;
+  const tot = todayTouches(), di = dayInfo(p), cfg = ageCfg(p);
+  document.getElementById('touchCount').textContent = tot.toLocaleString();
+  const next = MILESTONES_T.find(m => m > tot);
+  document.getElementById('touchLabel').textContent = next ? (tot ? `TOUCHES TODAY · ${(next-tot).toLocaleString()} TO ${next.toLocaleString()}` : `TOUCHES TODAY · FIRST TARGET ${next.toLocaleString()}`) : 'TOUCHES TODAY · ALL MILESTONES 👑';
+  const max = MILESTONES_T[MILESTONES_T.length-1];
+  document.getElementById('msBar').innerHTML = `<div class="ms-fill" style="width:${Math.min(100,tot/max*100)}%"></div>` +
+    MILESTONES_T.map(m => `<div class="ms-tick" style="left:${m/max*100}%"></div><div class="ms-lbl ${tot>=m?'hit':''}" style="left:${Math.min(96,m/max*100)}%">${m>=1000?(m/1000)+'K':m}</div>`).join('');
+  document.getElementById('todayDayType').textContent = di.label;
+  document.getElementById('todayHint').textContent = di.hint;
+  const m = INTENSITY_MULT[currentDiff]||1, rounds = buildTimedPlan(p, currentDiff).length;
+  document.getElementById('timedSub').textContent = `${rounds} × ${cfg.secs}s · ~${Math.round(rounds*(cfg.secs+cfg.rest)/60)} min · PBs`;
+  document.getElementById('goalSub').textContent = `suggested ${Math.round(expectedTouches(p)*m/50)*50}`;
+  const S = loadSess();
+  document.getElementById('resumeRow').innerHTML = S && !S.finished
+    ? `<button class="resume-btn" onclick="resumeSession()">▶ RESUME ${S.mode==='goal'?'TOUCH GOAL':S.mode==='recovery'?'RECOVERY':'TIMED SESSION'} ${S.mode!=='goal'?`(${S.idx+1}/${S.plan.length})`:''}</button>` : '';
+}
+
+// ─── SESSION STATE (survives closing the app) ───────────
+let S = null, sessTimer = null, wakeLock = null;
+function sessKey() { return `sfc_sess_${currentPlayer.id}`; }
+function loadSess() { try { const x = JSON.parse(localStorage.getItem(sessKey())||'null'); return x && x.date===localDate() ? x : null; } catch(e) { return null; } }
+function saveSess() { if (S) localStorage.setItem(sessKey(), JSON.stringify(S)); }
+function clearSess() { localStorage.removeItem(sessKey()); S = null; }
+function openSess() { document.getElementById('sess').classList.add('open'); keepAwake(true); updateSessTop(); }
+function closeSess() { document.getElementById('sess').classList.remove('open'); clearInterval(sessTimer); keepAwake(false); renderToday(); }
+function pauseSession() { saveSess(); closeSess(); }
+function resumeSession() { S = loadSess(); if (!S) return; openSess(); S.mode==='goal' ? renderGoalList() : (S.idx >= S.plan.length ? renderSummary() : renderReady()); }
+function sessTouches() { return S ? (S.mode==='goal' ? S.items.filter(i=>i.done).reduce((a,b)=>a+b.count,0) : S.results.reduce((a,b)=>a+(b.count||0),0)) : 0; }
+function updateSessTop() {
+  document.getElementById('sessTotal').textContent = (todayTouches() + sessTouches()).toLocaleString();
+  document.getElementById('sessProg').textContent = !S ? '' : S.mode==='goal' ? `TOUCH GOAL · ${S.target.toLocaleString()}` :
+    (S.idx < S.plan.length ? `${S.mode==='recovery'?'RECOVERY':'ROUND'} ${S.idx+1} / ${S.plan.length}` : 'SESSION COMPLETE');
+}
+async function keepAwake(on) {
+  try { if (on && 'wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); else if (!on && wakeLock) { wakeLock.release(); wakeLock = null; } } catch(e) {}
+}
+function say(text) { try { const u = new SpeechSynthesisUtterance(text); u.rate = 1.05; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch(e) {} }
+function beep(freq=880, dur=.12, vol=.15) {
+  try { audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)(); if (audioCtx.state==='suspended') audioCtx.resume();
+    const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination);
+    o.type='square'; o.frequency.value=freq; g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.0001,t+dur); o.start(t); o.stop(t+dur+.02); } catch(e) {}
+}
+function body(html) { document.getElementById('sessBody').innerHTML = html; updateSessTop(); }
+
+// ─── TIMED + RECOVERY PLAYER ────────────────────────────
+function startTimed() {
+  const ex = loadSess(); if (ex && !ex.finished) { S = ex; return resumeSession(); }
+  S = {date:localDate(), mode:'timed', intensity:currentDiff, plan:buildTimedPlan(currentPlayer, currentDiff), idx:0, results:[]};
+  saveSess(); openSess(); renderReady();
+}
+function startRecovery() {
+  const ex = loadSess(); if (ex && !ex.finished && ex.mode!=='recovery') { S = ex; return resumeSession(); }
+  S = ex || {date:localDate(), mode:'recovery', intensity:'limited', plan:recoveryPlan(currentPlayer), idx:0, results:[]};
+  saveSess(); openSess(); renderReady();
+}
+function roundUnitText(sk, r) {
+  if (sk.unit==='time') return 'Follow along until the beep';
+  const what = sk.unit==='reps' ? 'reps' : sk.unit==='passes' ? 'passes' : 'touches';
+  return `Count your ${what}` + (r.foot ? ` · ${r.foot.toLowerCase()}` : '');
+}
+function renderReady(restLeft) {
+  clearInterval(sessTimer);
+  const r = S.plan[S.idx], sk = SKILLS[r.skill], pbs = getPBs(currentPlayer.id), pb = pbs[`${r.skill}_${r.secs}`];
+  body(`<div class="sk-block">${BLOCK_LBL[sk.block]}</div>
+    <div class="sk-name">${sk.name}</div>
+    <div class="sk-chips"><span class="sk-chip">${r.secs}s</span>${r.foot?`<span class="sk-chip foot">${r.foot}</span>`:''}${pb?`<span class="sk-chip" style="color:var(--green);border-color:var(--green)">PB ${pb}</span>`:''}</div>
+    <div class="sk-desc">${sk.desc}</div>
+    <div class="sk-desc" style="color:var(--text);font-weight:700">${roundUnitText(sk, r)}</div>
+    ${restLeft?`<div class="rest-pill" id="restPill">REST ${restLeft}s</div>`:''}
+    <div style="flex:1"></div>
+    <button class="big-btn" onclick="countIn()">START ▶</button>
+    <button class="big-btn ghost" onclick="skipRound()">Skip this round</button>`);
+  if (restLeft) {
+    let left = restLeft;
+    sessTimer = setInterval(() => { left--; const el = document.getElementById('restPill'); if (!el) return clearInterval(sessTimer);
+      el.textContent = left > 0 ? `REST ${left}s` : 'READY WHEN YOU ARE'; if (left <= 0) { clearInterval(sessTimer); beep(660,.1,.08); } }, 1000);
+  }
+}
+function countIn() {
+  clearInterval(sessTimer);
+  const r = S.plan[S.idx], sk = SKILLS[r.skill];
+  say(sk.name);
+  let n = 3;
+  body(`<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px">
+    <div class="sk-name" style="text-align:center">${sk.name}</div>${r.foot?`<div class="sk-chip foot">${r.foot}</div>`:''}
+    <div style="font-size:120px;font-weight:900;color:var(--accent)" id="cin">3</div></div>`);
+  beep(660);
+  sessTimer = setInterval(() => { n--; if (n > 0) { document.getElementById('cin').textContent = n; beep(660); } else { clearInterval(sessTimer); beep(1100,.25,.2); runRound(); } }, 1000);
+}
+function runRound() {
+  const r = S.plan[S.idx], sk = SKILLS[r.skill], C = 2*Math.PI*104, end = Date.now() + r.secs*1000;
+  body(`<div class="sk-block" style="text-align:center">${BLOCK_LBL[sk.block]}</div>
+    <div class="sk-name" style="text-align:center;font-size:26px">${sk.name}</div>
+    ${r.foot?`<div style="text-align:center"><span class="sk-chip foot">${r.foot}</span></div>`:''}
+    <div class="ring-wrap"><svg viewBox="0 0 240 240"><circle cx="120" cy="120" r="104" fill="none" stroke="#1e2a3d" stroke-width="14"/>
+      <circle id="ring" cx="120" cy="120" r="104" fill="none" stroke="var(--accent)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="0"/></svg>
+      <div class="ring-num"><b id="rnum">${r.secs}</b><span>${sk.unit==='time'?'FOLLOW ALONG':'KEEP COUNTING'}</span></div></div>
+    <div style="flex:1"></div>
+    <button class="big-btn ghost" onclick="finishRound()">Done early</button>`);
+  let halfSaid = false;
+  sessTimer = setInterval(() => {
+    const left = Math.max(0, (end - Date.now())/1000);
+    document.getElementById('rnum').textContent = Math.ceil(left);
+    document.getElementById('ring').style.strokeDashoffset = C * (1 - left/r.secs);
+    if (!halfSaid && sk.block==='bm' && left <= r.secs/2 && r.secs >= 45) { halfSaid = true; say('Switch feet'); }
+    if (left <= 3.05 && left > 0 && Math.abs(left - Math.round(left)) < .06) beep(660,.08,.08);
+    if (left <= 0) { clearInterval(sessTimer); finishRound(); }
+  }, 100);
+}
+function finishRound() {
+  clearInterval(sessTimer);
+  beep(1100,.18,.2); setTimeout(()=>beep(1100,.3,.2), 250);
+  try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e) {}
+  const r = S.plan[S.idx], sk = SKILLS[r.skill];
+  if (sk.unit === 'time') { S.results.push({skill:r.skill, secs:r.secs, count:0}); return nextRound(); }
+  const pb = getPBs(currentPlayer.id)[`${r.skill}_${r.secs}`];
+  say('Time. How many?');
+  body(`<div class="sk-name" style="text-align:center;font-size:26px">${sk.name}</div>
+    <div class="sk-desc" style="text-align:center">How many ${sk.unit==='reps'?'reps':sk.unit==='passes'?'passes':'touches'} did you get${r.foot?` (${r.foot.toLowerCase()})`:''}?</div>
+    <input class="count-in" id="cntIn" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="0" autocomplete="off"
+      onkeydown="if(event.key==='Enter')saveRound()">
+    <div class="pb-line" id="pbLine">${pb?`PB: ${pb}`:'First time: this sets your PB'}</div>
+    <div class="warn" id="cntWarn"></div>
+    <div style="flex:1"></div>
+    <button class="big-btn green" onclick="saveRound()">SAVE ✓</button>`);
+  setTimeout(()=>{ const el = document.getElementById('cntIn'); if (el) el.focus(); }, 150);
+}
+function saveRound() {
+  const r = S.plan[S.idx], sk = SKILLS[r.skill], v = parseInt(document.getElementById('cntIn').value);
+  const warn = document.getElementById('cntWarn');
+  if (isNaN(v) || v < 0) { warn.textContent = 'Enter a number (0 is fine)'; return; }
+  const cap = Math.ceil(r.secs * (sk.max || 5));
+  if (v > cap) { warn.textContent = `${v} in ${r.secs}s is faster than possible. Recount!`; return; }
+  const key = `${r.skill}_${r.secs}`, pbs = getPBs(currentPlayer.id), old = pbs[key] || 0;
+  let newPB = false;
+  if (v > old && v > 0) { pbs[key] = v; localStorage.setItem(`sfc_pbs_${currentPlayer.id}`, JSON.stringify(pbs)); newPB = old > 0; }
+  S.results.push({skill:r.skill, secs:r.secs, count:v, pb:newPB});
+  if (newPB) { document.getElementById('pbLine').className = 'pb-line new'; document.getElementById('pbLine').textContent = `⚡ NEW PB! ${v} (was ${old})`; beep(1320,.15,.15); say('New personal best!'); setTimeout(nextRound, 1300); }
+  else nextRound();
+}
+function skipRound() { S.results.push({skill:S.plan[S.idx].skill, secs:S.plan[S.idx].secs, count:0, skipped:true}); nextRound(); }
+function nextRound() {
+  S.idx++; saveSess();
+  if (S.idx >= S.plan.length) return renderSummary();
+  renderReady(ageCfg(currentPlayer).rest);
+}
+function renderSummary() {
+  clearInterval(sessTimer);
+  const st = sessTouches(), today = todayTouches() + st, next = MILESTONES_T.find(m => m > today), cfg = ageCfg(currentPlayer);
+  const perRound = Math.max(1, Math.round(st / Math.max(1, S.results.filter(x=>x.count>0).length)));
+  const rec = S.mode === 'recovery';
+  body(`<div class="sum-big"><b>${rec ? '✓' : st.toLocaleString()}</b><span>${rec ? 'RECOVERY DONE' : 'TOUCHES THIS SESSION'}</span></div>
+    ${rec ? '' : `<div class="sk-desc" style="text-align:center">Today: <b style="color:var(--text)">${today.toLocaleString()}</b>${next?` · <b style="color:var(--accent)">${(next-today).toLocaleString()} to ${next.toLocaleString()}</b> (~${Math.ceil((next-today)/perRound)} more round${Math.ceil((next-today)/perRound)===1?'':'s'})`:' · every milestone hit 👑'}</div>
+    ${S.results.filter(x=>x.pb).length?`<div class="pb-line new">⚡ ${S.results.filter(x=>x.pb).length} new PB${S.results.filter(x=>x.pb).length>1?'s':''} this session</div>`:''}
+    <div class="blk-h">KEEP GOING?</div>
+    <div class="mode-row" style="margin-top:0"><button class="big-btn ghost" onclick="addRounds(1)">+1 ROUND</button><button class="big-btn ghost" onclick="addRounds(3)">+3 ROUNDS</button></div>`}
+    <div style="flex:1"></div>
+    <button class="big-btn" onclick="commitSession()">FINISH & LOG 🔥</button>`);
+}
+function addRounds(n) { for (let i=0;i<n;i++) S.plan.push(extraRound(currentPlayer)); saveSess(); renderReady(); }
+
+// ─── TOUCH GOAL ─────────────────────────────────────────
+function openGoal() {
+  const ex = loadSess(); if (ex && !ex.finished) { S = ex; return resumeSession(); }
+  const p = currentPlayer, sugg = Math.round(expectedTouches(p) * (INTENSITY_MULT[currentDiff]||1) / 50) * 50;
+  const opts = [...new Set([500, 750, 1000, 1500, 2000, sugg])].sort((a,b)=>a-b);
+  S = {date:localDate(), mode:'goal', intensity:currentDiff, target: opts.includes(sugg) ? sugg : 1000, items:[]};
+  openSess();
+  body(`<div class="sk-block">TOUCH GOAL</div><div class="sk-name">Pick your target</div>
+    <div class="goal-grid">${opts.map(t=>`<button class="goal-btn ${t===S.target?'sel':''}" onclick="S.target=${t};document.querySelectorAll('.goal-btn').forEach(b=>b.classList.toggle('sel',b.dataset.t=='${t}'))" data-t="${t}">${t.toLocaleString()}${t===sugg?'<small>SUGGESTED</small>':''}</button>`).join('')}</div>
+    <div style="flex:1"></div>
+    <button class="big-btn" onclick="S.items=buildGoalItems(currentPlayer,S.target);saveSess();renderGoalList()">🎲 RANDOMIZE MY PLAN</button>
+    <button class="big-btn ghost" onclick="renderGoalChoose()">✋ CHOOSE MY SKILLS</button>`);
+}
+function renderGoalChoose() {
+  const p = currentPlayer;
+  if (!S.items.length) S.items = [];
+  const cnt = id => (S.items.find(i=>i.skill===id)||{}).count || 0, total = S.items.reduce((a,b)=>a+b.count,0);
+  body(`<div class="sk-name" style="font-size:24px">Build your ${S.target.toLocaleString()}</div>
+    <div class="sk-desc">Total: <b style="color:${total>=S.target?'var(--green)':'var(--text)'}">${total.toLocaleString()}</b> / ${S.target.toLocaleString()}</div>
+    ${['bm','wall','mv'].map(b=>`<div class="blk-h">${BLOCK_LBL[b]}</div>`+poolFor(p,b).map(id=>`<div class="gi" style="cursor:default">
+      <div class="gi-name">${SKILLS[id].name}<small>${UNIT_LBL[SKILLS[id].unit].toLowerCase()}</small></div>
+      <div class="step"><button onclick="goalStep('${id}',-${b==='mv'?10:25})">−</button><b style="min-width:44px;text-align:center">${cnt(id)}</b><button onclick="goalStep('${id}',${b==='mv'?10:25})">+</button></div></div>`).join('')).join('')}
+    <button class="big-btn" ${total?'':'disabled style="opacity:.4"'} onclick="S.items=S.items.filter(i=>i.count>0);saveSess();renderGoalList()">START ▶</button>`);
+}
+function goalStep(id, d) {
+  let it = S.items.find(i=>i.skill===id);
+  if (!it) { it = {skill:id, count:0, done:false, foot: SKILLS[id].block==='wall'?'split both feet':SKILLS[id].block==='mv'?'half each foot':''}; S.items.push(it); }
+  it.count = Math.max(0, it.count + d); renderGoalChoose();
+}
+function renderGoalList() {
+  const done = S.items.filter(i=>i.done).reduce((a,b)=>a+b.count,0);
+  body(`<div class="sk-desc">Tap each one when you finish it.</div>
+    <div class="touch-bar"><div class="touch-bar-fill" style="width:${Math.min(100,done/S.target*100)}%"></div></div>
+    <div class="sk-desc"><b style="color:var(--text)">${done.toLocaleString()}</b> / ${S.target.toLocaleString()}</div>
+    ${S.items.map((it,i)=>`<div class="gi ${it.done?'done':''}" onclick="S.items[${i}].done=!S.items[${i}].done;saveSess();renderGoalList()">
+      <div class="ck">${it.done?'✓':''}</div>
+      <div class="gi-name">${SKILLS[it.skill].name}<small>${UNIT_LBL[SKILLS[it.skill].unit].toLowerCase()}${it.foot?' · '+it.foot:''}</small></div>
+      <div class="gi-cnt">${it.count}</div></div>`).join('')}
+    <button class="big-btn ghost" onclick="S.items.push(...buildGoalItems(currentPlayer,250,'+'+S.items.length).slice(0,2));saveSess();renderGoalList()">+ ADD MORE</button>
+    <div style="flex:1"></div>
+    <button class="big-btn" ${done?'':'disabled style="opacity:.4"'} onclick="commitSession()">FINISH & LOG 🔥</button>`);
+}
+
+// ─── COMMIT: XP, streak, PBs, milestones, sync, reveals ──
+function commitSession() {
+  const p = currentPlayer, today = localDate();
+  const items = S.mode==='goal' ? S.items.filter(i=>i.done).map(i=>({skill:i.skill, count:i.count})) : S.results.filter(r=>!r.skipped);
+  const touches = items.reduce((a,b)=>a+(b.count||0),0);
+  if (S.mode !== 'recovery' && touches <= 0) { showToast('Log at least one round first','error'); return; }
+  const before = todayTouches(), after = before + touches;
+  const milestones = MILESTONES_T.filter(m => before < m && after >= m);
+  const juggle = parseInt(document.getElementById('juggleStreak').value)||0;
+  const juggleTotal = parseInt(document.getElementById('juggleToday').value)||0;
+  const jKey = `sfc_jugglemin_hit_${p.id}_${today}`;
+  const jBonus = (juggleTotal >= juggleMin(p) && !localStorage.getItem(jKey)) ? JUGGLE_BONUS_XP : 0;
+  if (jBonus) localStorage.setItem(jKey, '1');
+  const pbNames = S.mode==='goal' ? [] : S.results.filter(r=>r.pb).map(r=>SKILLS[r.skill].name);
+  const rawXP = sessionXP(p, items, S.mode) + jBonus + milestones.length*15 + pbNames.length*10;
+  const xpEarned = capDailyXP(p.id, today, rawXP);
+  const rankBefore = getRank(p.xp||0).name, oldPB = getJugglePB();
+  if (juggle > oldPB) { localStorage.setItem(`sfc_juggle_${p.id}`, String(juggle)); p.juggle_pb = juggle; }
+  applyStreak(p, today);
+  addHistory(p.id, today, touches);
+  p.xp = (p.xp||0) + xpEarned; p.total_touches = (p.total_touches||0) + touches; p.sessions = (p.sessions||0) + 1;
+  localStorage.setItem('sfc_player', JSON.stringify(p));
+  localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p));
+  checkBadges();
+  const session = {date:today, touches, juggle_high:juggle, juggle_total:juggleTotal, mode:S.mode, difficulty:S.intensity,
+    full_session: S.mode==='recovery' || after >= expectedTouches(p) * (INTENSITY_MULT[S.intensity]||1) * .9, xp_earned:xpEarned,
+    rounds: items.map(i=>({skill:i.skill, secs:i.secs||null, count:i.count})),
+    bm_skills: items.filter(i=>SKILLS[i.skill]?.block==='bm').map(i=>i.skill), mv_skills: items.filter(i=>SKILLS[i.skill]?.block==='mv').map(i=>i.skill)};
+  // Level calibration hint: crushing expected volume in timed mode
+  let levelHint = '';
+  if (S.mode==='timed' && S.intensity==='consistent' && touches > expectedTouches(p)*1.3 && levelIdx(p) < 3) {
+    const n = parseInt(localStorage.getItem(`sfc_crush_${p.id}`)||'0') + 1; localStorage.setItem(`sfc_crush_${p.id}`, String(n));
+    if (n >= 5) levelHint = `You're crushing ${LEVELS[levelIdx(p)]} sessions. Ask a parent about moving up to ${LEVELS[levelIdx(p)+1]}.`;
+  }
+  if (deviceToken()) callOrQueue('sfc_log_session', {p_token:deviceToken(), p_player:p.id, p_session:session, p_state:playerState(p)});
+  const reveals = [], fresh = newUnlocks(p), rankAfter = getRank(p.xp||0);
+  if (rankAfter.name !== rankBefore) reveals.push({type:'rank', rank:rankAfter});
+  fresh.forEach(u => reveals.push({type:'unlock', unlock:u}));
+  reveals.push({type:'done', xp:xpEarned, capped:xpEarned<rawXP, full:session.full_session, pb:(juggle>oldPB&&juggle>0)?juggle:0, jmin:jBonus>0, milestones, pbs:pbNames, levelHint});
+  clearSess(); closeSess();
+  document.getElementById('juggleToday').value = ''; document.getElementById('juggleStreak').value = ''; saveWip();
+  renderHome(); renderProfile(); renderSkillsList(); renderCrew();
+  showReveals(reveals);
+}
+
+// ─── PARENT: PLAN SETTINGS ──────────────────────────────
+let planFor = null, planDraft = null;
+function openPlanModal(id) {
+  const p = players.find(x=>x.id===id); if (!p) return;
+  planFor = id; planDraft = {skill_level:p.skill_level||'developing', schedule:{practice:[...(p.schedule?.practice||[])], game:[...(p.schedule?.game||[])]}, growing:!!p.growing};
+  document.getElementById('planTitle').textContent = `${p.name}'s Plan`;
+  paintPlan(); document.getElementById('planModal').classList.add('open');
+}
+function paintPlan() {
+  const p = players.find(x=>x.id===planFor), D = ['S','M','T','W','T','F','S'];
+  const tmp = {...p, skill_level:planDraft.skill_level}, cfg = ageCfg(tmp);
+  const chips = key => D.map((d,i)=>`<button class="day-chip ${planDraft.schedule[key].includes(i)?'sel':''}" onclick="togglePlanDay('${key}',${i})">${d}</button>`).join('');
+  document.getElementById('planBody').innerHTML = `
+    <div class="field-lbl">SKILL LEVEL</div>
+    <div class="opt-row">${LEVELS.map(l=>`<button class="opt-btn ${planDraft.skill_level===l?'sel':''}" onclick="planDraft.skill_level='${l}';paintPlan()">${l.toUpperCase()}</button>`).join('')}</div>
+    <div class="sk-desc" style="margin:-6px 0 14px;font-size:12px">${p.age_group||''} · Standard day ≈ <b style="color:var(--text)">${expectedTouches(tmp).toLocaleString()} touches</b> · timed: ${buildTimedPlan(tmp,'consistent').length} rounds × ${cfg.secs}s (~${Math.round(buildTimedPlan(tmp,'consistent').length*(cfg.secs+cfg.rest)/60)} min)</div>
+    <div class="field-lbl">TEAM PRACTICE DAYS</div><div class="day-chips">${chips('practice')}</div>
+    <div class="field-lbl">GAME DAYS</div><div class="day-chips">${chips('game')}</div>
+    <label class="ob-check" style="margin-top:4px"><input type="checkbox" ${planDraft.growing?'checked':''} onchange="planDraft.growing=this.checked">
+      <span><b style="color:var(--text)">Growing fast lately?</b> Shoe size jumps, outgrowing clothes, sore knees or heels. Adds more recovery days. General guidance, not medical advice.</span></label>`;
+}
+function togglePlanDay(key, d) { const a = planDraft.schedule[key]; const i = a.indexOf(d); i<0 ? a.push(d) : a.splice(i,1); a.sort(); paintPlan(); }
+async function savePlan() {
+  const p = players.find(x=>x.id===planFor); if (!p) return;
+  Object.assign(p, planDraft);
+  localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p));
+  try { await sb(`sfc_players?id=eq.${p.id}`, {method:'PATCH', prefer:'return=minimal', body:JSON.stringify(planDraft)}); showToast('Plan saved','success'); }
+  catch(e) { showToast('Could not save: ' + e.message, 'error'); }
+  closeModal('planModal'); renderParentPortal();
 }
 
 // ─── SERVICE WORKER ───────────────────────────────────
