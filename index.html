@@ -777,6 +777,59 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 
 /* Scrollbar hide */
 ::-webkit-scrollbar{width:0;height:0}
+
+/* growth: quests, rank ladder, xp pop, parent week view */
+.quest-card,.recap-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.q-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.q-count{font-size:12px;font-weight:900;color:var(--sub);border:1px solid var(--border);border-radius:20px;padding:2px 10px}
+.q-count.all{color:#0b0f17;background:var(--green);border-color:var(--green)}
+.q-row{display:flex;align-items:center;gap:10px;padding:7px 0}
+.q-ico{width:30px;height:30px;border-radius:9px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.q-row.done .q-ico{background:var(--green);color:#0b0f17;font-weight:900}
+.q-main{flex:1;min-width:0}
+.q-txt{font-size:13px;font-weight:700}
+.q-row.done .q-txt{color:var(--sub);text-decoration:line-through}
+.q-bar{height:5px;background:var(--bg3);border-radius:3px;margin-top:5px;overflow:hidden}
+.q-bar div{height:100%;background:var(--accent);border-radius:3px;transition:width .4s}
+.q-row.done .q-bar div{background:var(--green)}
+.q-xp{font-size:12px;font-weight:900;color:var(--accent);min-width:44px;text-align:right}
+.q-row.done .q-xp{color:var(--green)}
+.q-foot{font-size:11px;color:var(--sub);margin-top:6px;font-weight:700}
+.q-foot.all{color:var(--green)}
+#rankNext{margin-top:10px}
+.rk-pips{display:flex;gap:4px}
+.rk-pip{flex:1;height:4px;border-radius:2px;background:var(--bg3)}
+.rk-pip.past{opacity:.55}
+.rk-line{font-size:11px;font-weight:700;color:var(--sub);margin-top:8px;letter-spacing:.5px}
+.rk-mult{font-size:11px;font-weight:800;color:var(--sub);margin-top:3px}
+.rk-mult.on{color:var(--accent)}
+.rk-mult:empty{display:none}
+.xp-pop{position:absolute;left:50%;top:38%;transform:translateX(-50%);font-size:34px;font-weight:900;color:var(--green);text-shadow:0 2px 14px #000;pointer-events:none;animation:xpUp 1.4s ease-out forwards;z-index:5}
+@keyframes xpUp{0%{opacity:0;transform:translate(-50%,10px) scale(.8)}15%{opacity:1;transform:translate(-50%,0) scale(1.1)}100%{opacity:0;transform:translate(-50%,-70px) scale(1)}}
+.sess-xp{font-size:11px;font-weight:900;color:var(--green);letter-spacing:.5px}
+.crew-toggle{display:flex;gap:6px;margin-bottom:12px}
+.crew-toggle button{flex:1;padding:9px;border-radius:10px;border:1px solid var(--border);background:var(--bg2);color:var(--sub);font-weight:800;font-size:12px;letter-spacing:1px;cursor:pointer}
+.crew-toggle button.sel{border-color:var(--accent);color:var(--accent)}
+.recap-card{margin-bottom:14px}
+.recap-sub{font-size:11px;color:var(--sub);font-weight:700}
+.recap-row{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:13px}
+.recap-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.recap-name{font-weight:800;min-width:64px}
+.recap-stats{color:var(--sub);font-size:12px}
+.recap-stats b{color:var(--text)}
+.kid-more{margin-left:10px;width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:18px;font-weight:900;cursor:pointer;flex-shrink:0;line-height:1}
+.wk-dots{display:flex;gap:6px;margin:2px 0 12px}
+.wk-dot{flex:1;aspect-ratio:1;max-width:38px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--sub);border:2px solid transparent}
+.wk-dot.on{background:var(--green);color:#0b0f17}
+.wk-dot.today{border-color:var(--accent)}
+.wk-dot.future{opacity:.35}
+.tr{font-size:10px;font-weight:900;margin-left:4px;color:var(--sub)}
+.tr.up{color:var(--green)}.tr.down{color:var(--red)}
+.menu-list{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.menu-list button{display:flex;align-items:center;gap:12px;text-align:left;padding:14px;border-radius:12px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:18px;cursor:pointer}
+.menu-list button span{font-size:14px;font-weight:800;display:flex;flex-direction:column}
+.menu-list button small{font-size:11px;color:var(--sub);font-weight:600;margin-top:2px}
+.menu-cancel{width:100%;background:none;border:none;color:var(--sub);font-size:13px;padding:14px;cursor:pointer;margin-top:4px}
 </style>
 </head>
 <body>
@@ -790,7 +843,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
   <div class="sess-top">
     <button class="sess-x" onclick="pauseSession()">✕</button>
     <div class="sess-prog" id="sessProg"></div>
-    <div class="sess-total"><b id="sessTotal">0</b><span>TODAY</span></div>
+    <div class="sess-total"><b id="sessTotal">0</b><span>TODAY</span><span class="sess-xp" id="sessXP"></span></div>
   </div>
   <div class="sess-body" id="sessBody"></div>
 </div>
@@ -925,7 +978,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
     <button class="auth-btn" id="sendBtn" onclick="sendMagicLink()">SEND CODE</button>
     <div id="codeWrap" style="display:none;width:100%;flex-direction:column;gap:12px">
       <input class="auth-input" id="codeInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8"
-        autocomplete="one-time-code" placeholder="Code from email"
+        autocomplete="one-time-code" placeholder="••••••"
         style="text-align:center;font-size:24px;font-weight:800;letter-spacing:8px"
         oninput="this.value=this.value.replace(/\D/g,'')"
         onkeydown="if(event.key==='Enter')verifyCode()">
@@ -1001,7 +1054,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
   <div class="portal-header">
     <div class="portal-header-left">
       <div class="portal-greeting">PARENT DASHBOARD</div>
-      <div class="portal-title" id="portalTitle">YOUR CREW</div>
+      <div class="portal-title" id="portalTitle" onclick="betaTap()">YOUR CREW</div>
     </div>
     <button class="portal-logout-btn" onclick="logout()">SIGN OUT</button>
   </div>
@@ -1067,11 +1120,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
             <div class="xp-bar-outer"><div class="xp-bar-inner" id="xpFill" style="width:0%"></div></div>
             <div class="xp-count" id="xpCount"></div>
           </div>
+          <div id="rankNext"></div>
         </div>
         <!-- Reward progress (parent-set) -->
         <div class="reward-card" id="rewardCard" style="display:none"></div>
         <!-- Unlock road -->
         <div class="unlock-card" id="unlockCard"></div>
+        <!-- Daily quests -->
+        <div class="quest-card" id="questCard"></div>
         <!-- TODAY: session launcher -->
         <div class="today-card" id="todayCard">
           <div class="today-top"><div class="today-title">TODAY</div><div class="today-daytype" id="todayDayType"></div></div>
@@ -1219,7 +1275,7 @@ const MV_MIN_REQUIRED = 4;
 
 const DIFFICULTY = {
   hustle:     {label:'HUSTLE',     baseXP:300, multiplier:1.3},
-  consistent: {label:'CONSISTENT', baseXP:300, multiplier:1.0},
+  consistent: {label:'STANDARD', baseXP:300, multiplier:1.0},
   limited:    {label:'LIGHT',    baseXP:300, multiplier:0.6},
 };
 
@@ -1298,6 +1354,8 @@ function hydratePlayer(data) {
   if (p.juggle_pb) set(`sfc_juggle_${id}`, String(Math.max(p.juggle_pb, parseInt(localStorage.getItem(`sfc_juggle_${id}`)||'0'))));
   if (p.created_at && !localStorage.getItem(`sfc_firstday_${id}`)) set(`sfc_firstday_${id}`, String(p.created_at).slice(0,10));
   if (data.history) set(`sfc_history_${id}`, data.history);
+  if (data.xp_days) mergeDays(`sfc_xpdays_${id}`, data.xp_days);
+  if (data.pb_days) set(`sfc_pbdays_${id}`, data.pb_days);
   if (p.pbs) { const loc = JSON.parse(localStorage.getItem(`sfc_pbs_${id}`)||'{}'); const m = {...p.pbs};
     Object.entries(loc).forEach(([k,v]) => { if (!m[k] || v > m[k]) m[k] = v; }); set(`sfc_pbs_${id}`, m); }
   const player = {id, name:p.nickname, color:p.color||'#4fc3f7', age_group:p.age_group||'', club:p.age_group||'',
@@ -1336,7 +1394,7 @@ async function flushQueue() {
 }
 function cacheRoster(list) {
   localStorage.setItem('sfc_roster', JSON.stringify(list));
-  list.forEach(r => { if (r.last_log) localStorage.setItem(`sfc_lastlog_${r.id}`, r.last_log); });
+  list.forEach(r => { if (r.last_log) localStorage.setItem(`sfc_lastlog_${r.id}`, r.last_log); if (r.xp_days) mergeDays(`sfc_xpdays_${r.id}`, r.xp_days); });
   return list.map(r => ({id:r.id, name:r.nickname, color:r.color||'#4fc3f7', age_group:r.age_group||'', club:r.age_group||'',
     xp:r.xp||0, streak:r.streak||0, best_streak:r.best_streak||0, created_at:r.created_at}));
 }
@@ -1359,6 +1417,7 @@ function hideAllScreens() {
 }
 function showScreen(id) {
   hideAllScreens();
+  document.getElementById('toast')?.classList.remove('show');
   const el = document.getElementById(id);
   if (el) el.classList.add('active');
 }
@@ -1659,10 +1718,11 @@ async function loadParent() {
     const rows = await sb('sfc_players?select=*&archived=eq.false&order=created_at');
     if (!rows.length) return showOnboard('players');
     const since = new Date(); since.setDate(since.getDate()-120);
-    const sess = await sb(`sfc_sessions?select=player_id,date,touches&date=gte.${localDate(since)}`);
-    const hist = {};
-    sess.forEach(x => { hist[x.player_id] = hist[x.player_id] || {}; hist[x.player_id][x.date] = (hist[x.player_id][x.date]||0) + x.touches; });
-    players = rows.map(r => hydratePlayer({player:r, history:hist[r.id]||{}}));
+    const sess = await sb(`sfc_sessions?select=player_id,date,touches,xp_earned,rounds&date=gte.${localDate(since)}`);
+    const hist = {}, xpd = {}, pbd = {}, add = (o, id, d, n) => { o[id] = o[id] || {}; o[id][d] = (o[id][d]||0) + n; };
+    sess.forEach(x => { add(hist, x.player_id, x.date, x.touches||0); add(xpd, x.player_id, x.date, x.xp_earned||0);
+      const n = Array.isArray(x.rounds) ? x.rounds.filter(r => r && r.pb).length : 0; if (n) add(pbd, x.player_id, x.date, n); });
+    players = rows.map(r => hydratePlayer({player:r, history:hist[r.id]||{}, xp_days:xpd[r.id]||{}, pb_days:pbd[r.id]||{}}));
     localStorage.setItem('sfc_parent_cache', JSON.stringify(players));
   } catch(e) {
     // Offline: show last known dashboard
@@ -1826,18 +1886,10 @@ function showParentPortal() {
 function renderParentPortal() {
   const body = document.getElementById('portalBody');
   body.innerHTML = '';
-
-  // Section: players
-  const label = document.createElement('div');
-  label.className = 'portal-section-label';
-  label.textContent = 'YOUR CREW';
   document.getElementById('portalTitle').textContent = family?.parent_name ? `${family.parent_name.toUpperCase()}'S CREW` : 'YOUR CREW';
-  body.appendChild(label);
-
-  const colors = {};
+  if (players.length) body.appendChild(weekRecapCard());
   players.forEach(p => {
-    const color = p.color || colors[p.id] || '#4fc3f7';
-    const rank = getRank(p.xp||0);
+    const color = p.color || '#4fc3f7', rank = getRank(p.xp||0), w = kidWeek(p);
     const card = document.createElement('div');
     card.className = 'kid-card';
     card.style.cssText = `--player-color:${color}`;
@@ -1850,37 +1902,30 @@ function renderParentPortal() {
           <div class="kid-card-rank">${rank.name} · ${(p.xp||0).toLocaleString()} XP</div>
         </div>
         <div class="kid-card-streak">🔥${liveStreak(p)}</div>
+        <button class="kid-more" onclick="openKidMenu('${p.id}')" aria-label="More">⋯</button>
       </div>
+      ${weekDots(w)}
       <div class="kid-stats">
-        <div class="kid-stat"><div class="kid-stat-val">${p.sessions||0}</div><div class="kid-stat-lbl">SESSIONS</div></div>
-        <div class="kid-stat"><div class="kid-stat-val">${((p.total_touches||0)/1000).toFixed(1)}K</div><div class="kid-stat-lbl">TOUCHES</div></div>
-        <div class="kid-stat"><div class="kid-stat-val">${p.juggle_pb||'--'}</div><div class="kid-stat-lbl">JUGGLE PB</div></div>
+        <div class="kid-stat"><div class="kid-stat-val">${fmtK(w.touches)}${trendTxt(w)}</div><div class="kid-stat-lbl">TOUCHES THIS WK</div></div>
+        <div class="kid-stat"><div class="kid-stat-val">${w.pbs}</div><div class="kid-stat-lbl">PBs THIS WK</div></div>
+        <div class="kid-stat"><div class="kid-stat-val">${fmtK(w.xp)}</div><div class="kid-stat-lbl">XP THIS WK</div></div>
       </div>
-      <div class="kid-card-actions">
-        <button class="kid-action-btn" onclick="openLogModal('${p.id}')">📋 LOG SESSION</button>
-        <button class="kid-action-btn" onclick="goTrainAs('${p.id}')">▶ TRAIN AS</button>
-        <button class="kid-action-btn" onclick="openRewardModal('${p.id}')">🎁 REWARD</button>
-      </div>
-      <button class="kid-action-btn" style="width:100%;margin-top:8px;padding:10px" onclick="openPlanModal('${p.id}')">⚙️ PLAN · ${(LEVELS[levelIdx(p)]||'').toUpperCase()} · ${scheduleText(p)}</button>
       ${statusLine(p)}
       ${rewardLine(p)}
     `;
     body.appendChild(card);
   });
-
-  // Action buttons
   const actions = document.createElement('div');
   actions.style.cssText = 'display:flex;gap:10px;margin-top:4px';
   actions.innerHTML = `
     <button class="kid-action-btn" style="flex:1;padding:14px" onclick="showOnboard('players')">➕ ADD PLAYER</button>
-    <button class="kid-action-btn" style="flex:1;padding:14px" onclick="showPairCode()">📱 ADD KID DEVICE</button>
-  `;
+    <button class="kid-action-btn" style="flex:1;padding:14px" onclick="showPairCode()">📱 ADD KID DEVICE</button>`;
   const actions2 = document.createElement('div');
   actions2.style.cssText = 'display:flex;gap:10px';
   actions2.innerHTML = `<button class="kid-action-btn" style="flex:1;padding:14px" onclick="openPinModal()">🔐 PINs + JUGGLE MINIMUMS</button>`;
   body.appendChild(actions);
   body.appendChild(actions2);
-  body.appendChild(testPanel());
+  if (localStorage.getItem('sfc_beta') === '1') body.appendChild(testPanel());
 }
 
 function logout() {
@@ -2043,6 +2088,8 @@ function renderHome() {
 
   setDifficulty(currentDiff);
   renderToday();
+  renderQuests();
+  renderRankNext();
 }
 
 function getTodayLabel() {
@@ -2139,6 +2186,7 @@ async function submitLogForKid() {
   // Update player stats
   applyStreak(p, today);
   addHistory(p.id, today, touches);
+  addDay(`sfc_xpdays_${p.id}`, today, xp);
   p.xp = (p.xp||0)+xp;
   const best = parseInt(localStorage.getItem(`sfc_beststreak_${p.id}`)||'0');
   if ((p.streak||0) > best) localStorage.setItem(`sfc_beststreak_${p.id}`, String(p.streak));
@@ -2168,7 +2216,7 @@ function openPinModal() {
     row.innerHTML = `
       <div class="pin-set-avatar" style="background:${color}">${p.name[0]}</div>
       <div class="pin-set-name">${p.name}</div>
-      <input class="pin-set-input" id="newpin_${p.id}" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="new">
+      <input class="pin-set-input" id="newpin_${p.id}" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••">
       <input class="pin-set-input" id="jmin_${p.id}" type="text" inputmode="numeric" maxlength="3" style="width:70px;letter-spacing:1px;font-size:16px" title="Daily juggle minimum" value="${juggleMin(p)}">
     `;
     wrap.appendChild(row);
@@ -2283,7 +2331,7 @@ function checkBadges() {
     }
   });
   localStorage.setItem(`sfc_badges_${p.id}`, JSON.stringify(earned));
-  if (newBadges.length) setTimeout(()=>showToast('BADGE: '+newBadges[0],'success'),3000);
+  if (newBadges.length) setTimeout(()=>{ if (document.getElementById('app').style.display==='flex') showToast('BADGE: '+newBadges[0],'success'); },3000);
 }
 
 // ─── SKILLS LIST ──────────────────────────────────────
@@ -2303,17 +2351,19 @@ function renderSkillsList() {
 }
 
 // ─── CREW (sibling leaderboard) ───────────────────────
+let crewMode = 'week';
 function renderCrew() {
   const list = document.getElementById('crewList');
   const empty = document.getElementById('crewEmpty');
   let roster = players.length ? players : getSeededPlayers();
   roster = mergeLocal(roster).map(p => p.id===currentPlayer?.id ? currentPlayer : p);
-  roster = roster.concat(paceBots());
-  roster.sort((a,b)=>(b.xp||0)-(a.xp||0));
+  const wk = crewMode === 'week', left = 6 - dayIdxThisWeek();
+  roster = roster.map(p => ({...p, score: wk ? weekXP(p.id) : (p.xp||0)}));
+  roster = roster.concat(paceBots().map(b => ({...b, score: wk ? b.rate*(dayIdxThisWeek()+1) : b.xp})));
+  roster.sort((a,b)=>b.score-a.score);
   empty.style.display = 'none';
-  list.innerHTML = '<div class="skills-section-title" style="margin-bottom:10px">CREW LEADERBOARD · XP</div>';
-  const note = '<div style="font-size:11px;color:var(--sub);margin:-4px 0 12px">🤖 Pace bots train the same amount every day. Stay consistent to pass them.</div>';
-  list.innerHTML += note;
+  list.innerHTML = `<div class="crew-toggle"><button class="${wk?'sel':''}" onclick="crewMode='week';renderCrew()">THIS WEEK</button><button class="${wk?'':'sel'}" onclick="crewMode='all';renderCrew()">ALL TIME</button></div>
+    <div style="font-size:11px;color:var(--sub);margin:-2px 0 12px">${wk ? `Weekly XP · resets Monday${left?` · ${left} day${left===1?'':'s'} left`:' · last day!'} ` : ''}🤖 Pace bots train the same amount every day.</div>`;
   const colors = {};
   roster.forEach((p,i) => {
     const color = p.color || colors[p.id] || '#4fc3f7';
@@ -2325,11 +2375,11 @@ function renderCrew() {
       card.style.opacity = '.75';
       card.innerHTML = `<div style="width:18px;color:var(--sub);font-weight:800">${i+1}</div>
         <div class="crew-avatar" style="background:#1e2a3d;font-size:18px">🤖</div>
-        <div><div class="crew-name">${p.name}<span class="bot-tag">PACE BOT</span></div><div class="crew-rank">${getRank(p.xp).name} · ${p.xp.toLocaleString()} XP · trains ${p.rate}/day</div></div>`;
+        <div><div class="crew-name">${p.name}<span class="bot-tag">PACE BOT</span></div><div class="crew-rank">${p.score.toLocaleString()} XP · trains ${p.rate}/day</div></div>`;
     } else {
-      card.innerHTML = `<div style="width:18px;color:var(--sub);font-weight:800">${i+1}</div>
+      card.innerHTML = `<div style="width:18px;color:var(--sub);font-weight:800">${i===0&&p.score>0?'👑':i+1}</div>
         <div class="crew-avatar av-wrap" data-pid="${p.id}" style="background:${color}">${p.name[0]}</div>
-        <div><div class="crew-name">${p.name}</div><div class="crew-rank">${getRank(p.xp||0).name} · ${(p.xp||0).toLocaleString()} XP</div></div>
+        <div><div class="crew-name">${p.name}</div><div class="crew-rank">${getRank(p.xp||0).name} · ${p.score.toLocaleString()} XP${wk?' this week':''}</div></div>
         <div class="crew-streak">🔥${liveStreak(p)}</div>`;
       paintAvatar(card.querySelector('.crew-avatar'), p, color);
     }
@@ -2382,9 +2432,9 @@ function newUnlocks(p) {
   localStorage.setItem(`sfc_unlocks_${p.id}`, JSON.stringify(have));
   return fresh;
 }
-function capDailyXP(id, date, xp) {
+function capDailyXP(id, date, xp, cap=DAILY_XP_CAP) {
   const k = `sfc_dayxp_${id}_${date}`, used = parseInt(localStorage.getItem(k)||'0');
-  const give = Math.max(0, Math.min(xp, DAILY_XP_CAP - used));
+  const give = Math.max(0, Math.min(xp, cap - used));
   localStorage.setItem(k, String(used + give));
   return give;
 }
@@ -2599,6 +2649,9 @@ function showDone(d) {
     ${d.jmin?`<div style="color:var(--green);font-weight:700;margin-top:2px">🎯 Daily juggle minimum hit +${JUGGLE_BONUS_XP} XP</div>`:''}
     ${(d.milestones||[]).map(m=>`<div style="color:var(--accent);font-weight:900;margin-top:2px">🏁 ${m.toLocaleString()} TOUCHES TODAY</div>`).join('')}
     ${(d.pbs||[]).length?`<div style="color:var(--green);font-weight:800;margin-top:2px">⚡ ${d.pbs.length} NEW PB${d.pbs.length>1?'S':''}: ${d.pbs.join(', ')}</div>`:''}
+    ${(d.quests||[]).map(q=>`<div style="color:var(--green);font-weight:800;margin-top:2px">✅ QUEST: ${q}</div>`).join('')}
+    ${d.qbonus?`<div style="color:var(--amber);font-weight:900;margin-top:2px">🏆 ALL 3 QUESTS +${QUEST_ALL_BONUS} XP</div>`:''}
+    ${d.mult>1?`<div style="color:var(--accent);font-weight:800;margin-top:2px">🔥 STREAK BOOST x${d.mult} applied</div>`:''}
     ${d.levelHint?`<div class="done-next" style="color:var(--amber)">${d.levelHint}</div>`:''}
     ${d.capped?`<div class="done-next">Max XP for today reached. Rest up, more tomorrow.</div>`:''}
     <div class="done-next">${nextTxt}</div>
@@ -2860,6 +2913,7 @@ function resumeSession() { S = loadSess(); if (!S) return; openSess(); S.mode===
 function sessTouches() { return S ? (S.mode==='goal' ? S.items.filter(i=>i.done).reduce((a,b)=>a+b.count,0) : S.results.reduce((a,b)=>a+(b.count||0),0)) : 0; }
 function updateSessTop() {
   document.getElementById('sessTotal').textContent = (todayTouches() + sessTouches()).toLocaleString();
+  const sx = document.getElementById('sessXP'); if (sx) sx.textContent = S && S.liveXP ? `+${S.liveXP} XP` : '';
   document.getElementById('sessProg').textContent = !S ? '' : S.mode==='goal' ? `TOUCH GOAL · ${S.target.toLocaleString()}` :
     (S.idx < S.plan.length ? `${S.mode==='recovery'?'RECOVERY':'ROUND'} ${S.idx+1} / ${S.plan.length}` : 'SESSION COMPLETE');
 }
@@ -2967,6 +3021,7 @@ function saveRound() {
   let newPB = false;
   if (v > old && v > 0) { pbs[key] = v; localStorage.setItem(`sfc_pbs_${currentPlayer.id}`, JSON.stringify(pbs)); newPB = old > 0; }
   S.results.push({skill:r.skill, secs:r.secs, count:v, pb:newPB});
+  const gx = roundXP(currentPlayer, r.skill, v) + (newPB ? 10 : 0); S.liveXP = (S.liveXP||0) + gx; xpPop(gx);
   if (newPB) { document.getElementById('pbLine').className = 'pb-line new'; document.getElementById('pbLine').textContent = `⚡ NEW PB! ${v} (was ${old})`; beep(1320,.15,.15); say('New personal best!'); setTimeout(nextRound, 1300); }
   else nextRound();
 }
@@ -2983,6 +3038,7 @@ function renderSummary() {
   const rec = S.mode === 'recovery';
   body(`<div class="sum-big"><b>${rec ? '✓' : st.toLocaleString()}</b><span>${rec ? 'RECOVERY DONE' : 'TOUCHES THIS SESSION'}</span></div>
     ${rec ? '' : `<div class="sk-desc" style="text-align:center">Today: <b style="color:var(--text)">${today.toLocaleString()}</b>${next?` · <b style="color:var(--accent)">${(next-today).toLocaleString()} to ${next.toLocaleString()}</b> (~${Math.ceil((next-today)/perRound)} more round${Math.ceil((next-today)/perRound)===1?'':'s'})`:' · every milestone hit 👑'}</div>
+    ${S.liveXP?`<div class="pb-line new" style="color:var(--accent)">+${S.liveXP} XP so far${streakMult(projStreak(currentPlayer))>1?` (x${streakMult(projStreak(currentPlayer))} streak boost)`:''}</div>`:''}
     ${S.results.filter(x=>x.pb).length?`<div class="pb-line new">⚡ ${S.results.filter(x=>x.pb).length} new PB${S.results.filter(x=>x.pb).length>1?'s':''} this session</div>`:''}
     <div class="blk-h">KEEP GOING?</div>
     <div class="mode-row" style="margin-top:0"><button class="big-btn ghost" onclick="addRounds(1)">+1 ROUND</button><button class="big-btn ghost" onclick="addRounds(3)">+3 ROUNDS</button></div>`}
@@ -3020,12 +3076,16 @@ function goalStep(id, d) {
   if (!it) { it = {skill:id, count:0, done:false, foot: SKILLS[id].block==='wall'?'split both feet':SKILLS[id].block==='mv'?'half each foot':''}; S.items.push(it); }
   it.count = Math.max(0, it.count + d); renderGoalChoose();
 }
+function goalToggle(i) {
+  const it = S.items[i]; it.done = !it.done; const gx = roundXP(currentPlayer, it.skill, it.count);
+  S.liveXP = Math.max(0, (S.liveXP||0) + (it.done ? gx : -gx)); if (it.done) xpPop(gx); saveSess(); renderGoalList();
+}
 function renderGoalList() {
   const done = S.items.filter(i=>i.done).reduce((a,b)=>a+b.count,0);
   body(`<div class="sk-desc">Tap each one when you finish it.</div>
     <div class="touch-bar"><div class="touch-bar-fill" style="width:${Math.min(100,done/S.target*100)}%"></div></div>
     <div class="sk-desc"><b style="color:var(--text)">${done.toLocaleString()}</b> / ${S.target.toLocaleString()}</div>
-    ${S.items.map((it,i)=>`<div class="gi ${it.done?'done':''}" onclick="S.items[${i}].done=!S.items[${i}].done;saveSess();renderGoalList()">
+    ${S.items.map((it,i)=>`<div class="gi ${it.done?'done':''}" onclick="goalToggle(${i})">
       <div class="ck">${it.done?'✓':''}</div>
       <div class="gi-name">${SKILLS[it.skill].name}<small>${UNIT_LBL[SKILLS[it.skill].unit].toLowerCase()}${it.foot?' · '+it.foot:''}</small></div>
       <div class="gi-cnt">${it.count}</div></div>`).join('')}
@@ -3048,19 +3108,24 @@ function commitSession() {
   const jBonus = (juggleTotal >= juggleMin(p) && !localStorage.getItem(jKey)) ? JUGGLE_BONUS_XP : 0;
   if (jBonus) localStorage.setItem(jKey, '1');
   const pbNames = S.mode==='goal' ? [] : S.results.filter(r=>r.pb).map(r=>SKILLS[r.skill].name);
-  const rawXP = sessionXP(p, items, S.mode) + jBonus + milestones.length*15 + pbNames.length*10;
-  const xpEarned = capDailyXP(p.id, today, rawXP);
   const rankBefore = getRank(p.xp||0).name, oldPB = getJugglePB();
-  if (juggle > oldPB) { localStorage.setItem(`sfc_juggle_${p.id}`, String(juggle)); p.juggle_pb = juggle; }
   applyStreak(p, today);
+  const mult = streakMult(p.streak||0);
+  const rawXP = Math.round(sessionXP(p, items, S.mode) * mult) + jBonus + milestones.length*15 + pbNames.length*10;
+  const capXP = capDailyXP(p.id, today, rawXP, Math.round(DAILY_XP_CAP * mult));
+  if (juggle > oldPB) { localStorage.setItem(`sfc_juggle_${p.id}`, String(juggle)); p.juggle_pb = juggle; }
   addHistory(p.id, today, touches);
+  const quest = updateQuests(p, items, S.mode, pbNames.length, juggleTotal);
+  const xpEarned = capXP + quest.xp;
+  addDay(`sfc_xpdays_${p.id}`, today, xpEarned);
+  if (pbNames.length) addDay(`sfc_pbdays_${p.id}`, today, pbNames.length);
   p.xp = (p.xp||0) + xpEarned; p.total_touches = (p.total_touches||0) + touches; p.sessions = (p.sessions||0) + 1;
   localStorage.setItem('sfc_player', JSON.stringify(p));
   localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p));
   checkBadges();
   const session = {date:today, touches, juggle_high:juggle, juggle_total:juggleTotal, mode:S.mode, difficulty:S.intensity,
     full_session: S.mode==='recovery' || after >= expectedTouches(p) * (INTENSITY_MULT[S.intensity]||1) * .9, xp_earned:xpEarned,
-    rounds: items.map(i=>({skill:i.skill, secs:i.secs||null, count:i.count})),
+    rounds: items.map(i=>({skill:i.skill, secs:i.secs||null, count:i.count, pb:!!i.pb})),
     bm_skills: items.filter(i=>SKILLS[i.skill]?.block==='bm').map(i=>i.skill), mv_skills: items.filter(i=>SKILLS[i.skill]?.block==='mv').map(i=>i.skill)};
   // Level calibration hint: crushing expected volume in timed mode
   let levelHint = '';
@@ -3068,11 +3133,12 @@ function commitSession() {
     const n = parseInt(localStorage.getItem(`sfc_crush_${p.id}`)||'0') + 1; localStorage.setItem(`sfc_crush_${p.id}`, String(n));
     if (n >= 5) levelHint = `You're crushing ${LEVELS[levelIdx(p)]} sessions. Ask a parent about moving up to ${LEVELS[levelIdx(p)+1]}.`;
   }
+  const fresh = newUnlocks(p);
   if (deviceToken()) callOrQueue('sfc_log_session', {p_token:deviceToken(), p_player:p.id, p_session:session, p_state:playerState(p)});
-  const reveals = [], fresh = newUnlocks(p), rankAfter = getRank(p.xp||0);
+  const reveals = [], rankAfter = getRank(p.xp||0);
   if (rankAfter.name !== rankBefore) reveals.push({type:'rank', rank:rankAfter});
   fresh.forEach(u => reveals.push({type:'unlock', unlock:u}));
-  reveals.push({type:'done', xp:xpEarned, capped:xpEarned<rawXP, full:session.full_session, pb:(juggle>oldPB&&juggle>0)?juggle:0, jmin:jBonus>0, milestones, pbs:pbNames, levelHint});
+  reveals.push({type:'done', xp:xpEarned, capped:capXP<rawXP, mult, quests:quest.done, qbonus:quest.bonus, full:session.full_session, pb:(juggle>oldPB&&juggle>0)?juggle:0, jmin:jBonus>0, milestones, pbs:pbNames, levelHint});
   clearSess(); closeSess();
   document.getElementById('juggleToday').value = ''; document.getElementById('juggleStreak').value = ''; saveWip();
   renderHome(); renderProfile(); renderSkillsList(); renderCrew();
@@ -3108,6 +3174,131 @@ async function savePlan() {
   try { await sb(`sfc_players?id=eq.${p.id}`, {method:'PATCH', prefer:'return=minimal', body:JSON.stringify(planDraft)}); showToast('Plan saved','success'); }
   catch(e) { showToast('Could not save: ' + e.message, 'error'); }
   closeModal('planModal'); renderParentPortal();
+}
+
+// ─── GROWTH: daily quests, streak multiplier, weekly XP, parent week view ───
+function fmtK(n) { n = n||0; return n < 1000 ? String(n) : (n/1000).toFixed(n < 10000 ? 1 : 0).replace(/\.0$/,'') + 'K'; }
+function jget(k, d) { try { const v = JSON.parse(localStorage.getItem(k)||'null'); return v==null ? d : v; } catch(e) { return d; } }
+// Mon..Sun local dates for this week (offset -1 = last week)
+function weekDates(offset=0) {
+  const d = new Date(); const dow = (d.getDay()+6)%7; d.setDate(d.getDate() - dow + offset*7);
+  return [...Array(7)].map((_,i) => { const x = new Date(d); x.setDate(d.getDate()+i); return localDate(x); });
+}
+function dayIdxThisWeek() { return (new Date().getDay()+6)%7; } // Mon=0
+function mergeDays(key, obj) { if (!obj) return; const cur = jget(key, {}); Object.entries(obj).forEach(([d,v]) => { if (!(cur[d] >= v)) cur[d] = v; }); localStorage.setItem(key, JSON.stringify(cur)); }
+function addDay(key, date, n) { const cur = jget(key, {}); cur[date] = (cur[date]||0) + n; localStorage.setItem(key, JSON.stringify(cur)); }
+function xpDays(id) { return jget(`sfc_xpdays_${id}`, {}); }
+function weekSum(obj, dates) { return dates.reduce((a,d) => a + (obj[d]||0), 0); }
+function weekXP(id) { return weekSum(xpDays(id), weekDates(0)); }
+
+// Streak multiplier: protecting the streak pays more
+function streakMult(s) { return s >= 30 ? 1.5 : s >= 14 ? 1.2 : s >= 7 ? 1.1 : 1; }
+function projStreak(p) { const last = localStorage.getItem(`sfc_lastlog_${p.id}`); return last === localDate() ? liveStreak(p) : liveStreak(p) + 1; }
+function nextMultStep(s) { return [[7,1.1],[14,1.2],[30,1.5]].find(([d]) => s < d); }
+function roundXP(p, skill, count) {
+  return Math.round(300 * (count||0) * (TIER_W[SKILLS[skill]?.tier] || 1) / (expectedTouches(p) * 1.35) * streakMult(projStreak(p)));
+}
+
+// Daily quests: 3 per day, same all day, picked per kid
+const QUEST_ALL_BONUS = 50;
+const QUEST_POOL = {
+  touches: {ico:'⚽', xp:40, need:p => Math.max(250, Math.round(expectedTouches(p)*.75/50)*50), label:n => `Hit ${n.toLocaleString()} touches`, val:(p,q) => todayTouches()},
+  pb:      {ico:'⚡', xp:40, need:() => 1, label:() => 'Beat a personal best (Timed)', val:(p,q) => q.pb||0},
+  juggle:  {ico:'🎯', xp:30, need:p => juggleMin(p), label:n => `Juggle ${n} total`, val:(p,q) => q.juggle||0},
+  wall:    {ico:'🧱', xp:30, need:p => Math.round(ageCfg(p).expected*.2/25)*25, label:n => `${n} wall passes`, val:(p,q) => q.wall||0},
+  moves:   {ico:'🌀', xp:30, need:p => Math.round(ageCfg(p).expected*.08/10)*10, label:n => `${n} skill-move reps`, val:(p,q) => q.mv||0},
+  timed:   {ico:'⏱', xp:30, need:() => 1, label:() => 'Finish a Timed session', val:(p,q) => q.timed||0},
+};
+function questKey(p) { return `sfc_q_${p.id}_${localDate()}`; }
+function questState(p) { return jget(questKey(p), {pb:0, juggle:0, wall:0, mv:0, timed:0, done:[], bonus:false}); }
+function todaysQuests(p) {
+  const pool = ['juggle','wall','moves','timed'].concat(Object.keys(getPBs(p.id)).length ? ['pb'] : []);
+  const rnd = seeded(p.id + localDate() + 'quests'), rest = shuffled(pool, rnd);
+  const q = questState(p);
+  return ['touches', rest[0], rest[1]].map(id => { const d = QUEST_POOL[id], need = d.need(p), val = Math.min(need, d.val(p,q));
+    return {id, ...d, need, val, text:d.label(need), done:q.done.includes(id)}; });
+}
+// Called from commitSession after history is updated. Returns {xp, done:[text], bonus}
+function updateQuests(p, items, mode, pbCount, juggleTotal) {
+  const q = questState(p);
+  q.pb += pbCount; q.juggle = Math.max(q.juggle, juggleTotal||0); if (mode === 'timed') q.timed += 1;
+  items.forEach(it => { const b = SKILLS[it.skill]?.block; if (b==='wall') q.wall += it.count||0; if (b==='mv') q.mv += it.count||0; });
+  localStorage.setItem(questKey(p), JSON.stringify(q));
+  let xp = 0; const done = [];
+  todaysQuests(p).forEach(t => { if (!t.done && t.val >= t.need) { q.done.push(t.id); xp += t.xp; done.push(`${t.ico} ${t.text} +${t.xp}`); } });
+  let bonus = false;
+  if (!q.bonus && q.done.length >= 3) { q.bonus = true; bonus = true; xp += QUEST_ALL_BONUS; }
+  localStorage.setItem(questKey(p), JSON.stringify(q));
+  return {xp, done, bonus};
+}
+function renderQuests() {
+  const p = currentPlayer, el = document.getElementById('questCard'); if (!p || !el) return;
+  const qs = todaysQuests(p), n = qs.filter(x=>x.done).length, st = questState(p);
+  el.innerHTML = `<div class="q-top"><div class="today-title">DAILY QUESTS</div><div class="q-count ${n===3?'all':''}">${n}/3</div></div>
+    ${qs.map(t => `<div class="q-row ${t.done?'done':''}"><div class="q-ico">${t.done?'✓':t.ico}</div>
+      <div class="q-main"><div class="q-txt">${t.text}</div><div class="q-bar"><div style="width:${Math.min(100, t.val/t.need*100)}%"></div></div></div>
+      <div class="q-xp">${t.done?'DONE':'+'+t.xp}</div></div>`).join('')}
+    <div class="q-foot ${st.bonus?'all':''}">${st.bonus ? `🏆 ALL 3 DONE · +${QUEST_ALL_BONUS} BONUS EARNED` : `Finish all 3 for a +${QUEST_ALL_BONUS} XP bonus · new quests tomorrow`}</div>`;
+}
+
+// Rank ladder + multiplier line on Home
+function renderRankNext() {
+  const p = currentPlayer, el = document.getElementById('rankNext'); if (!p || !el) return;
+  const rank = getRank(p.xp||0), i = RANKS.indexOf(rank), next = RANKS[i+1], s = liveStreak(p), m = streakMult(s), step = nextMultStep(s);
+  const pips = RANKS.map((r,k) => `<div class="rk-pip ${k<i?'past':k===i?'cur':''}" style="${k<=i?`background:${r.color}`:''}" title="${r.name}"></div>`).join('');
+  el.innerHTML = `<div class="rk-pips">${pips}</div>
+    <div class="rk-line">${next ? `NEXT: <b style="color:${next.color}">${next.name}</b> · ${(next.min-(p.xp||0)).toLocaleString()} XP to go` : '<b>TOP RANK</b> 👑'}</div>
+    <div class="rk-mult ${m>1?'on':''}">${m>1 ? `🔥 STREAK BOOST x${m} XP` : ''}${step ? `${m>1?' · ':'🔥 '}Day ${step[0]} streak = x${step[1]} XP` : ''}</div>`;
+}
+
+// Live XP pop during a session
+function xpPop(n) {
+  if (!n) return; const s = document.getElementById('sess'); if (!s) return;
+  const el = document.createElement('div'); el.className = 'xp-pop'; el.textContent = `+${n} XP`; s.appendChild(el);
+  setTimeout(() => el.remove(), 1400);
+}
+
+// ─── PARENT: week view ──────────────────────────────────
+function kidWeek(p) {
+  const h = jget(`sfc_history_${p.id}`, {}), pbd = jget(`sfc_pbdays_${p.id}`, {}), wk = weekDates(0), lw = weekDates(-1), di = dayIdxThisWeek();
+  const touches = weekSum(h, wk), lastSame = weekSum(h, lw.slice(0, di+1));
+  return {wk, h, di, touches, lastSame, days: wk.filter(d => (h[d]||0) > 0).length, pbs: weekSum(pbd, wk), xp: weekXP(p.id)};
+}
+function weekDots(w) {
+  const L = ['M','T','W','T','F','S','S'];
+  return `<div class="wk-dots">${w.wk.map((d,i) => `<div class="wk-dot ${(w.h[d]||0)>0?'on':''} ${i===w.di?'today':''} ${i>w.di?'future':''}"><span>${L[i]}</span></div>`).join('')}</div>`;
+}
+function trendTxt(w) {
+  if (!w.lastSame) return w.touches ? '<span class="tr up">NEW</span>' : '';
+  const pct = Math.round((w.touches - w.lastSame) / w.lastSame * 100);
+  return pct === 0 ? '<span class="tr">=</span>' : `<span class="tr ${pct>0?'up':'down'}">${pct>0?'↑':'↓'}${Math.abs(pct)}%</span>`;
+}
+function weekRecapCard() {
+  const el = document.createElement('div'); el.className = 'recap-card';
+  const sun = new Date().getDay() === 0;
+  el.innerHTML = `<div class="q-top"><div class="today-title">${sun ? 'WEEK RECAP' : 'THIS WEEK'}</div><div class="recap-sub">${sun ? 'Resets tomorrow' : `${7 - dayIdxThisWeek() - 1} day${7-dayIdxThisWeek()-1===1?'':'s'} left`}</div></div>` +
+    players.map(p => { const w = kidWeek(p); return `<div class="recap-row"><div class="recap-dot" style="background:${p.color||'#4fc3f7'}"></div>
+      <div class="recap-name">${p.name}</div><div class="recap-stats"><b>${w.days}/7</b> days · <b>${fmtK(w.touches)}</b> touches${w.pbs?` · <b>${w.pbs}</b> PB${w.pbs>1?'s':''}`:''}</div></div>`; }).join('');
+  return el;
+}
+function openKidMenu(id) {
+  const p = players.find(x => x.id === id); if (!p) return;
+  let m = document.getElementById('kidMenu');
+  if (!m) { m = document.createElement('div'); m.className = 'modal-overlay'; m.id = 'kidMenu'; m.onclick = e => { if (e.target === m) m.classList.remove('open'); }; document.body.appendChild(m); }
+  const go = fn => `document.getElementById('kidMenu').classList.remove('open');${fn}`;
+  m.innerHTML = `<div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">${p.name}</div>
+    <div class="menu-list">
+      <button onclick="${go(`openLogModal('${id}')`)}">📋 <span>Log a session<small>Trained without the app? Add touches here.</small></span></button>
+      <button onclick="${go(`goTrainAs('${id}')`)}">▶ <span>Train as ${p.name}<small>Use this phone for their session.</small></span></button>
+      <button onclick="${go(`openRewardModal('${id}')`)}">🎁 <span>Set a reward<small>Something to earn for training days.</small></span></button>
+      <button onclick="${go(`openPlanModal('${id}')`)}">⚙️ <span>Plan &amp; level<small>${(LEVELS[levelIdx(p)]||'').replace(/^./,c=>c.toUpperCase())} · sizes their daily session.</small></span></button>
+    </div><button onclick="document.getElementById('kidMenu').classList.remove('open')" class="menu-cancel">Cancel</button></div>`;
+  m.classList.add('open');
+}
+let betaTaps = 0, betaTimer = null;
+function betaTap() {
+  betaTaps++; clearTimeout(betaTimer); betaTimer = setTimeout(() => betaTaps = 0, 1500);
+  if (betaTaps >= 5) { betaTaps = 0; const on = localStorage.getItem('sfc_beta') !== '1'; localStorage.setItem('sfc_beta', on ? '1' : '0'); showToast(on ? 'Test tools ON' : 'Test tools OFF'); renderParentPortal(); }
 }
 
 // ─── SERVICE WORKER ───────────────────────────────────
