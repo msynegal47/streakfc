@@ -192,6 +192,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .portal-body{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;
   padding-bottom:calc(32px + env(safe-area-inset-bottom,0px))}
 
+.portal-body{min-height:0}
+.portal-body > *{flex-shrink:0}
 .portal-section-label {
   font-size:11px;letter-spacing:3px;color:var(--sub);text-transform:uppercase;margin-bottom:10px;
 }
@@ -352,6 +354,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 /* ─────────────────────────────────────
    PIN SCREEN (from player select)
 ───────────────────────────────────── */
+#pair-screen,#passcode-screen{align-items:center;justify-content:center;padding:32px 24px}
+#onboard{background:var(--bg)}
+.ob-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:10px}
+.ob-check{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--sub);line-height:1.5}
+.ob-check input{width:22px;height:22px;flex-shrink:0;margin-top:2px;accent-color:var(--accent)}
+.ob-row{display:flex;gap:10px}
+.ob-row>*{flex:1}
+.ob-player{display:flex;align-items:center;gap:12px;background:var(--bg3);border-radius:12px;padding:10px 12px}
+.ob-select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:16px;padding:14px 12px}
 #pin-screen {
   align-items:center;justify-content:center;padding:32px 24px;
   display:none;
@@ -753,7 +764,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
   <div class="path-card player-path" onclick="showPlayerPinEntry()">
     <div class="path-card-icon">⚽</div>
     <div class="path-card-title">PLAYER LOGIN</div>
-    <div class="path-card-desc">Enter your 4-digit PIN to start your session. No email needed.</div>
+    <div class="path-card-desc" id="playerPathDesc">Pick your name and enter your PIN. First time on this device? Ask a parent for the family code.</div>
   </div>
 
   <div class="landing-divider">or</div>
@@ -761,7 +772,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
   <div class="path-card parent-path" onclick="showParentAuth()">
     <div class="path-card-icon">👋</div>
     <div class="path-card-title">PARENT / COACH</div>
-    <div class="path-card-desc">Sign in with an email code to manage your crew, set PINs, and track progress.</div>
+    <div class="path-card-desc">New here? Start here. Create your family, add players, set PINs, and track progress.</div>
   </div>
 </div>
 
@@ -771,7 +782,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
     <svg viewBox="0 0 16 16"><polyline points="10,3 4,8 10,13"/></svg>
     BACK
   </button>
-  <div class="pin-select-label">SELECT YOUR PLAYER</div>
+  <div class="pin-select-label" id="rosterLabel">WHO'S TRAINING?</div>
   <div class="player-pin-cards" id="playerPinCards">
     <!-- populated dynamically -->
   </div>
@@ -829,46 +840,64 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
   </div>
 </div>
 
-<!-- ─────────────── PLAYER SELECT (after parent auth) ─────────────── -->
-<div class="screen" id="player-select">
-  <div class="ps-header">
-    <div class="ps-logo">STREAKFC</div>
-    <div class="ps-sub">Who's training today?</div>
+<!-- ─────────────── PAIR A KID DEVICE ─────────────── -->
+<div class="screen" id="pair-screen">
+  <div style="position:absolute;top:env(safe-area-inset-top,20px);left:20px">
+    <button class="pin-back" style="position:relative;top:auto;left:auto" onclick="showScreen('landing')">
+      <svg viewBox="0 0 16 16" style="width:16px;height:16px;stroke:var(--sub);fill:none;stroke-width:2;stroke-linecap:round"><polyline points="10,3 4,8 10,13"/></svg>
+      BACK
+    </button>
   </div>
-  <div class="ps-body" id="playerSelectBody">
-    <!-- populated dynamically -->
-  </div>
-  <div class="ps-switch-link" id="parentPortalLink" onclick="showParentPortal()" style="display:none;padding:0 20px 20px;text-align:center">
-    Switch to Parent Dashboard →
+  <div class="auth-card">
+    <div class="auth-logo">STREAKFC</div>
+    <div class="auth-eyebrow">Player device setup</div>
+    <div class="auth-title">Enter your family code</div>
+    <div class="auth-desc">A parent gets this code from their dashboard: <b>Add Kid Device</b>. You only do this once on this device.</div>
+    <input class="auth-input" id="pairInput" type="text" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="ABC123"
+      style="text-align:center;font-size:26px;font-weight:900;letter-spacing:8px;text-transform:uppercase"
+      oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')" onkeydown="if(event.key==='Enter')pairDevice()">
+    <button class="auth-btn" id="pairBtn" onclick="pairDevice()">CONNECT</button>
+    <div class="auth-status" id="pairStatus"></div>
   </div>
 </div>
 
-<!-- ─────────────── PIN SCREEN (from player-select) ─────────────── -->
-<div id="pin-screen">
-  <button class="pin-back" onclick="exitPinBack()">
-    <svg viewBox="0 0 16 16" style="width:16px;height:16px;stroke:var(--sub);fill:none;stroke-width:2;stroke-linecap:round"><polyline points="10,3 4,8 10,13"/></svg>
-    BACK
-  </button>
-  <div id="pinName" style="font-size:22px;font-weight:900;letter-spacing:1px;margin-bottom:24px;text-align:center"></div>
-  <div class="pin-dots">
-    <div class="pin-dot" id="d0"></div>
-    <div class="pin-dot" id="d1"></div>
-    <div class="pin-dot" id="d2"></div>
-    <div class="pin-dot" id="d3"></div>
+<!-- ─────────────── PARENT ONBOARDING ─────────────── -->
+<div class="screen" id="onboard">
+  <div class="portal-header">
+    <div class="portal-header-left">
+      <div class="portal-greeting" id="onboardStep">SETUP</div>
+      <div class="portal-title" id="onboardTitle">WELCOME</div>
+    </div>
+    <button class="portal-logout-btn" id="onboardBack" onclick="loadParent()" style="display:none">DONE</button>
   </div>
-  <div class="pin-error" id="pinError"></div>
-  <div class="keypad">
-    <button class="key-btn" onclick="pinTap('1')">1</button>
-    <button class="key-btn" onclick="pinTap('2')">2</button>
-    <button class="key-btn" onclick="pinTap('3')">3</button>
-    <button class="key-btn" onclick="pinTap('4')">4</button>
-    <button class="key-btn" onclick="pinTap('5')">5</button>
-    <button class="key-btn" onclick="pinTap('6')">6</button>
-    <button class="key-btn" onclick="pinTap('7')">7</button>
-    <button class="key-btn" onclick="pinTap('8')">8</button>
-    <button class="key-btn" onclick="pinTap('9')">9</button>
-    <button class="key-btn" onclick="pinTap('0')">0</button>
-    <button class="key-btn del" onclick="pinDel()">⌫</button>
+  <div class="portal-body" id="onboardBody"></div>
+</div>
+
+<!-- ─────────────── PARENT PASSCODE GATE ─────────────── -->
+<div class="screen" id="passcode-screen">
+  <button class="pin-back" onclick="passcodeBack()">
+    <svg viewBox="0 0 16 16"><polyline points="10,3 4,8 10,13"/></svg>
+    PLAYERS
+  </button>
+  <div style="font-size:11px;letter-spacing:3px;color:var(--sub);margin-bottom:8px">PARENT MODE</div>
+  <div style="font-size:22px;font-weight:900;margin-bottom:24px">Enter parent passcode</div>
+  <div class="pin-dots" id="pcDots"><div class="pin-dot" id="pc0"></div><div class="pin-dot" id="pc1"></div><div class="pin-dot" id="pc2"></div><div class="pin-dot" id="pc3"></div><div class="pin-dot" id="pc4"></div><div class="pin-dot" id="pc5"></div></div>
+  <div class="pin-error" id="pcError"></div>
+  <div class="keypad"><button class="key-btn" onclick="pcTap('1')">1</button><button class="key-btn" onclick="pcTap('2')">2</button><button class="key-btn" onclick="pcTap('3')">3</button><button class="key-btn" onclick="pcTap('4')">4</button><button class="key-btn" onclick="pcTap('5')">5</button><button class="key-btn" onclick="pcTap('6')">6</button><button class="key-btn" onclick="pcTap('7')">7</button><button class="key-btn" onclick="pcTap('8')">8</button><button class="key-btn" onclick="pcTap('9')">9</button><button class="key-btn" style="visibility:hidden"></button><button class="key-btn" onclick="pcTap('0')">0</button><button class="key-btn del" onclick="pcDel()">⌫</button></div>
+  <button class="pin-back" style="position:relative;top:auto;left:auto;margin-top:20px;font-size:12px" onclick="forgotPasscode()">Forgot? Sign in with email</button>
+</div>
+<div id="pin-screen" style="display:none"></div>
+
+<!-- ─────────────── ADD KID DEVICE MODAL ─────────────── -->
+<div class="modal-overlay" id="deviceModal">
+  <div class="modal-sheet" style="text-align:center">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add a Kid Device</div>
+    <div class="modal-sub">On your kid's iPad or phone: open StreakFC → <b>Player Login</b> → enter this code.</div>
+    <div id="pairCodeBig" style="font-size:44px;font-weight:900;letter-spacing:10px;margin:10px 0;color:var(--accent)">------</div>
+    <div id="pairCodeTimer" style="font-size:12px;color:var(--sub);margin-bottom:8px"></div>
+    <button class="modal-save-btn" onclick="showPairCode()">NEW CODE</button>
+    <button onclick="closeModal('deviceModal')" style="width:100%;background:none;border:none;color:var(--sub);font-size:13px;padding:14px;cursor:pointer;margin-top:4px">Close</button>
   </div>
 </div>
 
@@ -891,7 +920,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title">PINs + Juggle Minimums</div>
-    <div class="modal-sub">4-digit PIN · daily juggle minimum (total, not in a row)</div>
+    <div class="modal-sub">Type a new 4-digit PIN to change it (leave blank to keep). Juggle minimum = daily total, not in a row.</div>
     <div class="pin-set-wrap" id="pinSetWrap"></div>
     <button class="modal-save-btn" onclick="savePins()">SAVE PINS</button>
     <button onclick="closePinModal()" style="width:100%;background:none;border:none;color:var(--sub);font-size:13px;padding:14px;cursor:pointer;margin-top:4px">Cancel</button>
@@ -1138,14 +1167,8 @@ const BADGES = [
   {id:'juggle50',      emoji:'🤹', name:'Juggle 50',      cond:p=>(p.juggle_pb||0)>=50},
 ];
 
-// Default seeded players (no Supabase required)
-function getSeededPlayers() {
-  return [
-    {id:'caysen', name:'Caysen', club:'AZ Arsenal', pin:'0211', xp:0, streak:0, total_touches:0, sessions:0, juggle_pb:0, color:'#4fc3f7'},
-    {id:'emmitt', name:'Emmitt', club:'AZ Arsenal', pin:'1202', xp:0, streak:0, total_touches:0, sessions:0, juggle_pb:0, color:'#f59e0b'},
-    {id:'madden', name:'Madden', club:'AZ Arsenal', pin:'0926', xp:0, streak:0, total_touches:0, sessions:0, juggle_pb:0, color:'#39ff14'},
-  ];
-}
+// Players come from the family's account in the database. Nothing is hardcoded.
+function getSeededPlayers() { return []; }
 
 // ─── STATE ───────────────────────────────────────────
 let currentUser = null;    // parent auth session
@@ -1176,9 +1199,75 @@ async function sb(path, opts={}) {
     headers,
     body: opts.body,
   });
-  if (!res.ok) throw new Error(res.status);
   const text = await res.text();
+  if (!res.ok) { let m = res.status; try { m = JSON.parse(text).message || m; } catch(e) {} throw new Error(m); }
   return text ? JSON.parse(text) : null;
+}
+
+// RPC call (database function). Uses parent login if present, otherwise public key + device token.
+async function rpc(fn, args={}) {
+  const res = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, {
+    method:'POST',
+    headers:{'apikey':SB_KEY,'Content-Type':'application/json','Authorization':`Bearer ${currentUser?.access_token || SB_KEY}`},
+    body: JSON.stringify(args),
+  });
+  const text = await res.text();
+  if (!res.ok) { let m = 'error_'+res.status; try { m = JSON.parse(text).message || m; } catch(e) {} throw new Error(m); }
+  return text ? JSON.parse(text) : null;
+}
+function deviceToken() { return localStorage.getItem('sfc_device'); }
+
+// Server player row -> local caches the rest of the app reads
+function hydratePlayer(data) {
+  const p = data.player || data, id = p.id, set = (k,v) => v==null ? localStorage.removeItem(k) : localStorage.setItem(k, typeof v==='string'?v:JSON.stringify(v));
+  set(`sfc_lastlog_${id}`, p.last_log || null);
+  const best = Math.max(p.best_streak||0, parseInt(localStorage.getItem(`sfc_beststreak_${id}`)||'0'));
+  set(`sfc_beststreak_${id}`, String(best));
+  if (p.unlocks) set(`sfc_unlocks_${id}`, p.unlocks);
+  if (p.badges) set(`sfc_badges_${id}`, p.badges);
+  if ('avatar' in p) set(`sfc_avatar_${id}`, p.avatar);
+  if ('reward' in p) set(`sfc_reward_${id}`, p.reward);
+  if (p.juggle_min) set(`sfc_jugglemin_${id}`, String(p.juggle_min));
+  if (p.juggle_pb) set(`sfc_juggle_${id}`, String(Math.max(p.juggle_pb, parseInt(localStorage.getItem(`sfc_juggle_${id}`)||'0'))));
+  if (p.created_at && !localStorage.getItem(`sfc_firstday_${id}`)) set(`sfc_firstday_${id}`, String(p.created_at).slice(0,10));
+  if (data.history) set(`sfc_history_${id}`, data.history);
+  const player = {id, name:p.nickname, color:p.color||'#4fc3f7', age_group:p.age_group||'', club:p.age_group||'',
+    xp:p.xp||0, streak:p.streak||0, best_streak:best, total_touches:p.total_touches||0, sessions:p.sessions||0,
+    juggle_pb:p.juggle_pb||0, juggle_min:p.juggle_min||150, created_at:p.created_at};
+  localStorage.setItem(`sfc_playerdata_${id}`, JSON.stringify(player));
+  return player;
+}
+function playerState(p) {
+  const j = k => { try { return JSON.parse(localStorage.getItem(k)||'null'); } catch(e) { return null; } };
+  return {xp:p.xp||0, streak:p.streak||0, best_streak:bestStreak(p), last_log:localStorage.getItem(`sfc_lastlog_${p.id}`),
+    total_touches:p.total_touches||0, sessions:p.sessions||0, juggle_pb:Math.max(p.juggle_pb||0, parseInt(localStorage.getItem(`sfc_juggle_${p.id}`)||'0')),
+    avatar:j(`sfc_avatar_${p.id}`), unlocks:j(`sfc_unlocks_${p.id}`)||[], badges:j(`sfc_badges_${p.id}`)||[]};
+}
+// Save progress to the server (queued if offline)
+async function pushState(p) {
+  if (!p) return;
+  const st = playerState(p);
+  if (deviceToken()) return callOrQueue('sfc_save_state', {p_token:deviceToken(), p_player:p.id, p_state:st});
+  if (currentUser) { try { await sb(`sfc_players?id=eq.${p.id}`, {method:'PATCH', body:JSON.stringify(st), prefer:'return=minimal'}); } catch(e) {} }
+}
+async function callOrQueue(fn, args) {
+  try { await rpc(fn, args); }
+  catch(e) {
+    if (String(e.message).includes('invalid_device')) return;
+    const q = JSON.parse(localStorage.getItem('sfc_queue2')||'[]'); q.push({fn, args}); localStorage.setItem('sfc_queue2', JSON.stringify(q));
+  }
+}
+async function flushQueue() {
+  const q = JSON.parse(localStorage.getItem('sfc_queue2')||'[]'); if (!q.length || !navigator.onLine) return;
+  const left = [];
+  for (const item of q) { try { await rpc(item.fn, item.args); } catch(e) { if (!String(e.message).includes('invalid_device')) left.push(item); } }
+  localStorage.setItem('sfc_queue2', JSON.stringify(left));
+}
+function cacheRoster(list) {
+  localStorage.setItem('sfc_roster', JSON.stringify(list));
+  list.forEach(r => { if (r.last_log) localStorage.setItem(`sfc_lastlog_${r.id}`, r.last_log); });
+  return list.map(r => ({id:r.id, name:r.nickname, color:r.color||'#4fc3f7', age_group:r.age_group||'', club:r.age_group||'',
+    xp:r.xp||0, streak:r.streak||0, best_streak:r.best_streak||0, created_at:r.created_at}));
 }
 
 async function getUserId() {
@@ -1216,14 +1305,33 @@ function mergeLocal(list) {
 }
 
 // ─── LANDING ACTIONS ──────────────────────────────────
-function showPlayerPinEntry() {
-  // Load players (seeded or from localStorage if parent had set them)
-  const storedPlayers = localStorage.getItem('sfc_players');
-  const allPlayers = storedPlayers ? JSON.parse(storedPlayers) : getSeededPlayers();
-  // Merge stored stats
-  players = mergeLocal(allPlayers);
+async function showPlayerPinEntry() {
+  if (!deviceToken()) { showScreen('pair-screen'); setTimeout(()=>document.getElementById('pairInput').focus(), 300); return; }
+  players = cacheRoster(JSON.parse(localStorage.getItem('sfc_roster')||'[]'));
   showScreen('player-pin');
   renderPlayerPinCards();
+  try { players = cacheRoster(await rpc('sfc_device_roster', {p_token: deviceToken()})); renderPlayerPinCards(); }
+  catch(e) {
+    if (String(e.message).includes('invalid_device')) { localStorage.removeItem('sfc_device'); localStorage.removeItem('sfc_roster'); showScreen('pair-screen'); }
+  }
+}
+
+async function pairDevice() {
+  const code = document.getElementById('pairInput').value.trim(), st = document.getElementById('pairStatus'), btn = document.getElementById('pairBtn');
+  if (code.length !== 6) { st.style.color='var(--red)'; st.textContent = 'Codes are 6 characters'; return; }
+  btn.disabled = true; btn.textContent = 'CONNECTING...';
+  try {
+    const r = await rpc('sfc_pair_device', {p_code: code, p_label: /iPad/.test(navigator.userAgent) ? 'iPad' : 'Phone'});
+    localStorage.setItem('sfc_device', r.token);
+    cacheRoster(r.players || []);
+    document.getElementById('pairInput').value = '';
+    st.textContent = '';
+    showPlayerPinEntry();
+  } catch(e) {
+    st.style.color = 'var(--red)';
+    st.textContent = String(e.message).includes('invalid_or_expired') ? 'Code not found or expired. Ask a parent for a new one.' : 'Could not connect. Check internet and try again.';
+  }
+  btn.disabled = false; btn.textContent = 'CONNECT';
 }
 
 function showParentAuth() {
@@ -1234,10 +1342,10 @@ function showParentAuth() {
 // ─── PLAYER PIN ENTRY (from landing) ─────────────────
 function renderPlayerPinCards() {
   const wrap = document.getElementById('playerPinCards');
-  wrap.innerHTML = '';
+  wrap.innerHTML = players.length ? '' : '<div style="color:var(--sub);text-align:center;font-size:13px">No players yet. A parent adds players from their dashboard.</div>';
   document.getElementById('playerPinKeypad').style.display = 'none';
   wrap.style.display = 'flex';
-  const colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
+  const colors = {};
   players.forEach(p => {
     const color = p.color || colors[p.id] || '#4fc3f7';
     const card = document.createElement('div');
@@ -1247,7 +1355,7 @@ function renderPlayerPinCards() {
       <div class="player-pin-avatar" style="background:${color}">${p.name[0]}</div>
       <div class="player-pin-info">
         <div class="player-pin-name">${p.name.toUpperCase()}</div>
-        <div class="player-pin-club">${p.club||'AZ Arsenal'} · 🔥${liveStreak(p)}</div>
+        <div class="player-pin-club">${p.age_group||''}${p.age_group?' · ':''}🔥${liveStreak(p)}</div>
       </div>
       <div class="player-pin-arrow">›</div>
     `;
@@ -1296,16 +1404,26 @@ function updatePPDots() {
   }
 }
 
-function checkPP() {
-  if (ppBuffer === String(ppPendingPlayer.pin)) {
-    currentPlayer = ppPendingPlayer;
-    localStorage.setItem('sfc_player', JSON.stringify(currentPlayer));
-    launchApp();
-  } else {
-    document.getElementById('ppError').textContent = 'Wrong PIN - try again';
-    ppBuffer = '';
-    updatePPDots();
+async function checkPP() {
+  const err = document.getElementById('ppError');
+  err.style.color = 'var(--sub)'; err.textContent = 'Checking...';
+  try {
+    const r = await rpc('sfc_player_login', {p_token: deviceToken(), p_player: ppPendingPlayer.id, p_pin: ppBuffer});
+    if (r.ok) {
+      err.textContent = '';
+      currentPlayer = hydratePlayer(r.data);
+      localStorage.setItem('sfc_player', JSON.stringify(currentPlayer));
+      launchApp();
+      return;
+    }
+    err.style.color = 'var(--red)';
+    err.textContent = r.error === 'locked' ? 'Too many tries. Wait 10 minutes or ask a parent.' : `Wrong PIN. ${r.remaining} tr${r.remaining===1?'y':'ies'} left.`;
+  } catch(e) {
+    err.style.color = 'var(--red)';
+    err.textContent = navigator.onLine ? 'Something went wrong. Try again.' : 'Need internet to log in.';
   }
+  ppBuffer = '';
+  updatePPDots();
 }
 
 // ─── AUTH (parent magic link) ──────────────────────────
@@ -1362,7 +1480,7 @@ async function verifyCode() {
     saveSession(data);
     document.getElementById('codeInput').value = '';
     status.textContent = '';
-    await loadParentPlayers();
+    await loadParent();
   } catch(e) {
     status.textContent = e.message;
     status.style.color = 'var(--red)';
@@ -1390,23 +1508,24 @@ async function refreshSession() {
   } catch(e) { return false; }
 }
 
-// ─── INIT (handles magic link callback) ───────────────
+// ─── INIT ─────────────────────────────────────────────
 async function init() {
-  // Check for magic link hash first
+  // One-time cleanup of the old hardcoded-player test data
+  if (!localStorage.getItem('sfc_v2')) {
+    // Old builds stored test data locally under placeholder ids. Wipe it all (keep parent sign-in only).
+    Object.keys(localStorage).filter(k => k.startsWith('sfc_') && k !== 'sfc_session').forEach(k => localStorage.removeItem(k));
+    localStorage.setItem('sfc_v2', '1');
+  }
+  flushQueue();
   const hash = window.location.hash;
   if (hash.includes('access_token')) {
     const params = new URLSearchParams(hash.slice(1));
-    saveSession({
-      access_token: params.get('access_token'),
-      refresh_token: params.get('refresh_token'),
-      expires_in: params.get('expires_in'),
-    });
+    saveSession({access_token: params.get('access_token'), refresh_token: params.get('refresh_token'), expires_in: params.get('expires_in')});
     window.history.replaceState({}, '', window.location.pathname);
-    await loadParentPlayers();
+    localStorage.setItem('sfc_mode', 'parent');
+    await loadParent();
     return;
   }
-
-  // Check stored session (refresh if expired; offline keeps you signed in)
   const stored = localStorage.getItem('sfc_session');
   if (stored) {
     try {
@@ -1415,55 +1534,211 @@ async function init() {
       let ok = !expired || await refreshSession();
       if (!ok && !navigator.onLine) ok = true;
       if (ok) {
-        await loadParentPlayers();
+        // A kid was training on this (parent) device: reopen in kid mode, not the dashboard
+        if (localStorage.getItem('sfc_mode') === 'kid') return resumeKid();
+        await loadParent();
         return;
       }
     } catch(e) {}
     localStorage.removeItem('sfc_session');
     currentUser = null;
   }
-
-  // Check for remembered player (kid device flow)
-  const storedPlayer = localStorage.getItem('sfc_player');
-  if (storedPlayer) {
-    try {
-      currentPlayer = JSON.parse(storedPlayer);
-      launchApp();
-      return;
-    } catch(e) {}
-  }
-
-  // Default: show landing
+  if (deviceToken()) return resumeKid();
   showScreen('landing');
 }
 
-// ─── PARENT FLOW ──────────────────────────────────────
-async function loadParentPlayers() {
-  const uid = await getUserId();
-  if (uid) {
-    try {
-      let fetched = await sb(`profiles?parent_id=eq.${encodeURIComponent(uid)}&order=name`, {method:'GET'});
-      if (fetched && fetched.length > 0) {
-        // Merge colors
-        const colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
-        players = fetched.map(p => ({...p, color: p.color || colors[p.name?.toLowerCase()] || '#4fc3f7'}));
-        localStorage.setItem('sfc_players', JSON.stringify(players));
-      } else {
-        players = getSeededPlayers();
-      }
-    } catch(e) {
-      players = getSeededPlayers();
+async function resumeKid() {
+  const sp = localStorage.getItem('sfc_player');
+  if (sp && deviceToken()) {
+    try { currentPlayer = JSON.parse(sp); } catch(e) { currentPlayer = null; }
+    if (currentPlayer) {
+      players = cacheRoster(JSON.parse(localStorage.getItem('sfc_roster')||'[]'));
+      launchApp();
+      refreshCurrentPlayer();
+      return;
     }
-  } else {
-    players = getSeededPlayers();
   }
-  const roster = JSON.parse(localStorage.getItem('sfc_players')||'null');
-  if (roster && players.every(p=>p.id in Object.fromEntries(roster.map(r=>[r.id,1])))) {
-    // keep parent-edited PINs
-    players = players.map(p => ({...p, pin:(roster.find(r=>r.id===p.id)||{}).pin || p.pin}));
+  if (deviceToken()) return showPlayerPinEntry();
+  showScreen('landing');
+}
+
+async function refreshCurrentPlayer() {
+  if (!currentPlayer || !deviceToken()) return;
+  try {
+    await flushQueue();
+    const d = await rpc('sfc_player_state', {p_token: deviceToken(), p_player: currentPlayer.id});
+    currentPlayer = hydratePlayer(d);
+    localStorage.setItem('sfc_player', JSON.stringify(currentPlayer));
+    try { players = cacheRoster(await rpc('sfc_device_roster', {p_token: deviceToken()})); } catch(e) {}
+    if (document.getElementById('app').style.display === 'flex') { renderHome(); renderProfile(); renderCrew(); }
+  } catch(e) {}
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshCurrentPlayer(); });
+window.addEventListener('online', flushQueue);
+
+// ─── PARENT FLOW ──────────────────────────────────────
+let family = null;
+async function loadParent() {
+  localStorage.setItem('sfc_mode', 'parent');
+  try {
+    const fams = await sb('sfc_families?select=*');
+    family = fams && fams[0];
+    if (!family) return showOnboard('family');
+    if (!(await rpc('sfc_has_passcode'))) return showOnboard('passcode');
+    const rows = await sb('sfc_players?select=*&archived=eq.false&order=created_at');
+    if (!rows.length) return showOnboard('players');
+    const since = new Date(); since.setDate(since.getDate()-120);
+    const sess = await sb(`sfc_sessions?select=player_id,date,touches&date=gte.${localDate(since)}`);
+    const hist = {};
+    sess.forEach(x => { hist[x.player_id] = hist[x.player_id] || {}; hist[x.player_id][x.date] = (hist[x.player_id][x.date]||0) + x.touches; });
+    players = rows.map(r => hydratePlayer({player:r, history:hist[r.id]||{}}));
+    localStorage.setItem('sfc_parent_cache', JSON.stringify(players));
+  } catch(e) {
+    // Offline: show last known dashboard
+    players = JSON.parse(localStorage.getItem('sfc_parent_cache')||'[]');
+    if (!players.length) { showScreen('auth-screen'); document.getElementById('authStatus').textContent = 'Could not load your family. Check internet and sign in again.'; return; }
   }
-  players = mergeLocal(players);
   showParentPortal();
+}
+
+// ─── ONBOARDING (new family) ──────────────────────────
+const AGE_GROUPS = ['U6','U7','U8','U9','U10','U11','U12','U13','U14','U15','U16','U17','U18/19','College / Adult'];
+function defaultJuggleMin(g) { const n = parseInt(String(g).replace('U','')); return isNaN(n) ? 150 : n <= 8 ? 50 : n <= 10 ? 100 : 150; }
+let obColor = '#4fc3f7';
+function showOnboard(step) {
+  showScreen('onboard');
+  const body = document.getElementById('onboardBody'), stepEl = document.getElementById('onboardStep'), title = document.getElementById('onboardTitle');
+  document.getElementById('onboardBack').style.display = (step==='players' && players.length) ? 'block' : 'none';
+  if (step === 'family') {
+    stepEl.textContent = 'STEP 1 OF 3'; title.textContent = 'WELCOME';
+    body.innerHTML = `<div class="ob-card">
+      <div style="font-size:15px;font-weight:800">Set up your family</div>
+      <div class="field-lbl">YOUR NAME</div>
+      <input class="auth-input" id="obName" placeholder="First name" autocomplete="given-name">
+      <label class="ob-check"><input type="checkbox" id="obConsent">
+        <span>I'm the parent or guardian. StreakFC stores my players' first names or nicknames, age groups, and training logs to track progress. It's never sold or shared, and I can delete it anytime.</span></label>
+      <button class="auth-btn" onclick="obSaveFamily()">CONTINUE</button>
+      <div class="auth-status" id="obStatus"></div></div>`;
+  } else if (step === 'passcode') {
+    stepEl.textContent = 'STEP 2 OF 3'; title.textContent = 'PARENT PASSCODE';
+    body.innerHTML = `<div class="ob-card">
+      <div style="font-size:15px;font-weight:800">Create a 6-digit parent passcode</div>
+      <div style="font-size:13px;color:var(--sub);line-height:1.5">Locks parent mode when a kid uses your phone. Don't use a kid's PIN.</div>
+      <input class="auth-input" id="obPc1" type="password" inputmode="numeric" maxlength="6" placeholder="6 digits" style="text-align:center;letter-spacing:8px;font-size:22px">
+      <input class="auth-input" id="obPc2" type="password" inputmode="numeric" maxlength="6" placeholder="Confirm" style="text-align:center;letter-spacing:8px;font-size:22px">
+      <button class="auth-btn" onclick="obSavePasscode()">SAVE PASSCODE</button>
+      <div class="auth-status" id="obStatus"></div></div>`;
+  } else {
+    stepEl.textContent = players.length ? 'ADD PLAYER' : 'STEP 3 OF 3'; title.textContent = 'YOUR PLAYERS';
+    obColor = KIT_COLORS.find(c => !players.some(p => p.color===c)) || '#4fc3f7';
+    body.innerHTML = `
+      <div id="obList" style="display:flex;flex-direction:column;gap:8px"></div>
+      <div class="ob-card">
+        <div style="font-size:15px;font-weight:800">Add a player</div>
+        <div class="field-lbl">FIRST NAME OR NICKNAME</div>
+        <input class="auth-input" id="obNick" maxlength="20" placeholder="First name or nickname" autocomplete="off">
+        <div class="field-lbl">AGE GROUP (SCHOOL-YEAR, AUG 1 CUTOFF)</div>
+        <select class="ob-select" id="obAge" onchange="document.getElementById('obJug').value=defaultJuggleMin(this.value)">
+          ${AGE_GROUPS.map(g=>`<option ${g==='U10'?'selected':''}>${g}</option>`).join('')}</select>
+        <div class="field-lbl">COLOR</div>
+        <div class="swatches" id="obSw">${KIT_COLORS.map(c=>`<div class="swatch ${c===obColor?'sel':''}" style="background:${c}" onclick="obColor='${c}';document.querySelectorAll('#obSw .swatch').forEach(x=>x.classList.toggle('sel',x.style.background===this.style.background))"></div>`).join('')}</div>
+        <div class="ob-row">
+          <div><div class="field-lbl">4-DIGIT PIN</div><input class="auth-input" id="obPin1" type="password" inputmode="numeric" maxlength="4" placeholder="••••" style="text-align:center;letter-spacing:6px;margin-top:6px"></div>
+          <div><div class="field-lbl">CONFIRM PIN</div><input class="auth-input" id="obPin2" type="password" inputmode="numeric" maxlength="4" placeholder="••••" style="text-align:center;letter-spacing:6px;margin-top:6px"></div>
+        </div>
+        <div class="field-lbl">DAILY JUGGLE MINIMUM (TOTAL)</div>
+        <input class="auth-input" id="obJug" type="text" inputmode="numeric" maxlength="3" value="${defaultJuggleMin('U10')}">
+        <button class="auth-btn" id="obAddBtn" onclick="obAddPlayer()">ADD PLAYER</button>
+        <div class="auth-status" id="obStatus"></div>
+      </div>
+      <button class="auth-btn" id="obDoneBtn" style="background:var(--green);display:${players.length?'block':'none'}" onclick="loadParent()">DONE → GO TO DASHBOARD</button>`;
+    obRenderList();
+  }
+}
+function obRenderList() {
+  const el = document.getElementById('obList'); if (!el) return;
+  el.innerHTML = players.map(p => `<div class="ob-player"><div class="pin-set-avatar" style="background:${p.color}">${p.name[0]}</div>
+    <div style="flex:1;font-weight:800">${p.name}</div><div style="font-size:12px;color:var(--sub)">${p.age_group||''} ✓</div></div>`).join('');
+  const done = document.getElementById('obDoneBtn'); if (done) done.style.display = players.length ? 'block' : 'none';
+}
+function obErr(m) { const st = document.getElementById('obStatus'); st.style.color = 'var(--red)'; st.textContent = m; }
+async function obSaveFamily() {
+  const name = document.getElementById('obName').value.trim();
+  if (!name) return obErr('Enter your name');
+  if (!document.getElementById('obConsent').checked) return obErr('Please confirm you are the parent or guardian');
+  try { await sb('sfc_families', {method:'POST', body:JSON.stringify({parent_name:name, consent_at:new Date().toISOString()})}); showOnboard('passcode'); }
+  catch(e) { obErr('Could not save: ' + e.message); }
+}
+async function obSavePasscode() {
+  const a = document.getElementById('obPc1').value, b = document.getElementById('obPc2').value;
+  if (!/^\d{6}$/.test(a)) return obErr('Passcode must be 6 digits');
+  if (a !== b) return obErr("Passcodes don't match");
+  try { await rpc('sfc_set_passcode', {p_code:a}); players = []; showOnboard('players'); }
+  catch(e) { obErr('Could not save: ' + e.message); }
+}
+async function obAddPlayer() {
+  const nick = document.getElementById('obNick').value.trim(), age = document.getElementById('obAge').value;
+  const p1 = document.getElementById('obPin1').value, p2 = document.getElementById('obPin2').value;
+  const jug = parseInt(document.getElementById('obJug').value) || defaultJuggleMin(age);
+  if (!nick) return obErr('Enter a first name or nickname');
+  if (!/^\d{4}$/.test(p1)) return obErr('PIN must be 4 digits');
+  if (p1 !== p2) return obErr("PINs don't match");
+  const btn = document.getElementById('obAddBtn'); btn.disabled = true;
+  try {
+    const fams = family ? [family] : await sb('sfc_families?select=id'); family = family || fams[0];
+    const rows = await sb('sfc_players', {method:'POST', body:JSON.stringify({family_id:family.id, nickname:nick, age_group:age, color:obColor, juggle_min:jug})});
+    await rpc('sfc_set_pin', {p_player: rows[0].id, p_pin: p1});
+    players.push(hydratePlayer({player:rows[0], history:{}}));
+    showOnboard('players');
+    const st = document.getElementById('obStatus'); st.style.color = 'var(--green)'; st.textContent = `✓ ${nick} added. Add another or tap Done.`;
+  } catch(e) { obErr('Could not add: ' + e.message); btn.disabled = false; }
+}
+
+// ─── PARENT PASSCODE GATE ─────────────────────────────
+let pcBuffer = '';
+function showPasscode() { pcBuffer = ''; updatePcDots(); document.getElementById('pcError').textContent = ''; showScreen('passcode-screen'); }
+function pcTap(d) { if (pcBuffer.length >= 6) return; pcBuffer += d; updatePcDots(); if (pcBuffer.length === 6) setTimeout(checkPc, 120); }
+function pcDel() { pcBuffer = pcBuffer.slice(0,-1); updatePcDots(); }
+function updatePcDots() { for (let i=0;i<6;i++) document.getElementById('pc'+i).classList.toggle('filled', i < pcBuffer.length); }
+async function checkPc() {
+  try {
+    if (await rpc('sfc_check_passcode', {p_code: pcBuffer})) {
+      localStorage.removeItem('sfc_player'); currentPlayer = null;
+      return loadParent();
+    }
+    document.getElementById('pcError').textContent = 'Wrong passcode';
+  } catch(e) { document.getElementById('pcError').textContent = navigator.onLine ? 'Something went wrong' : 'Need internet'; }
+  pcBuffer = ''; updatePcDots();
+}
+function passcodeBack() { localStorage.setItem('sfc_mode','kid'); showPlayerPinEntry(); }
+function forgotPasscode() { logout(); showParentAuth(); }
+
+// ─── ADD KID DEVICE ───────────────────────────────────
+let pairTimer = null;
+async function showPairCode() {
+  document.getElementById('deviceModal').classList.add('open');
+  const big = document.getElementById('pairCodeBig'), t = document.getElementById('pairCodeTimer');
+  big.textContent = '······'; t.textContent = '';
+  try {
+    const code = await rpc('sfc_create_pair_code');
+    big.textContent = code;
+    const end = Date.now() + 10*60*1000;
+    clearInterval(pairTimer);
+    pairTimer = setInterval(() => {
+      const left = Math.max(0, Math.round((end - Date.now())/1000));
+      t.textContent = left ? `Expires in ${Math.floor(left/60)}:${String(left%60).padStart(2,'0')} · one device per code` : 'Expired. Tap New Code.';
+      if (!left) { clearInterval(pairTimer); big.textContent = '------'; }
+    }, 1000);
+  } catch(e) { big.textContent = 'ERROR'; t.textContent = e.message; }
+}
+// Parent's own phone becomes a player device the first time they use Train As / Log for a kid
+async function ensureDevice() {
+  if (deviceToken()) return deviceToken();
+  const code = await rpc('sfc_create_pair_code');
+  const r = await rpc('sfc_pair_device', {p_code: code, p_label: 'Parent device'});
+  localStorage.setItem('sfc_device', r.token);
+  cacheRoster(r.players || []);
+  return r.token;
 }
 
 function showParentPortal() {
@@ -1479,9 +1754,10 @@ function renderParentPortal() {
   const label = document.createElement('div');
   label.className = 'portal-section-label';
   label.textContent = 'YOUR CREW';
+  document.getElementById('portalTitle').textContent = family?.parent_name ? `${family.parent_name.toUpperCase()}'S CREW` : 'YOUR CREW';
   body.appendChild(label);
 
-  const colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
+  const colors = {};
   players.forEach(p => {
     const color = p.color || colors[p.id] || '#4fc3f7';
     const rank = getRank(p.xp||0);
@@ -1518,118 +1794,32 @@ function renderParentPortal() {
   const actions = document.createElement('div');
   actions.style.cssText = 'display:flex;gap:10px;margin-top:4px';
   actions.innerHTML = `
-    <button class="kid-action-btn" style="flex:1;padding:14px" onclick="openPinModal()">🔐 MANAGE PINs</button>
-    <button class="kid-action-btn" style="flex:1;padding:14px" onclick="showPlayerSelectFromPortal()">👤 PLAYER SELECT</button>
+    <button class="kid-action-btn" style="flex:1;padding:14px" onclick="showOnboard('players')">➕ ADD PLAYER</button>
+    <button class="kid-action-btn" style="flex:1;padding:14px" onclick="showPairCode()">📱 ADD KID DEVICE</button>
   `;
+  const actions2 = document.createElement('div');
+  actions2.style.cssText = 'display:flex;gap:10px';
+  actions2.innerHTML = `<button class="kid-action-btn" style="flex:1;padding:14px" onclick="openPinModal()">🔐 PINs + JUGGLE MINIMUMS</button>`;
   body.appendChild(actions);
+  body.appendChild(actions2);
   body.appendChild(testPanel());
 }
 
 function logout() {
   localStorage.removeItem('sfc_session');
   localStorage.removeItem('sfc_player');
+  localStorage.removeItem('sfc_mode');
+  localStorage.removeItem('sfc_parent_cache');
   currentUser = null;
   currentPlayer = null;
+  family = null;
   showScreen('landing');
-}
-
-function showPlayerSelectFromPortal() {
-  showScreen('player-select');
-  renderPlayerSelect();
-}
-
-// ─── PLAYER SELECT (parent auth flow) ─────────────────
-function renderPlayerSelect() {
-  const body = document.getElementById('playerSelectBody');
-  body.innerHTML = '';
-  const colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
-  players.forEach(p => {
-    const color = p.color || colors[p.id] || '#4fc3f7';
-    const rank = getRank(p.xp||0);
-    const nextRank = RANKS[RANKS.indexOf(rank)+1];
-    const progress = nextRank ? (((p.xp||0) - rank.min)/(nextRank.min - rank.min)*100) : 100;
-    const card = document.createElement('div');
-    card.className = 'player-select-card';
-    card.style.cssText = `--player-color:${color}`;
-    card.innerHTML = `
-      <div class="player-select-card-accent"></div>
-      <div class="ps-avatar" style="background:${color}">${p.name[0]}</div>
-      <div class="ps-info">
-        <div class="ps-name">${p.name.toUpperCase()}</div>
-        <div class="ps-meta">${p.club||'AZ Arsenal'} · ${rank.name}</div>
-        <div class="ps-xp-bar-wrap"><div class="ps-xp-bar" style="width:${Math.min(100,Math.max(0,progress))}%;background:${color}"></div></div>
-      </div>
-      <div class="ps-streak-badge">🔥${liveStreak(p)}</div>
-    `;
-    card.onclick = () => selectPlayer(p);
-    body.appendChild(card);
-  });
-  document.getElementById('parentPortalLink').style.display = currentUser ? 'block' : 'none';
-}
-
-function selectPlayer(player) {
-  pendingPlayer = player;
-  const ps = document.getElementById('player-select');
-  ps.classList.remove('active');
-  const pin = document.getElementById('pin-screen');
-  pin.style.display = 'flex';
-  pin.style.flexDirection = 'column';
-  pin.style.alignItems = 'center';
-  pin.style.justifyContent = 'center';
-  pin.style.padding = '32px 24px';
-  document.getElementById('pinName').textContent = `HEY ${player.name.toUpperCase()}`;
-  document.getElementById('pinError').textContent = '';
-  pinBuffer = '';
-  updatePinDots();
-}
-
-function exitPinBack() {
-  document.getElementById('pin-screen').style.display = 'none';
-  if (currentUser) {
-    showScreen('player-select');
-    renderPlayerSelect();
-  } else {
-    showScreen('landing');
-  }
-}
-
-// ─── PIN (from player-select) ─────────────────────────
-function pinTap(d) {
-  if (pinBuffer.length >= 4) return;
-  pinBuffer += d;
-  updatePinDots();
-  if (pinBuffer.length === 4) setTimeout(checkPin, 100);
-}
-
-function pinDel() {
-  pinBuffer = pinBuffer.slice(0,-1);
-  updatePinDots();
-  document.getElementById('pinError').textContent = '';
-}
-
-function updatePinDots() {
-  for (let i=0;i<4;i++) {
-    document.getElementById(`d${i}`).classList.toggle('filled', i < pinBuffer.length);
-  }
-}
-
-function checkPin() {
-  if (pinBuffer === String(pendingPlayer.pin)) {
-    currentPlayer = pendingPlayer;
-    localStorage.setItem('sfc_player', JSON.stringify(currentPlayer));
-    document.getElementById('pin-screen').style.display = 'none';
-    launchApp();
-  } else {
-    document.getElementById('pinError').textContent = 'Wrong PIN - try again';
-    pinBuffer = '';
-    updatePinDots();
-  }
 }
 
 // ─── APP LAUNCH ───────────────────────────────────────
 let appWired = false;
 function launchApp() {
-  const colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
+  const colors = {};
   const color = currentPlayer.color || colors[currentPlayer.id] || '#4fc3f7';
   document.documentElement.style.setProperty('--player-color', color);
   hideAllScreens();
@@ -1641,6 +1831,7 @@ function launchApp() {
     window.addEventListener('offline', checkOnline);
   }
   updateClock();
+  localStorage.setItem('sfc_mode', 'kid');
   loadWip();
   switchTab('home');
   document.getElementById('screen-home').scrollTop = 0;
@@ -1657,10 +1848,8 @@ document.addEventListener('keydown', e => {
   const isBack  = e.key === 'Backspace';
   if (!isDigit && !isBack) return;
 
-  // pin-screen (player-select / parent flow)
-  const pinScrEl = document.getElementById('pin-screen');
-  if (pinScrEl && pinScrEl.style.display !== 'none' && pinScrEl.style.display !== '') {
-    if (isDigit) pinTap(e.key); else pinDel();
+  if (document.getElementById('passcode-screen').classList.contains('active')) {
+    if (isDigit) pcTap(e.key); else pcDel();
     e.preventDefault(); return;
   }
 
@@ -1674,13 +1863,10 @@ document.addEventListener('keydown', e => {
 });
 
 function exitToPlayerSelect() {
+  if (currentUser) return showPasscode();   // parent signed in on this device: passcode to get back to dashboard
   localStorage.removeItem('sfc_player');
   currentPlayer = null;
-  if (currentUser) {
-    showParentPortal();
-  } else {
-    showPlayerPinEntry();
-  }
+  showPlayerPinEntry();
 }
 
 function updateClock() {
@@ -1753,7 +1939,7 @@ function resetSession() {
 // ─── HOME RENDER ──────────────────────────────────────
 function renderHome() {
   const p = currentPlayer;
-  const colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
+  const colors = {};
   const color = p.color || colors[p.id] || '#4fc3f7';
 
   paintAvatar(document.getElementById('homeAvatar'), p, color);
@@ -1955,18 +2141,18 @@ async function logSession() {
   currentPlayer.total_touches = (currentPlayer.total_touches||0) + touches;
   currentPlayer.sessions = (currentPlayer.sessions||0) + 1;
 
-  // Background sync - UI never waits on the network
-  syncSession(session, {xp:p.xp, streak:p.streak, total_touches:p.total_touches,
-    sessions:p.sessions, juggle_pb:p.juggle_pb||0}, p.id);
 
   // Save locally
   localStorage.setItem('sfc_player', JSON.stringify(currentPlayer));
   localStorage.setItem(`sfc_playerdata_${currentPlayer.id}`, JSON.stringify(currentPlayer));
   checkBadges();
   const reveals = [];
+  const fresh = newUnlocks(currentPlayer);
   const rankAfter = getRank(currentPlayer.xp||0);
   if (rankAfter.name !== rankBefore) reveals.push({type:'rank', rank:rankAfter});
-  newUnlocks(currentPlayer).forEach(u => reveals.push({type:'unlock', unlock:u}));
+  fresh.forEach(u => reveals.push({type:'unlock', unlock:u}));
+  // Background sync to the family account (queued if offline). UI never waits on the network.
+  if (deviceToken()) callOrQueue('sfc_log_session', {p_token:deviceToken(), p_player:p.id, p_session:session, p_state:playerState(p)});
   reveals.push({type:'done', xp:xpEarned, capped:xpEarned<rawXP+jBonus, full:fullSession, pb:(juggle>oldPB&&juggle>0)?juggle:0, jmin:jBonus>0});
   showReveals(reveals);
   resetSession();
@@ -1978,12 +2164,7 @@ async function logSession() {
   document.getElementById('screen-home').scrollTo({top:0, behavior:'smooth'});
 }
 
-async function syncSession(session, stats, playerId) {
-  try { await sb('sessions', {method:'POST', body:JSON.stringify(session)}); }
-  catch(e) { queueOffline(session); }
-  try { await sb(`profiles?id=eq.${playerId}`, {method:'PATCH', body:JSON.stringify(stats), prefer:'return=minimal'}); }
-  catch(e) {}
-}
+
 
 function queueOffline(session) {
   const q = JSON.parse(localStorage.getItem('sfc_queue')||'[]');
@@ -2094,11 +2275,14 @@ async function submitLogForKid() {
   applyStreak(p, today);
   addHistory(p.id, today, touches);
   p.xp = (p.xp||0)+xp;
+  const best = parseInt(localStorage.getItem(`sfc_beststreak_${p.id}`)||'0');
+  if ((p.streak||0) > best) localStorage.setItem(`sfc_beststreak_${p.id}`, String(p.streak));
   p.total_touches = (p.total_touches||0)+touches;
   p.sessions = (p.sessions||0)+1;
   if (juggle > (p.juggle_pb||0)) p.juggle_pb = juggle;
 
-  syncSession(session, {xp:p.xp,streak:p.streak,total_touches:p.total_touches,sessions:p.sessions,juggle_pb:p.juggle_pb||0}, p.id);
+  try { await ensureDevice(); callOrQueue('sfc_log_session', {p_token:deviceToken(), p_player:p.id, p_session:session, p_state:playerState(p)}); }
+  catch(e) { showToast('Saved on this phone only (offline)','error'); }
 
   localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p));
   closeLogModal();
@@ -2110,7 +2294,7 @@ async function submitLogForKid() {
 function openPinModal() {
   const wrap = document.getElementById('pinSetWrap');
   wrap.innerHTML = '';
-  const colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
+  const colors = {};
   players.forEach(p => {
     const color = p.color || colors[p.id] || '#4fc3f7';
     const row = document.createElement('div');
@@ -2119,7 +2303,7 @@ function openPinModal() {
     row.innerHTML = `
       <div class="pin-set-avatar" style="background:${color}">${p.name[0]}</div>
       <div class="pin-set-name">${p.name}</div>
-      <input class="pin-set-input" id="newpin_${p.id}" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="****" value="${p.pin||''}">
+      <input class="pin-set-input" id="newpin_${p.id}" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="new">
       <input class="pin-set-input" id="jmin_${p.id}" type="text" inputmode="numeric" maxlength="3" style="width:70px;letter-spacing:1px;font-size:16px" title="Daily juggle minimum" value="${juggleMin(p)}">
     `;
     wrap.appendChild(row);
@@ -2132,37 +2316,41 @@ function closePinModal() {
 }
 
 async function savePins() {
-  players.forEach(p => {
-    const input = document.getElementById(`newpin_${p.id}`);
-    if (input) {
-      const val = input.value.replace(/\D/g,'').slice(0,4);
-      if (val.length === 4) p.pin = val;
+  let changed = 0, bad = false;
+  for (const p of players) {
+    const val = (document.getElementById(`newpin_${p.id}`)||{}).value || '';
+    if (val) {
+      if (!/^\d{4}$/.test(val)) { bad = true; continue; }
+      try { await rpc('sfc_set_pin', {p_player:p.id, p_pin:val}); changed++; } catch(e) { bad = true; }
     }
     const jm = parseInt((document.getElementById(`jmin_${p.id}`)||{}).value);
-    if (jm > 0) { p.juggle_min = jm; localStorage.setItem(`sfc_jugglemin_${p.id}`, String(jm)); }
-  });
-  localStorage.setItem('sfc_players', JSON.stringify(players));
-  // Try to push to Supabase
-  for (const p of players) {
-    try { await sb(`profiles?id=eq.${p.id}`,{method:'PATCH',body:JSON.stringify({pin:p.pin}),prefer:'return=minimal'}); } catch(e) {}
+    if (jm > 0 && jm !== juggleMin(p)) {
+      p.juggle_min = jm; localStorage.setItem(`sfc_jugglemin_${p.id}`, String(jm));
+      try { await sb(`sfc_players?id=eq.${p.id}`, {method:'PATCH', body:JSON.stringify({juggle_min:jm}), prefer:'return=minimal'}); } catch(e) {}
+    }
   }
   closePinModal();
-  showToast('PINs saved!','success');
+  showToast(bad ? 'Some PINs not saved (must be 4 digits)' : (changed ? `${changed} PIN${changed>1?'s':''} updated` : 'Saved'), bad ? 'error' : 'success');
 }
 
 // ─── TRAIN AS (parent logs in as kid) ─────────────────
-function goTrainAs(playerId) {
+async function goTrainAs(playerId) {
   const p = players.find(x=>x.id===playerId);
   if (!p) return;
-  currentPlayer = p;
-  localStorage.setItem('sfc_player', JSON.stringify(p));
+  try {
+    await ensureDevice();
+    const d = await rpc('sfc_player_state', {p_token:deviceToken(), p_player:p.id});
+    currentPlayer = hydratePlayer(d);
+    try { players = cacheRoster(await rpc('sfc_device_roster', {p_token:deviceToken()})); } catch(e) {}
+  } catch(e) { currentPlayer = p; }
+  localStorage.setItem('sfc_player', JSON.stringify(currentPlayer));
   launchApp();
 }
 
 // ─── PROFILE ──────────────────────────────────────────
 function renderProfile() {
   const p = currentPlayer;
-  const colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
+  const colors = {};
   const color = p.color || colors[p.id] || '#4fc3f7';
   paintAvatar(document.getElementById('profileAvatar'), p, color);
   document.getElementById('editAvBtn').style.display = hasUnlock(p.id,'avatar') ? 'inline-block' : 'none';
@@ -2274,7 +2462,7 @@ function renderCrew() {
   list.innerHTML = '<div class="skills-section-title" style="margin-bottom:10px">CREW LEADERBOARD · XP</div>';
   const note = '<div style="font-size:11px;color:var(--sub);margin:-4px 0 12px">🤖 Pace bots train the same amount every day. Stay consistent to pass them.</div>';
   list.innerHTML += note;
-  const colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
+  const colors = {};
   roster.forEach((p,i) => {
     const color = p.color || colors[p.id] || '#4fc3f7';
     const card = document.createElement('div');
@@ -2445,16 +2633,22 @@ function saveReward() {
   const name = document.getElementById('rewardName').value.trim();
   if (!name) { showToast('Name the reward','error'); return; }
   const old = getReward(rewardFor);
-  localStorage.setItem(`sfc_reward_${rewardFor}`, JSON.stringify({name, days:rewardDaysSel, start: old && old.name===name ? old.start : localDate()}));
+  const r = {name, days:rewardDaysSel, start: old && old.name===name ? old.start : localDate()};
+  localStorage.setItem(`sfc_reward_${rewardFor}`, JSON.stringify(r));
+  sb(`sfc_players?id=eq.${rewardFor}`, {method:'PATCH', body:JSON.stringify({reward:r}), prefer:'return=minimal'}).catch(()=>showToast('Saved on this phone only','error'));
   closeModal('rewardModal'); renderParentPortal(); showToast('Reward set 🎁','success');
 }
-function clearReward() { localStorage.removeItem(`sfc_reward_${rewardFor}`); closeModal('rewardModal'); renderParentPortal(); }
+function clearReward() {
+  localStorage.removeItem(`sfc_reward_${rewardFor}`);
+  sb(`sfc_players?id=eq.${rewardFor}`, {method:'PATCH', body:JSON.stringify({reward:null}), prefer:'return=minimal'}).catch(()=>{});
+  closeModal('rewardModal'); renderParentPortal();
+}
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 // Avatar editor
 let avDraft = null;
 function openAvatarEditor() {
-  const p = currentPlayer, colors = {caysen:'#4fc3f7', emmitt:'#f59e0b', madden:'#39ff14'};
+  const p = currentPlayer, colors = {};
   avDraft = {...getAvatar(p, p.color || colors[p.id] || '#4fc3f7')};
   paintAvatarEditor();
   document.getElementById('avModal').classList.add('open');
@@ -2485,6 +2679,7 @@ function paintAvatarEditor() {
 }
 function saveAvatar() {
   localStorage.setItem(`sfc_avatar_${currentPlayer.id}`, JSON.stringify(avDraft));
+  pushState(currentPlayer);
   closeModal('avModal'); renderHome(); renderProfile(); renderCrew(); showToast('Kit saved','success');
 }
 
@@ -2632,13 +2827,19 @@ function testAddDays(id, n) {
   localStorage.setItem(`sfc_beststreak_${id}`, String(Math.max(best, p.streak)));
   localStorage.setItem(`sfc_playerdata_${id}`, JSON.stringify(p));
   if (currentPlayer && currentPlayer.id===id) localStorage.setItem('sfc_player', JSON.stringify(p));
+  pushState(p);
   renderParentPortal();
   showToast(`${p.name}: ${p.streak}-day streak. Log a session to trigger unlocks.`,'success');
 }
-function testReset(id) {
+async function testReset(id) {
   Object.keys(localStorage).filter(k => k.includes(`_${id}`)).forEach(k => localStorage.removeItem(k));
   const p = players.find(x=>x.id===id);
-  if (p) Object.assign(p, {xp:0, streak:0, total_touches:0, sessions:0, juggle_pb:0});
+  if (p) Object.assign(p, {xp:0, streak:0, best_streak:0, total_touches:0, sessions:0, juggle_pb:0});
+  try {
+    await sb(`sfc_sessions?player_id=eq.${id}`, {method:'DELETE', prefer:'return=minimal'});
+    await sb(`sfc_players?id=eq.${id}`, {method:'PATCH', prefer:'return=minimal', body:JSON.stringify({xp:0,streak:0,best_streak:0,last_log:null,
+      total_touches:0,sessions:0,juggle_pb:0,unlocks:[],badges:[],avatar:null,reward:null})});
+  } catch(e) { showToast('Reset on this phone only','error'); }
   renderParentPortal();
   showToast('Reset done');
 }
