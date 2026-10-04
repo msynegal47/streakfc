@@ -662,6 +662,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .confetti{position:absolute;top:-10px;width:8px;height:14px;z-index:1;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
 
+/* iPad / desktop: centered phone-width column */
+@media (min-width:640px){
+  #app,.screen,#pin-screen{max-width:560px;margin-left:auto;margin-right:auto;width:100%}
+  #app,.screen{border-left:1px solid var(--border);border-right:1px solid var(--border)}
+  .modal-sheet{max-width:560px;margin:0 auto}
+  .modal-overlay{justify-content:center}
+}
+
 /* ── OFFLINE BAR ── */
 .offline-bar{
   position:fixed;top:0;left:0;right:0;z-index:999;
