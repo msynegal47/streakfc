@@ -830,6 +830,16 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .menu-list button span{font-size:14px;font-weight:800;display:flex;flex-direction:column}
 .menu-list button small{font-size:11px;color:var(--sub);font-weight:600;margin-top:2px}
 .menu-cancel{width:100%;background:none;border:none;color:var(--sub);font-size:13px;padding:14px;cursor:pointer;margin-top:4px}
+
+.goal-int{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 12px}
+.goal-int button{padding:12px 4px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--sub);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.goal-int button b{font-size:20px;font-weight:900;color:var(--text)}
+.goal-int button span{font-size:10px;font-weight:800;letter-spacing:1px}
+.goal-int button.on{border-color:var(--accent);background:rgba(249,115,22,.12)}
+.goal-int button.on span{color:var(--accent)}
+.pick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:6px 0}
+.pick{padding:12px 10px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-weight:800;font-size:13px;cursor:pointer;text-align:left}
+.pick.on{border-color:var(--green);background:rgba(34,197,94,.12);color:var(--green)}
 </style>
 </head>
 <body>
@@ -1343,6 +1353,7 @@ function deviceToken() { return localStorage.getItem('sfc_device'); }
 // Server player row -> local caches the rest of the app reads
 function hydratePlayer(data) {
   const p = data.player || data, id = p.id, set = (k,v) => v==null ? localStorage.removeItem(k) : localStorage.setItem(k, typeof v==='string'?v:JSON.stringify(v));
+  if (p.reset_at && p.reset_at !== localStorage.getItem(`sfc_resetseen_${id}`)) { clearLocalDay(id, localDate()); localStorage.setItem(`sfc_resetseen_${id}`, p.reset_at); resetApplied = true; }
   set(`sfc_lastlog_${id}`, p.last_log || null);
   const best = Math.max(p.best_streak||0, parseInt(localStorage.getItem(`sfc_beststreak_${id}`)||'0'));
   set(`sfc_beststreak_${id}`, String(best));
@@ -1700,6 +1711,7 @@ async function refreshCurrentPlayer() {
     currentPlayer = hydratePlayer(d);
     localStorage.setItem('sfc_player', JSON.stringify(currentPlayer));
     try { players = cacheRoster(await rpc('sfc_device_roster', {p_token: deviceToken()})); } catch(e) {}
+    if (resetApplied) { resetApplied = false; if (S && S.date === localDate()) { S = null; closeSess(); } loadWip(); }
     if (document.getElementById('app').style.display === 'flex') { renderHome(); renderProfile(); renderCrew(); }
   } catch(e) {}
 }
@@ -2810,8 +2822,18 @@ function ageCfg(p) {
   return              {secs:60, rest:20, mix:{bm:6, wall:10, mv:8}, expected:1600, recSecs:60, mob:true};
 }
 function levelIdx(p) { const i = LEVELS.indexOf(p.skill_level||'developing'); return i < 0 ? 1 : i; }
-function expectedTouches(p) { return Math.round(ageCfg(p).expected * LEVEL_PACE[levelIdx(p)] / 50) * 50; }
-const INTENSITY_MULT = {limited:0.5, consistent:1, hustle:1.34};
+// Daily touch goal is set by intensity (same for every age)
+const GOALS = {limited:750, consistent:1000, hustle:1500};
+const INTENSITY_MULT = {limited:0.75, consistent:1, hustle:1.5};
+function goalFor(intensity) { return GOALS[intensity] || 1000; }
+function expectedTouches(p) { return GOALS.consistent; }
+// Per skill: touches per rep, split by foot, default chunk (reps per foot if split)
+const GOAL_SK = {
+  toe_taps:[1,0,200], sole_rolls:[1,1,50], in_out:[1,1,50], pull_push:[2,1,25], v_pulls:[2,0,50], lac_roll:[2,1,25],
+  wall_2t:[2,1,50], wall_1t:[1,1,50], wall_back:[2,1,25], wall_outin:[2,1,25], wall_turn:[3,0,20],
+  l_turns:[2,1,25], step_overs:[2,1,25], scissors:[2,1,20], drag_back:[2,1,20], cruyff:[2,1,20], out_cut:[2,1,20], maradona:[3,1,15], combo_so_cr:[4,0,15]};
+function tpr(skill) { return (GOAL_SK[skill]||[1])[0]; }
+function itemTouches(it) { return (it.count||0) * tpr(it.skill); }
 function poolFor(p, block) { const l = levelIdx(p); return Object.keys(SKILLS).filter(k => SKILLS[k].block===block && SKILLS[k].lvl <= l); }
 
 // Deterministic daily rotation (same plan if they reopen the app today)
@@ -2819,40 +2841,58 @@ function seeded(str) { let h = 1779033703 ^ str.length; for (let i=0;i<str.lengt
   return () => { h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); return ((h ^= h >>> 16) >>> 0) / 4294967296; }; }
 function shuffled(arr, rnd) { const a = arr.slice(); for (let i=a.length-1;i>0;i--) { const j = Math.floor(rnd()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; } return a; }
 
+// Estimated touches per round: uses their PB pace if they have one, else a steady pace
+function estRound(p, skill, secs) {
+  const pb = getPBs(p.id)[`${skill}_${secs}`];
+  const reps = pb ? pb * 0.9 : secs * (SKILLS[skill].max || 1) * 0.5;
+  return Math.max(5, Math.round(reps * tpr(skill)));
+}
+// Pick the day's skills: 3-4 ball mastery, 3-4 moves, 1-2 wall (prefers their level, fills from all)
+function pickSkills(p, salt='') {
+  const rnd = seeded(p.id + localDate() + 'pick' + salt), all = b => Object.keys(SKILLS).filter(k => SKILLS[k].block===b);
+  const take = (b, n) => { const lv = shuffled(poolFor(p,b), rnd), rest = shuffled(all(b).filter(k => !lv.includes(k)), rnd); return lv.concat(rest).slice(0, n); };
+  return {bm: take('bm', 3 + (rnd() < .5 ? 1 : 0)), mv: take('mv', 3 + (rnd() < .5 ? 1 : 0)), wall: take('wall', 1 + (rnd() < .5 ? 1 : 0))};
+}
+// Timed: a circuit that cycles the day's skills until the estimate reaches the goal
 function buildTimedPlan(p, intensity, salt='') {
-  const cfg = ageCfg(p), m = INTENSITY_MULT[intensity]||1, rnd = seeded(p.id + localDate() + intensity + salt), plan = [];
-  ['bm','wall','mv'].forEach(block => {
-    const n = Math.max(1, Math.round(cfg.mix[block] * m)), pool = shuffled(poolFor(p, block), rnd);
-    for (let i=0;i<n;i++) {
-      const skill = pool[i % pool.length];
-      plan.push({skill, secs:cfg.secs, foot: block==='wall' ? (i%2 ? 'LEFT FOOT' : 'RIGHT FOOT') : (block==='mv' ? 'ALTERNATE FEET' : '')});
-    }
-  });
+  const secs = ageCfg(p).secs, goal = goalFor(intensity), pick = pickSkills(p, salt), plan = [];
+  const cycle = []; const L = Math.max(pick.bm.length, pick.mv.length);
+  for (let i=0;i<L;i++) { if (pick.bm[i]) cycle.push(pick.bm[i]); if (i < pick.wall.length) cycle.push(pick.wall[i]); if (pick.mv[i]) cycle.push(pick.mv[i]); }
+  let est = 0, i = 0, wallSide = 0;
+  while (est < goal && plan.length < 40) {
+    const skill = cycle[i % cycle.length], b = SKILLS[skill].block;
+    const foot = b==='wall' ? (wallSide++ % 2 ? 'LEFT FOOT' : 'RIGHT FOOT') : b==='mv' ? 'ALTERNATE FEET' : (GOAL_SK[skill]?.[1] ? 'SWITCH FEET HALFWAY' : '');
+    plan.push({skill, secs, foot}); est += estRound(p, skill, secs); i++;
+  }
   return plan;
 }
+function planEstimate(p, plan) { return plan.reduce((a,r) => a + estRound(p, r.skill, r.secs), 0); }
 function extraRound(p) {
-  const blocks = ['bm','wall','mv'], b = blocks[Math.floor(Math.random()*3)], pool = poolFor(p, b);
+  const b = ['bm','wall','mv'][Math.floor(Math.random()*3)], pool = poolFor(p, b).length ? poolFor(p, b) : Object.keys(SKILLS).filter(k=>SKILLS[k].block===b);
   return {skill: pool[Math.floor(Math.random()*pool.length)], secs: ageCfg(p).secs, foot: b==='wall' ? 'WEAK FOOT' : (b==='mv'?'ALTERNATE FEET':'')};
 }
 function recoveryPlan(p) {
   const secs = ageCfg(p).recSecs;
   return ['mob_hips','mob_swing','mob_ham','mob_calf','mob_squat','rec_sole','rec_juggle'].map(skill => ({skill, secs, foot:''}));
 }
-// Touch-goal split: target touches across blocks using the age mix, rounded to friendly numbers
-function buildGoalItems(p, target, salt='') {
-  const cfg = ageCfg(p), tot = cfg.mix.bm + cfg.mix.wall + cfg.mix.mv, rnd = seeded(p.id + localDate() + 'goal' + target + salt), items = [];
-  ['bm','wall','mv'].forEach(block => {
-    const share = target * cfg.mix[block] / tot, pool = shuffled(poolFor(p, block), rnd);
-    const k = Math.max(1, Math.min(pool.length, block==='mv' ? 3 : 3));
-    const step = block==='mv' ? 10 : 25;
-    for (let i=0;i<k;i++) items.push({skill:pool[i], count: Math.max(step, Math.round(share/k/step)*step), done:false,
-      foot: block==='wall' ? 'split both feet' : (block==='mv' ? 'half each foot' : '')});
+// Touch goal: turn chosen skills into big, round chunks that add up to the goal
+function buildGoalItems(p, target, pick) {
+  const sk = [...(pick.bm||[]), ...(pick.wall||[]), ...(pick.mv||[])];
+  const base = sk.reduce((a,s) => { const [t,sp,c] = GOAL_SK[s]; return a + t*c*(sp?2:1); }, 0) || 1;
+  const f = target / base, items = [];
+  sk.forEach(s => {
+    const [t, sp, c] = GOAL_SK[s], step = SKILLS[s].block==='bm' ? (c >= 50 ? 25 : 5) : SKILLS[s].block==='wall' ? 10 : 5;
+    const n = Math.max(step, Math.round(c * f / step) * step);
+    if (sp) { items.push({skill:s, count:n, foot:'RIGHT FOOT', done:false}); items.push({skill:s, count:n, foot:'LEFT FOOT', done:false}); }
+    else items.push({skill:s, count:n, foot: SKILLS[s].block==='mv' ? 'ALTERNATE FEET' : '', done:false});
   });
-  // nudge last item so the list sums exactly to the target
-  const sum = items.reduce((a,b)=>a+b.count,0); items[0].count = Math.max(25, items[0].count + (target - sum));
+  // top up (or trim) the first ball-mastery item so the list lands on the goal
+  const diff = target - items.reduce((a,it)=>a+itemTouches(it),0);
+  const first = items.find(it => it.skill==='toe_taps') || items.find(it => SKILLS[it.skill].block==='bm' && tpr(it.skill)===1) || items.find(it => SKILLS[it.skill].block==='bm') || items[0];
+  if (first) { const st = first.skill==='toe_taps' ? 10 : 5; first.count = Math.max(st, Math.ceil((first.count + diff / tpr(first.skill)) / st) * st); }
   return items;
 }
-function weighted(items) { return items.reduce((a,it) => a + (it.count||0) * (TIER_W[SKILLS[it.skill]?.tier] || 1), 0); }
+function weighted(items) { return items.reduce((a,it) => a + itemTouches(it) * (TIER_W[SKILLS[it.skill]?.tier] || 1), 0); }
 function sessionXP(p, items, mode) {
   if (mode === 'recovery') return 60;
   return Math.max(0, Math.min(600, Math.round(300 * weighted(items) / (expectedTouches(p) * 1.35))));
@@ -2892,9 +2932,9 @@ function renderToday() {
     MILESTONES_T.map(m => `<div class="ms-tick" style="left:${m/max*100}%"></div><div class="ms-lbl ${tot>=m?'hit':''}" style="left:${Math.min(96,m/max*100)}%">${m>=1000?(m/1000)+'K':m}</div>`).join('');
   document.getElementById('todayDayType').textContent = di.label;
   document.getElementById('todayHint').textContent = di.hint;
-  const m = INTENSITY_MULT[currentDiff]||1, rounds = buildTimedPlan(p, currentDiff).length;
-  document.getElementById('timedSub').textContent = `${rounds} × ${cfg.secs}s · ~${Math.round(rounds*(cfg.secs+cfg.rest)/60)} min · PBs`;
-  document.getElementById('goalSub').textContent = `suggested ${Math.round(expectedTouches(p)*m/50)*50}`;
+  const rounds = buildTimedPlan(p, currentDiff).length, goal = goalFor(currentDiff);
+  document.getElementById('timedSub').textContent = `~${rounds} rounds · ~${Math.round(rounds*(cfg.secs+cfg.rest)/60)} min · ${goal.toLocaleString()}`;
+  document.getElementById('goalSub').textContent = `${goal.toLocaleString()} touches · pick or 🎲`;
   const S = loadSess();
   document.getElementById('resumeRow').innerHTML = S && !S.finished
     ? `<button class="resume-btn" onclick="resumeSession()">▶ RESUME ${S.mode==='goal'?'TOUCH GOAL':S.mode==='recovery'?'RECOVERY':'TIMED SESSION'} ${S.mode!=='goal'?`(${S.idx+1}/${S.plan.length})`:''}</button>` : '';
@@ -2910,7 +2950,7 @@ function openSess() { document.getElementById('sess').classList.add('open'); kee
 function closeSess() { document.getElementById('sess').classList.remove('open'); clearInterval(sessTimer); keepAwake(false); renderToday(); }
 function pauseSession() { saveSess(); closeSess(); }
 function resumeSession() { S = loadSess(); if (!S) return; openSess(); S.mode==='goal' ? renderGoalList() : (S.idx >= S.plan.length ? renderSummary() : renderReady()); }
-function sessTouches() { return S ? (S.mode==='goal' ? S.items.filter(i=>i.done).reduce((a,b)=>a+b.count,0) : S.results.reduce((a,b)=>a+(b.count||0),0)) : 0; }
+function sessTouches() { return S ? (S.mode==='goal' ? S.items.filter(i=>i.done).reduce((a,b)=>a+itemTouches(b),0) : S.results.reduce((a,b)=>a+itemTouches(b),0)) : 0; }
 function updateSessTop() {
   document.getElementById('sessTotal').textContent = (todayTouches() + sessTouches()).toLocaleString();
   const sx = document.getElementById('sessXP'); if (sx) sx.textContent = S && S.liveXP ? `+${S.liveXP} XP` : '';
@@ -2931,7 +2971,7 @@ function body(html) { document.getElementById('sessBody').innerHTML = html; upda
 // ─── TIMED + RECOVERY PLAYER ────────────────────────────
 function startTimed() {
   const ex = loadSess(); if (ex && !ex.finished) { S = ex; return resumeSession(); }
-  S = {date:localDate(), mode:'timed', intensity:currentDiff, plan:buildTimedPlan(currentPlayer, currentDiff), idx:0, results:[]};
+  S = {date:localDate(), mode:'timed', intensity:currentDiff, target:goalFor(currentDiff), plan:buildTimedPlan(currentPlayer, currentDiff), idx:0, results:[]};
   saveSess(); openSess(); renderReady();
 }
 function startRecovery() {
@@ -3050,46 +3090,45 @@ function addRounds(n) { for (let i=0;i<n;i++) S.plan.push(extraRound(currentPlay
 // ─── TOUCH GOAL ─────────────────────────────────────────
 function openGoal() {
   const ex = loadSess(); if (ex && !ex.finished) { S = ex; return resumeSession(); }
-  const p = currentPlayer, sugg = Math.round(expectedTouches(p) * (INTENSITY_MULT[currentDiff]||1) / 50) * 50;
-  const opts = [...new Set([500, 750, 1000, 1500, 2000, sugg])].sort((a,b)=>a-b);
-  S = {date:localDate(), mode:'goal', intensity:currentDiff, target: opts.includes(sugg) ? sugg : 1000, items:[]};
-  openSess();
-  body(`<div class="sk-block">TOUCH GOAL</div><div class="sk-name">Pick your target</div>
-    <div class="goal-grid">${opts.map(t=>`<button class="goal-btn ${t===S.target?'sel':''}" onclick="S.target=${t};document.querySelectorAll('.goal-btn').forEach(b=>b.classList.toggle('sel',b.dataset.t=='${t}'))" data-t="${t}">${t.toLocaleString()}${t===sugg?'<small>SUGGESTED</small>':''}</button>`).join('')}</div>
-    <div style="flex:1"></div>
-    <button class="big-btn" onclick="S.items=buildGoalItems(currentPlayer,S.target);saveSess();renderGoalList()">🎲 RANDOMIZE MY PLAN</button>
-    <button class="big-btn ghost" onclick="renderGoalChoose()">✋ CHOOSE MY SKILLS</button>`);
+  S = {date:localDate(), mode:'goal', intensity:currentDiff, target:goalFor(currentDiff), items:[], pick:{bm:[], mv:[], wall:[]}};
+  openSess(); renderGoalChoose();
 }
+function goalSetIntensity(d) { S.intensity = d; S.target = goalFor(d); setDifficulty(d); renderGoalChoose(); }
+function goalPick(b, id) {
+  const a = S.pick[b], i = a.indexOf(id), max = b==='wall' ? 2 : 4;
+  if (i >= 0) a.splice(i,1); else if (a.length < max) a.push(id); else { showToast(`Max ${max} here. Tap one to swap.`); return; }
+  renderGoalChoose();
+}
+function goalRandom() { S.pick = pickSkills(currentPlayer, String(Date.now())); goalBuild(); }
+function goalBuild() { S.items = buildGoalItems(currentPlayer, S.target, S.pick); saveSess(); renderGoalList(); }
 function renderGoalChoose() {
-  const p = currentPlayer;
-  if (!S.items.length) S.items = [];
-  const cnt = id => (S.items.find(i=>i.skill===id)||{}).count || 0, total = S.items.reduce((a,b)=>a+b.count,0);
-  body(`<div class="sk-name" style="font-size:24px">Build your ${S.target.toLocaleString()}</div>
-    <div class="sk-desc">Total: <b style="color:${total>=S.target?'var(--green)':'var(--text)'}">${total.toLocaleString()}</b> / ${S.target.toLocaleString()}</div>
-    ${['bm','wall','mv'].map(b=>`<div class="blk-h">${BLOCK_LBL[b]}</div>`+poolFor(p,b).map(id=>`<div class="gi" style="cursor:default">
-      <div class="gi-name">${SKILLS[id].name}<small>${UNIT_LBL[SKILLS[id].unit].toLowerCase()}</small></div>
-      <div class="step"><button onclick="goalStep('${id}',-${b==='mv'?10:25})">−</button><b style="min-width:44px;text-align:center">${cnt(id)}</b><button onclick="goalStep('${id}',${b==='mv'?10:25})">+</button></div></div>`).join('')).join('')}
-    <button class="big-btn" ${total?'':'disabled style="opacity:.4"'} onclick="S.items=S.items.filter(i=>i.count>0);saveSess();renderGoalList()">START ▶</button>`);
-}
-function goalStep(id, d) {
-  let it = S.items.find(i=>i.skill===id);
-  if (!it) { it = {skill:id, count:0, done:false, foot: SKILLS[id].block==='wall'?'split both feet':SKILLS[id].block==='mv'?'half each foot':''}; S.items.push(it); }
-  it.count = Math.max(0, it.count + d); renderGoalChoose();
+  const P = S.pick, ok = P.bm.length >= 3 && P.mv.length >= 3;
+  const sec = (b, title, need) => `<div class="blk-h">${title} <span style="color:${(b==='wall'||P[b].length>=3)?'var(--green)':'var(--sub)'}">${P[b].length}/${b==='wall'?2:4}</span></div>
+    <div class="pick-grid">${Object.keys(SKILLS).filter(k=>SKILLS[k].block===b).map(id=>`<button class="pick ${P[b].includes(id)?'on':''}" onclick="goalPick('${b}','${id}')">${SKILLS[id].name}</button>`).join('')}</div>
+    <div class="sk-desc" style="font-size:11px;margin:-2px 0 4px">${need}</div>`;
+  body(`<div class="sk-block">TOUCH GOAL</div>
+    <div class="goal-int">${['limited','consistent','hustle'].map(d=>`<button class="${S.intensity===d?'on':''}" onclick="goalSetIntensity('${d}')"><b>${goalFor(d).toLocaleString()}</b><span>${d==='limited'?'LIGHT':d==='consistent'?'STANDARD':'HUSTLE'}</span></button>`).join('')}</div>
+    <button class="big-btn" onclick="goalRandom()">🎲 RANDOMIZE MY ${S.target.toLocaleString()}</button>
+    <div class="sk-desc" style="text-align:center;margin:2px 0 -4px">or build your own</div>
+    ${sec('bm','BALL MASTERY','Pick 3 or 4')}
+    ${sec('mv','SKILL MOVES','Pick 3 or 4')}
+    ${sec('wall','WALL PASSES','Optional: pick up to 2')}
+    <button class="big-btn ${ok?'green':''}" ${ok?'':'disabled style="opacity:.4"'} onclick="goalBuild()">BUILD MY ${S.target.toLocaleString()} ▶</button>`);
 }
 function goalToggle(i) {
   const it = S.items[i]; it.done = !it.done; const gx = roundXP(currentPlayer, it.skill, it.count);
   S.liveXP = Math.max(0, (S.liveXP||0) + (it.done ? gx : -gx)); if (it.done) xpPop(gx); saveSess(); renderGoalList();
 }
 function renderGoalList() {
-  const done = S.items.filter(i=>i.done).reduce((a,b)=>a+b.count,0);
-  body(`<div class="sk-desc">Tap each one when you finish it.</div>
+  const done = S.items.filter(i=>i.done).reduce((a,b)=>a+itemTouches(b),0);
+  body(`<div class="sk-block">TOUCH GOAL · ${S.target.toLocaleString()}</div><div class="sk-desc">Tap each one when you finish it.</div>
     <div class="touch-bar"><div class="touch-bar-fill" style="width:${Math.min(100,done/S.target*100)}%"></div></div>
     <div class="sk-desc"><b style="color:var(--text)">${done.toLocaleString()}</b> / ${S.target.toLocaleString()}</div>
     ${S.items.map((it,i)=>`<div class="gi ${it.done?'done':''}" onclick="goalToggle(${i})">
       <div class="ck">${it.done?'✓':''}</div>
-      <div class="gi-name">${SKILLS[it.skill].name}<small>${UNIT_LBL[SKILLS[it.skill].unit].toLowerCase()}${it.foot?' · '+it.foot:''}</small></div>
+      <div class="gi-name">${SKILLS[it.skill].name}<small>${it.foot?it.foot.toLowerCase():''}${tpr(it.skill)>1?`${it.foot?' · ':''}${itemTouches(it)} touches`:''}</small></div>
       <div class="gi-cnt">${it.count}</div></div>`).join('')}
-    <button class="big-btn ghost" onclick="S.items.push(...buildGoalItems(currentPlayer,250,'+'+S.items.length).slice(0,2));saveSess();renderGoalList()">+ ADD MORE</button>
+    <button class="big-btn ghost" onclick="S.items.push(...buildGoalItems(currentPlayer,250,pickSkills(currentPlayer,'+'+S.items.length)).slice(0,2));saveSess();renderGoalList()">+ ADD 250 MORE</button>
     <div style="flex:1"></div>
     <button class="big-btn" ${done?'':'disabled style="opacity:.4"'} onclick="commitSession()">FINISH & LOG 🔥</button>`);
 }
@@ -3098,7 +3137,7 @@ function renderGoalList() {
 function commitSession() {
   const p = currentPlayer, today = localDate();
   const items = S.mode==='goal' ? S.items.filter(i=>i.done).map(i=>({skill:i.skill, count:i.count})) : S.results.filter(r=>!r.skipped);
-  const touches = items.reduce((a,b)=>a+(b.count||0),0);
+  const touches = S.mode==='recovery' ? 0 : items.reduce((a,b)=>a+itemTouches(b),0);
   if (S.mode !== 'recovery' && touches <= 0) { showToast('Log at least one round first','error'); return; }
   const before = todayTouches(), after = before + touches;
   const milestones = MILESTONES_T.filter(m => before < m && after >= m);
@@ -3124,7 +3163,7 @@ function commitSession() {
   localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p));
   checkBadges();
   const session = {date:today, touches, juggle_high:juggle, juggle_total:juggleTotal, mode:S.mode, difficulty:S.intensity,
-    full_session: S.mode==='recovery' || after >= expectedTouches(p) * (INTENSITY_MULT[S.intensity]||1) * .9, xp_earned:xpEarned,
+    full_session: S.mode==='recovery' || after >= goalFor(S.intensity) * .9, xp_earned:xpEarned,
     rounds: items.map(i=>({skill:i.skill, secs:i.secs||null, count:i.count, pb:!!i.pb})),
     bm_skills: items.filter(i=>SKILLS[i.skill]?.block==='bm').map(i=>i.skill), mv_skills: items.filter(i=>SKILLS[i.skill]?.block==='mv').map(i=>i.skill)};
   // Level calibration hint: crushing expected volume in timed mode
@@ -3196,7 +3235,7 @@ function streakMult(s) { return s >= 30 ? 1.5 : s >= 14 ? 1.2 : s >= 7 ? 1.1 : 1
 function projStreak(p) { const last = localStorage.getItem(`sfc_lastlog_${p.id}`); return last === localDate() ? liveStreak(p) : liveStreak(p) + 1; }
 function nextMultStep(s) { return [[7,1.1],[14,1.2],[30,1.5]].find(([d]) => s < d); }
 function roundXP(p, skill, count) {
-  return Math.round(300 * (count||0) * (TIER_W[SKILLS[skill]?.tier] || 1) / (expectedTouches(p) * 1.35) * streakMult(projStreak(p)));
+  return Math.round(300 * (count||0) * tpr(skill) * (TIER_W[SKILLS[skill]?.tier] || 1) / (expectedTouches(p) * 1.35) * streakMult(projStreak(p)));
 }
 
 // Daily quests: 3 per day, same all day, picked per kid
@@ -3292,8 +3331,32 @@ function openKidMenu(id) {
       <button onclick="${go(`goTrainAs('${id}')`)}">▶ <span>Train as ${p.name}<small>Use this phone for their session.</small></span></button>
       <button onclick="${go(`openRewardModal('${id}')`)}">🎁 <span>Set a reward<small>Something to earn for training days.</small></span></button>
       <button onclick="${go(`openPlanModal('${id}')`)}">⚙️ <span>Plan &amp; level<small>${(LEVELS[levelIdx(p)]||'').replace(/^./,c=>c.toUpperCase())} · sizes their daily session.</small></span></button>
+      <button onclick="confirmResetDay('${id}')" style="border-color:#ef444455">↺ <span style="color:var(--red)">Reset today<small>Something broke? Clears today's sessions, XP and touches.</small></span></button>
     </div><button onclick="document.getElementById('kidMenu').classList.remove('open')" class="menu-cancel">Cancel</button></div>`;
   m.classList.add('open');
+}
+let resetApplied = false;
+function clearLocalDay(id, date) {
+  [`sfc_dayxp_${id}_${date}`, `sfc_q_${id}_${date}`, `sfc_wip_${id}_${date}`, `sfc_jugglemin_hit_${id}_${date}`].forEach(k => localStorage.removeItem(k));
+  try { const s = JSON.parse(localStorage.getItem(`sfc_sess_${id}`)||'null'); if (s && s.date === date) localStorage.removeItem(`sfc_sess_${id}`); } catch(e) {}
+  [`sfc_xpdays_${id}`, `sfc_pbdays_${id}`, `sfc_history_${id}`].forEach(k => { const o = jget(k, null); if (o && date in o) { delete o[date]; localStorage.setItem(k, JSON.stringify(o)); } });
+}
+function confirmResetDay(id) {
+  const p = players.find(x => x.id === id), m = document.getElementById('kidMenu'); if (!p || !m) return;
+  m.querySelector('.modal-sheet').innerHTML = `<div class="modal-handle"></div><div class="modal-title">Reset ${p.name}'s day?</div>
+    <div class="modal-sub" style="line-height:1.5">Deletes everything logged today: sessions, touches and XP. Streak goes back to yesterday. Unlocks and PBs stay.<br><br>On ${p.name}'s iPad: exit and reopen the app after this.</div>
+    <button class="modal-save-btn" style="background:var(--red)" onclick="resetDay('${id}')">RESET TODAY</button>
+    <button class="menu-cancel" onclick="document.getElementById('kidMenu').classList.remove('open')">Cancel</button>`;
+}
+async function resetDay(id) {
+  const p = players.find(x => x.id === id), today = localDate();
+  try {
+    const r = await rpc('sfc_reset_day', {p_player:id, p_date:today});
+    clearLocalDay(id, today);
+    document.getElementById('kidMenu').classList.remove('open');
+    showToast(`${p.name}'s day reset (${(r&&r.touches)||0} touches, ${(r&&r.xp)||0} XP removed)`, 'success');
+    loadParent();
+  } catch(e) { showToast('Reset failed: ' + e.message, 'error'); }
 }
 let betaTaps = 0, betaTimer = null;
 function betaTap() {
