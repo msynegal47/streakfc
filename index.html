@@ -692,6 +692,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .ms-tick{position:absolute;top:-3px;width:2px;height:16px;background:var(--bg)}
 .ms-lbl{position:absolute;top:16px;font-size:9px;color:var(--sub);transform:translateX(-50%);font-weight:700}
 .ms-lbl.hit{color:var(--accent)}
+.start-btn{width:100%;margin-top:14px;padding:18px 12px;border:0;border-radius:16px;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 8px 24px rgba(249,115,22,.3)}
+.start-btn b{font-size:20px;font-weight:900;letter-spacing:1px}
+.start-btn span{font-size:12px;font-weight:700;opacity:.9}
+.rec-link{width:100%;margin-top:10px;background:none;border:0;color:var(--sub);font-size:12px;font-weight:700;cursor:pointer;padding:6px}
 .mode-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
 .mode-btn{display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;padding:16px 8px;border-radius:14px;border:1px solid var(--border);background:var(--bg3);color:var(--text);cursor:pointer;width:100%}
 .mode-btn b{font-size:15px;font-weight:900;letter-spacing:.5px}
@@ -840,6 +844,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .pick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:6px 0}
 .pick{padding:12px 10px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-weight:800;font-size:13px;cursor:pointer;text-align:left}
 .pick.on{border-color:var(--green);background:rgba(34,197,94,.12);color:var(--green)}
+.mix-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-weight:800;font-size:12px;padding:7px 10px;border-radius:10px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -1151,11 +1156,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
             <button id="diff-consistent" class="diff-btn active-consistent" onclick="setDifficulty('consistent')">✅ STANDARD</button>
             <button id="diff-hustle" class="diff-btn" onclick="setDifficulty('hustle')">💪 HUSTLE</button>
           </div>
-          <div class="mode-row">
-            <button class="mode-btn" onclick="startTimed()"><b>⏱ TIMED</b><span id="timedSub">rounds · PBs</span></button>
-            <button class="mode-btn" onclick="openGoal()"><b>🎯 TOUCH GOAL</b><span id="goalSub">pick a target</span></button>
-          </div>
-          <button class="mode-btn rec" onclick="startRecovery()"><b>🌙 RECOVERY DAY</b><span>~8 min mobility · keeps the streak</span></button>
+          <button class="start-btn" onclick="startSession()"><b id="startLbl">▶ START</b><span id="startSub"></span></button>
+          <button class="rec-link" onclick="startRecovery()">🌙 Recovery day instead · ~8 min, keeps the streak</button>
         </div>
         <!-- Juggle -->
         <div class="juggle-card" style="flex-direction:column;align-items:stretch;gap:10px;margin-bottom:12px">
@@ -2826,7 +2828,7 @@ function levelIdx(p) { const i = LEVELS.indexOf(p.skill_level||'developing'); re
 // Daily touch goal is set by intensity (same for every age)
 // Standard day by age (U11-12 = 1,000). Light = 75%, Hustle = 150%.
 const INTENSITY_MULT = {limited:0.75, consistent:1, hustle:1.5};
-function goalFor(intensity, p=currentPlayer) { return Math.round((p ? ageCfg(p).expected : 1000) * (INTENSITY_MULT[intensity]||1) / 50) * 50; }
+function goalFor(intensity, p=currentPlayer) { return Math.round((p ? ageCfg(p).expected * LEVEL_PACE[levelIdx(p)] : 1000) * (INTENSITY_MULT[intensity]||1) / 50) * 50; }
 function expectedTouches(p) { return goalFor('consistent', p); }
 // Per skill: touches per rep, split by foot, default chunk (reps per foot if split)
 const GOAL_SK = {
@@ -2881,7 +2883,7 @@ function recoveryPlan(p) {
 }
 // Touch goal: spread the goal across ball mastery (50%), moves (30%), passing (20%), capped per skill
 function buildGoalItems(p, target, pick, intensity='consistent') {
-  const capMult = intensity==='hustle' ? 1.5 : 1, share = {bm:.5, mv:.3, wall:.2};
+  const capMult = Math.max(1, target / 1000), share = {bm:.5, mv:.3, wall:.2};   // caps grow with bigger goals
   const sk = [...(pick.bm||[]), ...(pick.wall||[]), ...(pick.mv||[])];
   const capT = s => (GOAL_CAP[s]||50) * capMult * tpr(s) * (GOAL_SK[s][1] ? 2 : 1);   // max touches for this skill
   const alloc = {}; sk.forEach(s => alloc[s] = 0);
@@ -2948,11 +2950,13 @@ function renderToday() {
     MILESTONES_T.map(m => `<div class="ms-tick" style="left:${m/max*100}%"></div><div class="ms-lbl ${tot>=m?'hit':''}" style="left:${Math.min(96,m/max*100)}%">${m>=1000?(m/1000)+'K':m}</div>`).join('');
   document.getElementById('todayDayType').textContent = di.label;
   document.getElementById('todayHint').textContent = di.hint;
-  const rounds = buildTimedPlan(p, currentDiff).length, goal = goalFor(currentDiff);
-  document.getElementById('timedSub').textContent = `~${rounds} rounds · ~${Math.round(rounds*(cfg.secs+cfg.rest)/60)} min · ${goal.toLocaleString()}`;
-  document.getElementById('goalSub').textContent = `${goal.toLocaleString()} touches · pick or 🎲`;
+  const goal = goalFor(currentDiff), ex = loadSess(), going = ex && !ex.finished && ex.mode === 'goal';
+  const hit = !going && tot >= goal;
+  document.getElementById('startLbl').textContent = going ? '▶ KEEP GOING' : hit ? '✓ DONE TODAY · GO AGAIN?' : '▶ START';
+  document.getElementById('startSub').textContent = going ? `${ex.items.filter(i=>i.done).length} of ${ex.items.length} done · ${ex.target.toLocaleString()} touches`
+    : hit ? 'Bonus session: extra XP and touches' : `${goal.toLocaleString()} touches · ~${Math.max(5, Math.round(goal/70))} min · ball mastery, moves + passing`;
   const S = loadSess();
-  document.getElementById('resumeRow').innerHTML = S && !S.finished
+  document.getElementById('resumeRow').innerHTML = S && !S.finished && S.mode !== 'goal'
     ? `<button class="resume-btn" onclick="resumeSession()">▶ RESUME ${S.mode==='goal'?'TOUCH GOAL':S.mode==='recovery'?'RECOVERY':'TIMED SESSION'} ${S.mode!=='goal'?`(${S.idx+1}/${S.plan.length})`:''}</button>` : '';
 }
 
@@ -2970,7 +2974,7 @@ function sessTouches() { return S ? (S.mode==='goal' ? S.items.filter(i=>i.done)
 function updateSessTop() {
   document.getElementById('sessTotal').textContent = (todayTouches() + sessTouches()).toLocaleString();
   const sx = document.getElementById('sessXP'); if (sx) sx.textContent = S && S.liveXP ? `+${S.liveXP} XP` : '';
-  document.getElementById('sessProg').textContent = !S ? '' : S.mode==='goal' ? `TOUCH GOAL · ${S.target.toLocaleString()}` :
+  document.getElementById('sessProg').textContent = !S ? '' : S.mode==='goal' ? `TODAY'S SESSION · ${S.items.filter(i=>i.done).length}/${S.items.length}` :
     (S.idx < S.plan.length ? `${S.mode==='recovery'?'RECOVERY':'ROUND'} ${S.idx+1} / ${S.plan.length}` : 'SESSION COMPLETE');
 }
 async function keepAwake(on) {
@@ -3109,6 +3113,25 @@ function openGoal() {
   S = {date:localDate(), mode:'goal', intensity:currentDiff, target:goalFor(currentDiff), items:[], pick:{bm:[], mv:[], wall:[]}};
   openSess(); renderGoalChoose();
 }
+// One tap: build today's mix from their level and go
+function startSession() {
+  const ex = loadSess();
+  if (ex && !ex.finished) { if (ex.mode === 'goal' && ex.intensity !== currentDiff && !ex.items.some(i=>i.done)) { clearSess(); } else { S = ex; return resumeSession(); } }
+  const p = currentPlayer, target = goalFor(currentDiff), b = buildMix(p, target, currentDiff, '');
+  S = {date:localDate(), mode:'goal', intensity:currentDiff, target, pick:b.pick, items:b.items, mix:0};
+  saveSess(); openSess(); renderGoalList();
+}
+function newMix() {
+  S.mix = (S.mix||0) + 1; const b = buildMix(currentPlayer, S.target, S.intensity, 'mix' + S.mix + Date.now());
+  S.pick = b.pick; S.items = b.items; S.liveXP = 0; saveSess(); renderGoalList();
+}
+// Re-roll until the mix reaches the goal; if caps still fall short, add one more skill per section
+function buildMix(p, target, intensity, salt) {
+  let pick, items;
+  for (let k=0;k<8;k++) { pick = pickSkills(p, salt + ':' + k); items = buildGoalItems(p, target, pick, intensity); if (!items.short) return {pick, items}; }
+  ['bm','mv','wall'].forEach(b => { const extra = Object.keys(SKILLS).find(s => SKILLS[s].block===b && !pick[b].includes(s)); if (extra) pick[b].push(extra); });
+  return {pick, items: buildGoalItems(p, target, pick, intensity)};
+}
 function goalPick(b, id) {
   const a = S.pick[b], i = a.indexOf(id), max = b==='wall' ? 2 : 4;
   if (i >= 0) a.splice(i,1); else if (a.length < max) a.push(id); else { showToast(`Max ${max} here. Tap one to swap.`); return; }
@@ -3137,14 +3160,16 @@ function goalToggle(i) {
 }
 function renderGoalList() {
   const done = S.items.filter(i=>i.done).reduce((a,b)=>a+itemTouches(b),0);
-  body(`<div class="sk-block">TOUCH GOAL · ${S.target.toLocaleString()}</div><div class="sk-desc">Tap each one when you finish it.</div>
+  const lbl = S.intensity==='limited'?'LIGHT':S.intensity==='hustle'?'HUSTLE':'STANDARD', anyDone = S.items.some(i=>i.done);
+  body(`<div style="display:flex;justify-content:space-between;align-items:center"><div class="sk-block">${lbl} · ${S.target.toLocaleString()} TOUCHES</div>${anyDone?'':'<button class="mix-btn" onclick="newMix()">🔀 New mix</button>'}</div>
+    <div class="sk-desc">Do each one, then tap it. Any order.</div>
     <div class="touch-bar"><div class="touch-bar-fill" style="width:${Math.min(100,done/S.target*100)}%"></div></div>
     <div class="sk-desc"><b style="color:var(--text)">${done.toLocaleString()}</b> / ${S.target.toLocaleString()}</div>
     ${S.items.map((it,i)=>`<div class="gi ${it.done?'done':''}" onclick="goalToggle(${i})">
       <div class="ck">${it.done?'✓':''}</div>
       <div class="gi-name">${SKILLS[it.skill].name}<small>${it.foot?it.foot.toLowerCase():''}${tpr(it.skill)>1?`${it.foot?' · ':''}${itemTouches(it)} touches`:''}</small></div>
       <div class="gi-cnt">${it.count}</div></div>`).join('')}
-    <button class="big-btn ghost" onclick="S.items.push(...buildGoalItems(currentPlayer,250,pickSkills(currentPlayer,'+'+S.items.length)).slice(0,2));saveSess();renderGoalList()">+ ADD 250 MORE</button>
+    ${done >= S.target ? `<button class="big-btn ghost" onclick="S.items.push(...buildGoalItems(currentPlayer,250,pickSkills(currentPlayer,'+'+S.items.length)).slice(0,2));saveSess();renderGoalList()">+ BONUS ROUND (250 MORE)</button>` : ''}
     <div style="flex:1"></div>
     ${goalFinishHint()}
     <button class="big-btn" ${goalCanFinish()?'':'disabled style="opacity:.4"'} onclick="commitSession()">FINISH & LOG 🔥</button>`);
@@ -3182,7 +3207,7 @@ function commitSession() {
   const capXP = capDailyXP(p.id, today, rawXP, Math.round(DAILY_XP_CAP * mult));
   if (juggle > oldPB) { localStorage.setItem(`sfc_juggle_${p.id}`, String(juggle)); p.juggle_pb = juggle; }
   addHistory(p.id, today, touches);
-  const quest = updateQuests(p, items, S.mode, pbNames.length, juggleTotal);
+  const quest = updateQuests(p, items, S.mode, pbNames.length, juggleTotal, S.mode==='goal' && S.items.every(i=>i.done));
   const xpEarned = capXP + quest.xp;
   addDay(`sfc_xpdays_${p.id}`, today, xpEarned);
   if (pbNames.length) addDay(`sfc_pbdays_${p.id}`, today, pbNames.length);
@@ -3270,25 +3295,24 @@ function roundXP(p, skill, count) {
 const QUEST_ALL_BONUS = 50;
 const QUEST_POOL = {
   touches: {ico:'⚽', xp:40, need:p => Math.max(250, Math.round(expectedTouches(p)*.75/50)*50), label:n => `Hit ${n.toLocaleString()} touches`, val:(p,q) => todayTouches()},
-  pb:      {ico:'⚡', xp:40, need:() => 1, label:() => 'Beat a personal best (Timed)', val:(p,q) => q.pb||0},
+  allbox:  {ico:'✅', xp:40, need:() => 1, label:() => 'Check every box in your session', val:(p,q) => q.allbox||0},
   juggle:  {ico:'🎯', xp:30, need:p => juggleMin(p), label:n => `Juggle ${n} total`, val:(p,q) => q.juggle||0},
-  wall:    {ico:'🧱', xp:30, need:p => Math.round(ageCfg(p).expected*.2/25)*25, label:n => `${n} wall passes`, val:(p,q) => q.wall||0},
-  moves:   {ico:'🌀', xp:30, need:p => Math.round(ageCfg(p).expected*.08/10)*10, label:n => `${n} skill-move reps`, val:(p,q) => q.mv||0},
-  timed:   {ico:'⏱', xp:30, need:() => 1, label:() => 'Finish a Timed session', val:(p,q) => q.timed||0},
+  wall:    {ico:'🧱', xp:30, need:p => Math.max(30, Math.round(expectedTouches(p)*.1/10)*10), label:n => `${n} wall passes`, val:(p,q) => q.wall||0},
+  moves:   {ico:'🌀', xp:30, need:p => Math.max(30, Math.round(expectedTouches(p)*.1/10)*10), label:n => `${n} skill-move reps`, val:(p,q) => q.mv||0},
 };
 function questKey(p) { return `sfc_q_${p.id}_${localDate()}`; }
 function questState(p) { return jget(questKey(p), {pb:0, juggle:0, wall:0, mv:0, timed:0, done:[], bonus:false}); }
 function todaysQuests(p) {
-  const pool = ['juggle','wall','moves','timed'].concat(Object.keys(getPBs(p.id)).length ? ['pb'] : []);
+  const pool = ['juggle','wall','moves','allbox'];
   const rnd = seeded(p.id + localDate() + 'quests'), rest = shuffled(pool, rnd);
   const q = questState(p);
   return ['touches', rest[0], rest[1]].map(id => { const d = QUEST_POOL[id], need = d.need(p), val = Math.min(need, d.val(p,q));
     return {id, ...d, need, val, text:d.label(need), done:q.done.includes(id)}; });
 }
 // Called from commitSession after history is updated. Returns {xp, done:[text], bonus}
-function updateQuests(p, items, mode, pbCount, juggleTotal) {
+function updateQuests(p, items, mode, pbCount, juggleTotal, allDone) {
   const q = questState(p);
-  q.pb += pbCount; q.juggle = Math.max(q.juggle, juggleTotal||0); if (mode === 'timed') q.timed += 1;
+  q.pb += pbCount; if (allDone) q.allbox = 1; q.juggle = Math.max(q.juggle, juggleTotal||0); if (mode === 'timed') q.timed += 1;
   items.forEach(it => { const b = SKILLS[it.skill]?.block; if (b==='wall') q.wall += it.count||0; if (b==='mv') q.mv += it.count||0; });
   localStorage.setItem(questKey(p), JSON.stringify(q));
   let xp = 0; const done = [];
