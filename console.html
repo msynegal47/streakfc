@@ -73,6 +73,20 @@ tr:hover td{background:#0c121c}
 .mode-btn.on[data-m=live]{border-color:var(--green);color:var(--green)}.mode-btn.on[data-m=sandbox]{border-color:#1ab3bd;color:#1ab3bd;background:#1ab3bd1a}
 .sandbox-banner{background:#1ab3bd14;border:1px dashed #1ab3bd88;color:#9fe3e8;border-radius:12px;padding:10px 14px;font-size:12px;margin-bottom:16px}
 .hm-table td,.hm-table th{text-align:center;padding:8px 6px}.hm{font-weight:900;color:#e8fbfc;border:2px solid var(--bg2);border-radius:6px}.hm-empty{background:transparent}
+.add-btn{font-size:14px;padding:11px 18px;box-shadow:0 0 0 3px #f9731633}
+.kpis-sm .kpi{padding:10px 14px}.kpis-sm .kpi b{font-size:20px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:14px}.tab{background:none;border:none;color:var(--sub);font-weight:800;padding:10px 14px;border-bottom:2px solid transparent;margin-bottom:-1px}.tab.on{color:var(--text);border-bottom-color:#1ab3bd}.tab span{font-size:11px;color:var(--sub);margin-left:2px}
+.filters{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.seg{background:var(--bg3);border:1px solid var(--border);color:var(--sub);border-radius:8px;padding:6px 11px;font-weight:800;font-size:12px}.seg.on{border-color:#1ab3bd;color:#1ab3bd;background:#1ab3bd1a}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+table.tight td{padding:6px 8px;vertical-align:middle}tr.click{cursor:pointer}
+.week-row{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--border)}.week-lbl{width:120px;flex:none;display:flex;flex-direction:column;gap:3px;font-size:12px}.week-lbl b{font-size:10px;letter-spacing:1.5px;color:var(--sub)}
+.week-plans{flex:1;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}.plan-card{background:var(--bg3);border:1px solid var(--border);border-left:3px solid #4fc3f7;border-radius:10px;padding:9px 12px;min-width:220px;cursor:pointer}.plan-card:hover{border-color:#4fc3f7}
+.plan-who{font-size:10px;letter-spacing:1px;color:#4fc3f7;font-weight:800}.plan-main{font-weight:800;margin:3px 0}.plan-emph{display:flex;flex-wrap:wrap;gap:4px}.plan-emph span{font-size:10px;background:var(--bg2);border-radius:5px;padding:2px 6px;color:var(--sub);font-weight:700}
+.plan-add{background:none;border:1px dashed var(--border);color:var(--sub);border-radius:10px;padding:14px 16px;font-weight:800}
+.pf{margin-top:14px;display:flex;flex-direction:column;gap:6px}.pf label{font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:800}.day-line{display:flex;gap:8px;align-items:center}.day-line span{width:80px;font-size:12px;font-weight:800}.day-line input{flex:1}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.cal-h{font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:800;padding:4px}
+.cal-d{min-height:92px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px;display:flex;flex-direction:column;gap:3px;font-size:11px}.cal-d.dim{opacity:.35}.cal-d.today{border-color:var(--accent)}.cal-d.epa{border-left:3px solid #1ab3bd}.cal-d.off{background:#f59e0b0d}
+.cal-n{font-weight:900;font-size:12px}.cal-epa{color:#1ab3bd;font-weight:800;font-size:10px}.cal-plan{background:#4fc3f726;color:#4fc3f7;border-radius:5px;padding:2px 5px;font-weight:800;font-size:10px;cursor:pointer}.cal-note{color:var(--sub);font-size:10px;line-height:1.25}
 .grp-row{font-size:10px;letter-spacing:2px;font-weight:900;color:#1ab3bd;background:#1ab3bd0f;padding:7px 8px}
 textarea{font:inherit;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:9px 11px;outline:none;resize:vertical}
 .kid-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
@@ -122,7 +136,7 @@ const PROGRAMS = {epa:{name:'EPA', days:[2,3,4], mins:90, start:'2026-07-28', en
        ['2027-01-18','2027-01-18','MLK Day'],['2027-02-15','2027-02-15','Presidents Day'],['2027-03-15','2027-03-28','Spring Break']]}};
 const FOCUS = {technical:{name:'Technical',ico:'⚽',touches:1200},mixed:{name:'Mixed',ico:'🔀',touches:700},tactical:{name:'Small-sided / tactical',ico:'🧠',touches:500},speed:{name:'Speed + agility',ico:'⚡',touches:200}};
 const FEELS = ['😫','😐','🙂','🔥'];
-const MODE = {goal:'Home session', timed:'Timed test', recovery:'Recovery', parent:'Parent log', epa:'EPA session', checkin:'Check-in', weekly:'Week log'};
+const MODE = {film:'Game analysis', goalsheet:'Goal worksheet', goal:'Home session', timed:'Timed test', recovery:'Recovery', parent:'Parent log', epa:'EPA session', checkin:'Check-in', weekly:'Weekly journal'};
 
 let session = null, REAL = null, D = null, view = 'overview', sortKey = {};
 const $ = id => document.getElementById(id);
@@ -183,8 +197,8 @@ async function refresh(silent) {
   const raw = await rpc('sfc_admin_data', {p_days:60});
   const fams = Object.fromEntries(raw.families.map(f => [f.id, f]));
   const players = raw.players.map(p => ({...p, fam:fams[p.family_id]||{}, sess:raw.sessions.filter(s => s.player_id === p.id)}));
-  let notes = {}; try { notes = await rpc('sfc_admin_notes') || {}; } catch(e) {}
-  REAL = D = {...raw, fams, players, notes, byId:Object.fromEntries(players.map(p => [p.id, p]))};
+  let notes = {}, plans = []; try { notes = await rpc('sfc_admin_notes') || {}; } catch(e) {} try { plans = await rpc('sfc_admin_plans') || []; } catch(e) {}
+  REAL = D = {...raw, fams, players, notes, plans, byId:Object.fromEntries(players.map(p => [p.id, p]))};
   $('nKids').textContent = players.length; $('nFams').textContent = raw.families.length;
   if (!silent) { render(); toast('Refreshed'); }
 }
@@ -203,6 +217,15 @@ function detail(s) {
   const r = (s.rounds||[])[0] || {};
   if (r.epa) { const f = FOCUS[r.epa.focus]; return `${r.epa.coach?`<span class="chip c-sub">${esc(r.epa.coach)}</span>`:''}${f?f.ico+' '+f.name:esc(r.epa.focus)} · effort <b>${r.epa.effort}</b> · ${FEELS[r.epa.feel]||''}${r.epa.note?` · <span class="muted">"${esc(r.epa.note)}"</span>`:''}`; }
   if (r.ready) return `Ready <b>${r.ready.score}/5</b> <span class="muted">sleep ${r.ready.sleep} · energy ${r.ready.energy} · legs ${r.ready.legs} · mood ${r.ready.mood}</span>`;
+  if (r.weekly && r.weekly.rate) { const w = r.weekly, red = /Stressed|talk/.test(w.mental||'');
+    return `${w.followup === 'Yes' ? '<span class="chip c-amber">WANTS FOLLOW-UP</span>' : ''}${red ? `<span class="chip c-red">${esc(w.mental.toUpperCase())}</span>` : ''}${w.hurt && w.hurt.length ? `<span class="chip c-red">SORE: ${w.hurt.map(esc).join(', ').toUpperCase()}</span>` : ''}
+      Week <b>${w.rate}/10</b> · effort ${w.effort}/5 · focus ${w.focus}/5${w.improved ? ` · improved <b>${esc(w.improved)}</b>` : ''} · ${esc(w.days)} days own · sleep ${esc(w.sleep)} · energy ${w.energy}/5${red ? '' : ` · ${esc(w.mental||'')}`}
+      ${w.proud ? `<div class="muted">Proud: ${esc(w.proud)}</div>` : ''}${w.challenge ? `<div class="muted">Challenge: ${esc(w.challenge)}${w.overcome ? ' → ' + esc(w.overcome) : ''}</div>` : ''}${w.goal ? `<div class="muted">Next week: ${esc(w.goal)}${w.habit ? ' · habit: ' + esc(w.habit) : ''}</div>` : ''}${w.coachMsg ? `<div style="color:var(--amber)">To coach: "${esc(w.coachMsg)}"</div>` : ''}`; }
+  if (r.film) { const m = r.film; return `🎥 ${/^https?:\/\//.test(m.link||'') ? `<a href="${esc(m.link)}" target="_blank" rel="noopener" style="color:#1ab3bd">game ${esc(m.date||'')}</a>` : esc(m.date||'')} · ${esc(m.position||'')} · ${esc(m.formation||'')}
+      <div><span class="chip c-green">GOOD ${esc(m.gFrom)}-${esc(m.gTo)}'</span><span class="muted">${esc(m.gPhase)}:</span> ${esc(m.gWhy)}</div>
+      <div><span class="chip c-red">IMPROVE ${esc(m.bFrom)}-${esc(m.bTo)}'</span><span class="muted">${esc(m.bPhase)}:</span> ${esc(m.bWhy)}</div>
+      <div class="muted">Aggressive: ${esc(m.aggr)}${m.safe ? ' · Safe: ' + esc(m.safe) : ''}</div>`; }
+  if (r.sheet) return `🎯 Dream: <b>${esc(r.sheet.dream)}</b>`;
   if (r.weekly) return `<span class="muted">Best:</span> ${esc(r.weekly.best)} <span class="muted">· Hardest:</span> ${esc(r.weekly.hard)} <span class="muted">· Goal:</span> ${esc(r.weekly.goal)}${r.weekly.hurt && r.weekly.hurt.length ? ` <span class="chip c-red">SORE: ${r.weekly.hurt.map(esc).join(', ').toUpperCase()}</span>` : ''}`;
   const n = (s.rounds||[]).length; return n ? `<span class="muted">${n} drill${n>1?'s':''}</span>` : '';
 }
@@ -278,59 +301,154 @@ function vActivity() {
 // ── EPA ──
 function enrolled() { return D.players.filter(p => (p.programs||[]).some(e => e.id === 'epa')); }
 function epaOf(p) { return (p.programs||[]).find(e => e.id === 'epa') || {}; }
+let epaTab = 'roster', epaF = {g:'all', pos:'', flag:'', q:''}, calMonth = null;
+const EMPHASIS = ['Ball mastery','Moves','Passing','Juggling','Weak foot','Shooting','Scanning','Speed','Agility','Recovery'];
+function lastJournal(p) { const w = p.sess.find(s => s.mode === 'weekly'); return w ? {row:w, j:((w.rounds||[])[0]||{}).weekly||{}} : null; }
+function kidFlags(p) {
+  const lo14 = daysAgo(13), lj = lastJournal(p), j = lj && lj.row.date >= lo14 ? lj.j : {}, wk = weekDates(0), today = localDate();
+  const due = wk.filter(d => d <= today && PROGRAMS.epa.days.includes(wdOf(d)) && !epaOff(d));
+  return {follow: j.followup === 'Yes' || /Stressed|talk/.test(j.mental||''), sore: (j.hurt||[]).length > 0, nosheet: !(p.goals||{}).sheet, missed: due.some(d => !p.sess.some(s => s.mode === 'epa' && s.date === d))};
+}
+function epaFiltered() {
+  return enrolled().filter(p => (epaF.g === 'all' || (epaOf(p).group||'younger') === epaF.g) && (!epaF.pos || p.pos1 === epaF.pos || p.pos2 === epaF.pos)
+    && (!epaF.flag || kidFlags(p)[epaF.flag]) && (!epaF.q || (p.nickname||'').toLowerCase().includes(epaF.q.toLowerCase())));
+}
+function setEpaF(k, v) { epaF[k] = v; render(); }
 function vEPA() {
   const E = enrolled(), wk = weekDates(0), today = localDate(), lo7 = daysAgo(6);
-  const sched = wk.filter(d => PROGRAMS.epa.days.includes(wdOf(d)) && !epaOff(d)), due = sched.filter(d => d <= today);
-  const cur = E[0] ? epaOf(E[0]) : {};
-  const logs = D.sessions.filter(s => s.mode === 'epa' && E.some(p => p.id === s.player_id));
-  const wkLogs = logs.filter(s => wk.includes(s.date)), ready7 = D.sessions.filter(s => s.mode === 'checkin' && s.date >= lo7 && E.some(p => p.id === s.player_id)).map(s => (s.rounds||[])[0]?.ready?.score).filter(Boolean);
-  const avg = a => a.length ? (a.reduce((x,y)=>x+y,0)/a.length).toFixed(1) : '-';
-  const notIn = D.players.filter(p => !E.includes(p));
-  const nextOff = PROGRAMS.epa.off.find(([a,b]) => b >= today);
-  return `${D.mock ? `<div class="sandbox-banner">🧪 <b>SANDBOX EPA</b> · 24 fake players (12 younger, 12 older), 4 weeks of logs. Switch DATA to LIVE to see Caysen and Emmitt.</div>` : ''}<div class="hdr"><div><h2>EPA <span class="chip c-teal">BETA</span></h2><div class="s">Tue · Wed · Thu · ${PROGRAMS.epa.mins} min · ${E.length} enrolled${nextOff?` · next break: ${nextOff[2]} (${nextOff[0].slice(5).replace('-','/')})`:''}</div></div></div>
-  <div class="kpis">
-    <div class="kpi"><b>${E.length}</b><span>ENROLLED</span></div>
-    <div class="kpi"><b>${wkLogs.length}/${E.length * due.length || 0}</b><span>LOGGED THIS WEEK</span></div>
+  const due = wk.filter(d => d <= today && PROGRAMS.epa.days.includes(wdOf(d)) && !epaOff(d));
+  const logs = D.sessions.filter(s => s.mode === 'epa' && E.some(p => p.id === s.player_id)), wkLogs = logs.filter(s => wk.includes(s.date));
+  const ready7 = D.sessions.filter(s => s.mode === 'checkin' && s.date >= lo7 && E.some(p => p.id === s.player_id)).map(s => (s.rounds||[])[0]?.ready?.score).filter(Boolean);
+  const avg = a => a.length ? (a.reduce((x,y)=>x+y,0)/a.length).toFixed(1) : '-', nextOff = PROGRAMS.epa.off.find(([a,b]) => b >= today);
+  const flagsN = k => E.filter(p => kidFlags(p)[k]).length;
+  const tab = (k, l, n) => `<button class="tab ${epaTab===k?'on':''}" onclick="epaTab='${k}';render()">${l}${n!=null?` <span>${n}</span>`:''}</button>`;
+  const body = epaTab === 'plans' ? epaPlans() : epaTab === 'calendar' ? epaCalendar() : epaTab === 'journals' ? epaJournals() : epaRoster();
+  return `${D.mock ? `<div class="sandbox-banner">🧪 <b>SANDBOX EPA</b> · 24 fake players, 4 weeks of logs. Switch DATA to LIVE for Caysen and Emmitt.</div>` : ''}
+  <div class="hdr"><div><h2>EPA <span class="chip c-teal">BETA</span></h2><div class="s">Tue · Wed · Thu · ${PROGRAMS.epa.mins} min · ${E.length} players${nextOff?` · next break: ${nextOff[2]} (${nextOff[0].slice(5).replace('-','/')})`:''}</div></div>
+    <button class="btn add-btn" onclick="openAddPlayer()">＋ ADD PLAYER</button></div>
+  <div class="kpis kpis-sm">
+    <div class="kpi"><b>${wkLogs.length}/${E.length * due.length || 0}</b><span>EPA LOGS THIS WEEK</span></div>
     <div class="kpi"><b>${avg(ready7)}</b><span>AVG READINESS 7D</span></div>
-    <div class="kpi"><b>${avg(wkLogs.map(s => (s.rounds||[])[0]?.epa?.effort).filter(Boolean))}</b><span>AVG EFFORT THIS WEEK</span></div>
-    <div class="kpi"><b>${fmtK(wkLogs.reduce((a,s)=>a+(s.touches||0),0))}</b><span>EPA TOUCHES CREDITED</span></div>
+    <div class="kpi"><b>${avg(wkLogs.map(s => (s.rounds||[])[0]?.epa?.effort).filter(Boolean))}</b><span>AVG EFFORT</span></div>
+    <div class="kpi" style="cursor:pointer" onclick="epaTab='roster';setEpaF('flag','follow')"><b style="color:${flagsN('follow')?'var(--amber)':'inherit'}">${flagsN('follow')}</b><span>FOLLOW-UPS</span></div>
+    <div class="kpi" style="cursor:pointer" onclick="epaTab='roster';setEpaF('flag','sore')"><b style="color:${flagsN('sore')?'var(--red)':'inherit'}">${flagsN('sore')}</b><span>SORE</span></div>
   </div>
-  <div class="card"><div class="card-h">THIS WEEK'S FOCUS · SHOWS ON EVERY ENROLLED KID'S HOME SCREEN</div>
-    <div class="form-row">
-      <select id="fFocus"><option value="">Not set</option>${Object.entries(FOCUS).map(([k,f]) => `<option value="${k}" ${cur.focus===k?'selected':''}>${f.ico} ${f.name}</option>`).join('')}</select>
-      <input id="fNote" maxlength="100" style="flex:1;min-width:260px" placeholder="Coach note, e.g. Week 6: first touch out of pressure" value="${esc(cur.note||'')}">
-      <button class="btn" onclick="applyFocus()" ${E.length?'':'disabled'}>APPLY TO ALL ${E.length}</button>
-    </div>
-    <div class="legend" style="margin-top:8px">Ball-heavy focus (Technical, Mixed) = light home session on EPA days. Speed or tactical = home session stays ball-focused. Breaks = heavier home days.</div></div>
-  <div class="card"><div class="card-h">ROSTER</div>
-  <table><tr><th>KID</th><th>GROUP</th><th>THIS WEEK</th><th>READY (LAST / 7D)</th><th>LAST EPA</th><th>LAST WEEK LOG</th><th></th></tr>
-  ${['younger','older'].map(g => { const G = E.filter(p => (epaOf(p).group||'younger') === g); return G.length ? `<tr><td colspan="7" class="grp-row">${g.toUpperCase()} · ${G.length} PLAYERS</td></tr>` + G.map(p => { const L = p.sess, ck = L.filter(s => s.mode === 'checkin'), last = L.find(s => s.mode === 'epa'), wl = L.find(s => s.mode === 'weekly');
-    const r7 = ck.filter(s => s.date >= lo7).map(s => (s.rounds||[])[0]?.ready?.score).filter(Boolean);
-    const lastR = ck[0] && (ck[0].rounds||[])[0]?.ready?.score;
-    return `<tr><td>${kidCell(p)}<div class="muted small" style="margin-left:33px">${esc(p.age_group)}${p.pos1?` · <b style="color:var(--text)">${esc(p.pos1)}</b>`:''}${p.pos2?` / ${esc(p.pos2)}`:''}${D.notes && D.notes[p.id] ? ' · 📝' : ''}</div></td>
-      <td><select onchange="setGroup('${p.id}',this.value)">${['younger','older'].map(g => `<option ${(epaOf(p).group||'younger')===g?'selected':''}>${g}</option>`).join('')}</select></td>
-      <td><div class="ticks">${wk.map((d,i) => PROGRAMS.epa.days.includes(wdOf(d)) ? `<div class="tick ${L.some(s=>s.mode==='epa'&&s.date===d)?'on':''} ${epaOff(d)?'off':''} ${d===today?'today':''}" title="${d}">${['M','T','W','T','F','S','S'][i]}</div>` : '').join('')}</div></td>
-      <td>${lastR ? `<span class="chip ${lastR>=4?'c-green':lastR>=3?'c-amber':'c-red'}">${lastR}</span>` : '<span class="muted">-</span>'} <span class="muted small">${avg(r7)}</span></td>
-      <td class="small">${last ? `<span class="muted">${last.date.slice(5).replace('-','/')}</span> ${detail(last)}` : '<span class="muted">none yet</span>'}</td>
-      <td class="small">${wl ? detail(wl) : '<span class="muted">-</span>'}</td>
-      <td style="white-space:nowrap"><button class="btn ghost sm" onclick="openKid('${p.id}')">Profile</button> <button class="btn ghost sm" onclick="unenroll('${p.id}')">Remove</button></td></tr>`; }).join('') : ''; }).join('') || '<tr><td colspan="7" class="empty">Nobody enrolled yet. Add kids below.</td></tr>'}</table>
-  ${notIn.length ? '' : '<div class="legend" style="margin-top:12px">Every kid is enrolled.</div>'}<div class="form-row" style="margin-top:14px;${notIn.length?'':'display:none'}"><select id="addKid">${notIn.map(p => `<option value="${p.id}">${esc(p.nickname)} · ${esc(p.age_group)} · ${esc(p.fam.parent_name||'')}</option>`).join('')}</select>
-    <select id="addGroup"><option value="auto">Group by age (U13+ older)</option><option>younger</option><option>older</option></select>
-    <button class="btn" onclick="enroll()" ${notIn.length?'':'disabled'}>ENROLL IN EPA</button>
-    <span class="legend">Kids see the EPA card next time their app loads.</span></div></div>
-  <div class="card"><div class="card-h">CALENDAR (TENTATIVE · GILBERT PUBLIC SCHOOLS)</div>
-    <div class="small">${PROGRAMS.epa.off.map(([a,b,n]) => `<span class="chip ${b<today?'c-sub':'c-amber'}">${esc(n)} · ${a.slice(5).replace('-','/')}${a!==b?' to '+b.slice(5).replace('-','/'):''}</span>`).join(' ')}</div>
-    <div class="legend" style="margin-top:8px">Season ${PROGRAMS.epa.start} to ${PROGRAMS.epa.end}. Fall break left out because EPA ran this week. Lesson plans: coming once McGhee weighs in.</div></div>`;
+  <div class="tabs">${tab('roster','👥 Roster',E.length)}${tab('plans','🗓 Touch plans',(D.plans||[]).filter(x => x.week_start >= wk[0]).length)}${tab('calendar','📅 Calendar')}${tab('journals','📝 Journals + film')}</div>
+  ${body}`;
 }
-function autoGroup(a) { const n = parseInt(String(a||'').replace(/\D/g,'')); return n >= 13 ? 'older' : 'younger'; }
+function epaRoster() {
+  const E = epaFiltered(), wk = weekDates(0), today = localDate(), lo7 = daysAgo(6), avg = a => a.length ? (a.reduce((x,y)=>x+y,0)/a.length).toFixed(1) : '-';
+  const seg = (k, v, l) => `<button class="seg ${epaF[k]===v?'on':''}" onclick="setEpaF('${k}','${v}')">${l}</button>`;
+  const row = p => { const L = p.sess, ck = L.filter(s => s.mode === 'checkin'), last = L.find(s => s.mode === 'epa'), lj = lastJournal(p), fl = kidFlags(p);
+    const r7 = ck.filter(s => s.date >= lo7).map(s => (s.rounds||[])[0]?.ready?.score).filter(Boolean), lastR = ck[0] && (ck[0].rounds||[])[0]?.ready?.score, le = last && (last.rounds||[])[0]?.epa;
+    return `<tr class="click" onclick="openKid('${p.id}')"><td>${kidCell(p)}</td><td class="muted small">${esc(p.age_group)}</td><td><b>${esc(p.pos1||'-')}</b><span class="muted">${p.pos2?' / '+esc(p.pos2):''}</span></td>
+      <td><span class="chip ${(epaOf(p).group||'younger')==='older'?'c-blue':'c-teal'}">${(epaOf(p).group||'younger').toUpperCase()}</span></td>
+      <td><div class="ticks">${wk.map((d,i) => PROGRAMS.epa.days.includes(wdOf(d)) ? `<div class="tick ${L.some(s=>s.mode==='epa'&&s.date===d)?'on':''} ${epaOff(d)?'off':''} ${d===today?'today':''}">${['M','T','W','T','F','S','S'][i]}</div>` : '').join('')}</div></td>
+      <td>${lastR ? `<span class="chip ${lastR>=4?'c-green':lastR>=3?'c-amber':'c-red'}">${lastR}</span><span class="muted small">${avg(r7)}</span>` : '<span class="muted">-</span>'}</td>
+      <td class="small">${le ? `${(FOCUS[le.focus]||{}).ico||''} effort <b>${le.effort}</b> ${['😫','😐','🙂','🔥'][le.feel]||''}` : '<span class="muted">-</span>'}</td>
+      <td class="small">${lj ? `<b>${lj.j.rate ? lj.j.rate + '/10' : '✓'}</b>` : '<span class="muted">-</span>'} ${fl.follow ? '<span class="chip c-amber">FOLLOW-UP</span>' : ''}${fl.sore ? '<span class="chip c-red">SORE</span>' : ''}${fl.nosheet ? '<span class="chip c-sub">NO GOALS</span>' : ''}${(D.notes||{})[p.id] ? ' 📝' : ''}</td></tr>`; };
+  const groups = ['younger','older'].filter(g => epaF.g === 'all' || epaF.g === g);
+  return `<div class="filters">${seg('g','all','All')}${seg('g','younger','Younger')}${seg('g','older','Older')}
+    <select onchange="setEpaF('pos',this.value)"><option value="">All positions</option>${POSITIONS.map(x => `<option ${epaF.pos===x?'selected':''}>${x}</option>`).join('')}</select>
+    <select onchange="setEpaF('flag',this.value)"><option value="">No filter</option>${[['follow','Needs follow-up'],['sore','Sore'],['missed','Missed EPA this week'],['nosheet','No goal worksheet']].map(([v,l]) => `<option value="${v}" ${epaF.flag===v?'selected':''}>${l}</option>`).join('')}</select>
+    <input placeholder="Search" value="${esc(epaF.q)}" style="width:150px" onchange="setEpaF('q',this.value)">${epaF.flag||epaF.pos||epaF.q||epaF.g!=='all' ? `<a href="#" class="small" style="color:var(--accent)" onclick="epaF={g:'all',pos:'',flag:'',q:''};render();return false">Clear</a>` : ''}<span class="muted small" style="margin-left:auto">${E.length} shown · click a player for their profile</span></div>
+  <div class="card" style="padding:6px 14px"><table class="tight"><tr><th>PLAYER</th><th>AGE</th><th>POS</th><th>GROUP</th><th>THIS WEEK</th><th>READY</th><th>LAST EPA</th><th>JOURNAL + FLAGS</th></tr>
+  ${groups.map(g => { const G = E.filter(p => (epaOf(p).group||'younger') === g); return G.length ? `<tr><td colspan="8" class="grp-row">${g.toUpperCase()} · ${G.length}</td></tr>` + G.map(row).join('') : ''; }).join('') || '<tr><td colspan="8" class="empty">No players match. Clear filters or add a player.</td></tr>'}</table></div>`;
+}
+function epaJournals() {
+  const ids = new Set(enrolled().map(p => p.id)), rows = D.sessions.filter(s => ids.has(s.player_id) && ['weekly','film','goalsheet'].includes(s.mode)).slice(0, 80);
+  return `<div class="card">${rows.map(s => { const p = D.byId[s.player_id]; return `<div class="feed-row"><div class="t">${esc(s.date)}</div><div style="width:150px;flex:none">${kidCell(p)}</div><div style="width:120px;flex:none"><span class="chip ${s.mode==='film'?'c-teal':s.mode==='goalsheet'?'c-green':'c-blue'}">${esc((MODE[s.mode]||s.mode).toUpperCase())}</span></div><div style="flex:1" class="small">${detail(s)}</div></div>`; }).join('') || '<div class="empty">No journals or game analyses yet.</div>'}</div>`;
+}
+// ── touch plans ──
+function planWho(t) { t = t || {who:'all'}; return t.who === 'all' ? 'Everyone' : t.who === 'younger' ? 'Younger group' : t.who === 'older' ? 'Older group' : t.who === 'pos' ? 'Positions: ' + (t.pos||[]).join(', ') : `${(t.players||[]).length} player${(t.players||[]).length===1?'':'s'}`; }
+function planApplies(pl, p) { const t = pl.target || {who:'all'}, g = epaOf(p).group || 'younger';
+  return t.who === 'all' || t.who === g || (t.who === 'pos' && (t.pos||[]).some(x => x === p.pos1 || x === p.pos2)) || (t.who === 'players' && (t.players||[]).includes(p.id)); }
+function mondays(n) { const m = weekDates(0)[0]; return [...Array(n)].map((_,i) => { const d = new Date(m + 'T12:00:00'); d.setDate(d.getDate() + i * 7); return localDate(d); }); }
+function epaPlans() {
+  const cur = enrolled()[0] ? epaOf(enrolled()[0]) : {}, P = D.plans || [], weeks = mondays(6);
+  return `<div class="card"><div class="card-h">THIS WEEK'S FOCUS · SHOWS ON EVERY PLAYER'S EPA CARD</div>
+    <div class="form-row"><select id="fFocus"><option value="">Not set</option>${Object.entries(FOCUS).map(([k,f]) => `<option value="${k}" ${cur.focus===k?'selected':''}>${f.ico} ${f.name}</option>`).join('')}</select>
+      <input id="fNote" maxlength="100" style="flex:1;min-width:240px" placeholder="Coach note, e.g. Week 7: turning out of pressure" value="${esc(cur.note||'')}"><button class="btn" onclick="applyFocus()">APPLY TO ALL</button></div></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0 12px"><div class="muted small">Home touch plans. The player's daily session target and today's note come from the plan that matches them.</div><button class="btn" onclick="openPlan()">＋ NEW TOUCH PLAN</button></div>
+  ${weeks.map((w, i) => { const ps = P.filter(x => x.week_start === w), end = new Date(w + 'T12:00:00'); end.setDate(end.getDate() + 6);
+    const off = [...Array(7)].map((_,k) => { const d = new Date(w + 'T12:00:00'); d.setDate(d.getDate() + k); return epaOff(localDate(d)); }).find(Boolean);
+    return `<div class="week-row"><div class="week-lbl"><b>${i === 0 ? 'THIS WEEK' : i === 1 ? 'NEXT WEEK' : 'WEEK OF'}</b><span>${w.slice(5).replace('-','/')} - ${localDate(end).slice(5).replace('-','/')}</span>${off ? `<span class="chip c-amber">${esc(off[2])}</span>` : ''}</div>
+      <div class="week-plans">${ps.map(pl => { const n = enrolled().filter(p => planApplies(pl, p)).length; return `<div class="plan-card" onclick="openPlan('${pl.id}')"><div class="plan-who">${esc(planWho(pl.target))} · ${n} player${n===1?'':'s'}</div>
+        <div class="plan-main">${pl.focus ? esc(pl.focus) : 'Touch plan'}${pl.touches ? ` · <b>${fmt(pl.touches)}</b>/day` : ''}</div>
+        ${(pl.emphasis||[]).length ? `<div class="plan-emph">${pl.emphasis.map(x => `<span>${esc(x)}</span>`).join('')}</div>` : ''}</div>`; }).join('')}
+        <button class="plan-add" onclick="openPlan(null,'${w}')">＋ plan</button></div></div>`; }).join('')}`;
+}
+let planDraft = null;
+function openPlan(id, week) {
+  const ex = id ? (D.plans||[]).find(x => x.id === id) : null;
+  planDraft = ex ? JSON.parse(JSON.stringify(ex)) : {week_start: week || mondays(2)[1], target:{who:'all'}, focus:'', touches:'', emphasis:[], days:{}, note:''};
+  planDraft.target = planDraft.target || {who:'all'}; paintPlan(); $('drawer').classList.add('open');
+}
+function paintPlan() {
+  const d = planDraft, t = d.target, E = enrolled(), n = E.filter(p => planApplies(d, p)).length, DN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const who = (v, l) => `<button class="seg ${t.who===v?'on':''}" onclick="planDraft.target={who:'${v}',pos:[],players:[]};paintPlan()">${l}</button>`;
+  $('drawer').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:20px;font-weight:900">${d.id ? 'Edit' : 'New'} touch plan</div><button class="btn ghost sm" onclick="$('drawer').classList.remove('open')">Close</button></div>
+    <div class="pf"><label>WEEK</label><select onchange="planDraft.week_start=this.value">${mondays(6).map((w,i) => `<option value="${w}" ${d.week_start===w?'selected':''}>${i===0?'This week':i===1?'Next week':'Week of'} · ${w.slice(5).replace('-','/')}</option>`).join('')}</select></div>
+    <div class="pf"><label>ASSIGN TO · <span style="color:#1ab3bd">${n} player${n===1?'':'s'}</span></label><div class="filters" style="margin:0">${who('all','Everyone')}${who('younger','Younger')}${who('older','Older')}${who('pos','By position')}${who('players','Pick players')}</div>
+      ${t.who === 'pos' ? `<div class="chips">${POSITIONS.map(x => `<button class="seg ${(t.pos||[]).includes(x)?'on':''}" onclick="planToggle('pos','${x}')">${x}</button>`).join('')}</div>` : ''}
+      ${t.who === 'players' ? `<div class="chips">${E.map(p => `<button class="seg ${(t.players||[]).includes(p.id)?'on':''}" onclick="planToggle('players','${p.id}')">${esc(p.nickname)}</button>`).join('')}</div>` : ''}</div>
+    <div class="pf"><label>FOCUS</label><input maxlength="40" value="${esc(d.focus)}" placeholder="e.g. Weak foot week" oninput="planDraft.focus=this.value"></div>
+    <div class="pf"><label>HOME TOUCHES PER DAY <span class="muted">(blank = age-based default)</span></label><input type="number" min="0" max="5000" step="50" value="${esc(d.touches)}" placeholder="e.g. 1200" oninput="planDraft.touches=this.value===''?'':+this.value"></div>
+    <div class="pf"><label>EMPHASIS</label><div class="chips">${EMPHASIS.map(x => `<button class="seg ${(d.emphasis||[]).includes(x)?'on':''}" onclick="planToggle('emphasis','${x}')">${x}</button>`).join('')}</div></div>
+    <div class="pf"><label>DAY BY DAY <span class="muted">(shows as "Today" on their card)</span></label>
+      ${[1,2,3,4,5,6,0].map(k => `<div class="day-line"><span>${DN[k]}${PROGRAMS.epa.days.includes(k)?' <b class="chip c-teal">EPA</b>':''}</span><input maxlength="80" value="${esc((d.days||{})[k]||'')}" placeholder="${PROGRAMS.epa.days.includes(k)?'e.g. Light 300, EPA today':k===0?'e.g. Rest or juggling only':'e.g. 1,200 touches, weak foot ladder'}" oninput="planDraft.days['${k}']=this.value"></div>`).join('')}</div>
+    <div class="pf"><label>NOTE TO PLAYERS</label><input maxlength="300" value="${esc(d.note)}" placeholder="Optional" oninput="planDraft.note=this.value"></div>
+    <div style="display:flex;gap:10px;margin-top:14px"><button class="btn" onclick="savePlan()">SAVE PLAN</button>${d.id ? `<button class="btn ghost" onclick="deletePlan('${d.id}')">Delete</button>` : ''}</div>`;
+}
+function planToggle(k, v) { const o = k === 'emphasis' ? planDraft : planDraft.target; o[k] = (o[k]||[]).includes(v) ? o[k].filter(x => x !== v) : [...(o[k]||[]), v]; paintPlan(); }
+async function savePlan() {
+  const d = {...planDraft, touches: planDraft.touches === '' ? null : planDraft.touches, days: Object.fromEntries(Object.entries(planDraft.days||{}).filter(([,v]) => v && v.trim()))};
+  if (!D.mock) { try { d.id = await rpc('sfc_admin_save_plan', {p_plan:d}); } catch(e) { return toast('Failed: ' + e.message); } } else { d.id = d.id || 'mp' + Date.now(); toast('Sandbox: changed here only'); }
+  D.plans = [...(D.plans||[]).filter(x => x.id !== d.id), d].sort((a,b) => a.week_start < b.week_start ? -1 : 1);
+  $('drawer').classList.remove('open'); if (!D.mock) toast('Plan saved. Players see it next time their app opens.'); render();
+}
+async function deletePlan(id) { if (!confirm('Delete this plan?')) return; if (!D.mock) { try { await rpc('sfc_admin_delete_plan', {p_id:id}); } catch(e) { return toast('Failed: ' + e.message); } }
+  D.plans = (D.plans||[]).filter(x => x.id !== id); $('drawer').classList.remove('open'); render(); }
+// ── monthly calendar ──
+function epaCalendar() {
+  const now = new Date(); calMonth = calMonth || [now.getFullYear(), now.getMonth()];
+  const [y, m] = calMonth, first = new Date(y, m, 1), start = new Date(first); start.setDate(1 - (first.getDay() + 6) % 7);
+  const E = enrolled(), ids = new Set(E.map(p => p.id)), today = localDate(), P = D.plans || [];
+  const cells = [...Array(42)].map((_,i) => { const d = new Date(start); d.setDate(start.getDate() + i); return d; });
+  return `<div class="card"><div class="card-h"><span><button class="btn ghost sm" onclick="calMonth=[${m===0?y-1:y},${m===0?11:m-1}];render()">‹</button> <b style="color:var(--text);font-size:14px;letter-spacing:1px;margin:0 8px">${first.toLocaleDateString(undefined,{month:'long',year:'numeric'}).toUpperCase()}</b> <button class="btn ghost sm" onclick="calMonth=[${m===11?y+1:y},${m===11?0:m+1}];render()">›</button></span>
+    <span class="legend"><span class="chip c-teal">EPA</span><span class="chip c-amber">BREAK</span><span class="chip c-blue">PLAN</span></span></div>
+    <div class="cal">${['MON','TUE','WED','THU','FRI','SAT','SUN'].map(x => `<div class="cal-h">${x}</div>`).join('')}
+    ${cells.map(d => { const ds = localDate(d), wd = d.getDay(), off = epaOff(ds), epa = PROGRAMS.epa.days.includes(wd) && !off && ds >= PROGRAMS.epa.start && ds <= PROGRAMS.epa.end;
+      const nLog = D.sessions.filter(s => s.mode === 'epa' && s.date === ds && ids.has(s.player_id)).length, mon = wd === 1 ? P.filter(x => x.week_start === ds) : [];
+      const notes = P.filter(x => { const ws = new Date(x.week_start + 'T12:00:00'), dd = new Date(ds + 'T12:00:00'); return dd >= ws && (dd - ws) / 864e5 < 7 && (x.days||{})[String(wd)]; });
+      return `<div class="cal-d ${d.getMonth()!==m?'dim':''} ${ds===today?'today':''} ${epa?'epa':''} ${off?'off':''}"><div class="cal-n">${d.getDate()}</div>
+        ${off && (ds === off[0] || wd === 1) ? `<span class="chip c-amber">${esc(off[2])}</span>` : ''}${epa ? `<div class="cal-epa">EPA${ds <= today ? ` · ${nLog}/${E.length}` : ''}</div>` : ''}
+        ${mon.map(x => `<div class="cal-plan" onclick="openPlan('${x.id}')">${esc(x.focus || 'Plan')}${x.touches ? ' · ' + fmtK(x.touches) : ''}</div>`).join('')}
+        ${notes.slice(0,1).map(x => `<div class="cal-note">${esc(x.days[String(wd)])}</div>`).join('')}</div>`; }).join('')}</div></div>`;
+}
+// ── add player ──
+function openAddPlayer() {
+  const notIn = D.players.filter(p => !enrolled().includes(p));
+  $('drawer').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:20px;font-weight:900">Add a player to EPA</div><button class="btn ghost sm" onclick="$('drawer').classList.remove('open')">Close</button></div>
+    <div class="card" style="margin-top:14px"><div class="card-h">ALREADY ON STREAKFC</div>
+      ${notIn.length ? `<div class="pf"><select id="addKid" style="width:100%">${notIn.map(p => `<option value="${p.id}">${esc(p.nickname)} · ${esc(p.age_group)} · ${esc(p.fam.parent_name||'')}</option>`).join('')}</select></div>
+      <div class="pf"><select id="addGroup" style="width:100%"><option value="auto">Group by age (U13+ older)</option><option>younger</option><option>older</option></select></div>
+      <button class="btn" onclick="enroll()">ENROLL IN EPA</button>` : '<div class="muted small">Every StreakFC player is already enrolled.</div>'}</div>
+    <div class="card"><div class="card-h">NEW FAMILY (NOT ON STREAKFC YET)</div>
+      <div class="small muted" style="margin-bottom:8px">Send this to the parent. Once they add their player, they show up above to enroll.</div>
+      <textarea id="inviteTxt" rows="5" style="width:100%">Hi! EPA is using StreakFC for at-home training, check-ins and weekly journals. Takes 2 minutes: open streakfc.vercel.app on your phone, tap Parent, sign in with your email and add your player (first name or nickname only). Then reply with their nickname and I'll add them to EPA.</textarea>
+      <button class="btn ghost" style="margin-top:8px" onclick="navigator.clipboard.writeText($('inviteTxt').value).then(()=>toast('Copied'))">COPY INVITE</button></div>`;
+  $('drawer').classList.add('open');
+}
+
 async function saveProgs(p, programs) { if (D.mock) { p.programs = programs; toast('Sandbox: changed here only'); return; } await rpc('sfc_admin_set_programs', {p_player:p.id, p_programs:programs}); p.programs = programs; }
 async function enroll() {
   const p = D.byId[$('addKid').value]; if (!p) return;
   const cur = enrolled()[0] ? epaOf(enrolled()[0]) : {};
-  try { await saveProgs(p, [...(p.programs||[]).filter(e => e.id !== 'epa'), {id:'epa', group:$('addGroup').value === 'auto' ? autoGroup(p.age_group) : $('addGroup').value, focus:cur.focus||'', note:cur.note||''}]); toast(`${p.nickname} enrolled`); render(); } catch(e) { toast('Failed: ' + e.message); }
+  try { await saveProgs(p, [...(p.programs||[]).filter(e => e.id !== 'epa'), {id:'epa', group:$('addGroup').value === 'auto' ? autoGroup(p.age_group) : $('addGroup').value, focus:cur.focus||'', note:cur.note||''}]); toast(`${p.nickname} enrolled`); $('drawer').classList.remove('open'); render(); } catch(e) { toast('Failed: ' + e.message); }
 }
-async function unenroll(id) { const p = D.byId[id]; if (!confirm(`Remove ${p.nickname} from EPA? Their logs stay.`)) return; try { await saveProgs(p, (p.programs||[]).filter(e => e.id !== 'epa')); toast('Removed'); render(); } catch(e) { toast('Failed: ' + e.message); } }
-async function setGroup(id, g) { const p = D.byId[id]; try { await saveProgs(p, (p.programs||[]).map(e => e.id === 'epa' ? {...e, group:g} : e)); toast('Saved'); } catch(e) { toast('Failed: ' + e.message); } }
+async function unenroll(id) { const p = D.byId[id]; if (!confirm(`Remove ${p.nickname} from EPA? Their logs stay.`)) return; try { await saveProgs(p, (p.programs||[]).filter(e => e.id !== 'epa')); toast('Removed'); $('drawer').classList.remove('open'); render(); } catch(e) { toast('Failed: ' + e.message); } }
+async function setGroup(id, g) { const p = D.byId[id]; try { await saveProgs(p, (p.programs||[]).map(e => e.id === 'epa' ? {...e, group:g} : e)); toast('Saved'); render(); } catch(e) { toast('Failed: ' + e.message); } }
 async function applyFocus() {
   const focus = $('fFocus').value, note = $('fNote').value.trim();
   if (D.mock) { enrolled().forEach(p => p.programs = p.programs.map(e => e.id === 'epa' ? {...e, focus, note} : e)); toast('Sandbox: changed here only'); return render(); }
@@ -360,14 +478,15 @@ function epaMock() {
   const NAMES = ['Leo','Mateo','Liam','Noah','Diego','Ethan','Lucas','Gabe','Kai','Owen','Jace','Eli','Adrian','Nico','Marco','Isaac','Ryan','Theo','Jonah','Caleb','Andres','Miles','Zane','Luca'];
   const NOTES_E = ['first touch out of feet','scanning before receiving','left foot finishing','turning out of pressure','1v1 moves at speed','passing on the half turn','weighted through balls','defending body shape'];
   const GOALS = ['Use my weak foot in games','30-day streak','Score from outside the box','Make the next team up','Juggle 100 in a row','Win more 1v1s','Be a louder communicator','Get faster over 20 yards'];
-  const FOCUSES = ['technical','technical','mixed','speed'], fam = {id:'mockfam', parent_name:'Sandbox'};
+  const AREAS_M = ['First Touch','Passing','Dribbling','Shooting','Defending','Speed','Decision Making','Confidence'], FOCUSES = ['technical','technical','mixed','speed'], fam = {id:'mockfam', parent_name:'Sandbox'};
   const players = [], sessions = [], notes = {}, today = localDate();
   NAMES.forEach((n, i) => {
     const older = i >= 12, age = older ? 13 + Math.floor(r() * 4) : 9 + Math.floor(r() * 4), id = 'mk' + i;
     const p = {id, nickname: n + ' ' + String.fromCharCode(65 + Math.floor(r() * 26)) + '.', age_group: 'U' + age, color: pick(['#4fc3f7','#f59e0b','#22c55e','#a78bfa','#ef4444','#ec4899','#14b8a6']),
       skill_level: pick(['developing','intermediate','advanced']), pos1: pick(POSITIONS.slice(1)), pos2: pick(POSITIONS), family_id: fam.id, fam,
       programs: [{id:'epa', group: older ? 'older' : 'younger', focus:'technical', note:'Week 7: first touch out of pressure'}],
-      goals: {items: [...GOALS].sort(() => r() - .5).slice(0, 3).map(t => ({t, done: r() < .15})), ...(r() < .4 ? {coach: pick(['Love the weak foot goal. Start there.','Great goals. Streak goal first.','Add one about communication.'])} : {})}, sess: []};
+      goals: {...(r() < .75 ? {sheet:{dream: pick(['Play D1 soccer','Play pro in Europe','Make the national team','Play ECNL by 14']), season: pick(GOALS), month: pick(GOALS), week: pick(['Juggle 50 every day','Train 4 days on my own']), obstacle: pick(['Homework','Getting tired','Losing focus']), overcome: pick(['Plan my week Sunday','Sleep earlier','Ask coach for help']), takes: 'Hard work every day', commit:'YES', at: daysAgo(20)}} : {}),
+        items: [...GOALS].sort(() => r() - .5).slice(0, 3).map(t => ({t, done: r() < .15})), ...(r() < .4 ? {coach: pick(['Weak foot every session, 200 touches a day. Talk on every defensive shape.','Show up early, first to every 50/50, journal every week.','Sprints at full effort. Scan before every receive.'])} : {})}, sess: []};
     if (p.pos2 === p.pos1) p.pos2 = '';
     const att = .65 + r() * .33, eng = .35 + r() * .55, mood = 2.8 + r() * 1.8;
     for (let d = 27; d >= 0; d--) {
@@ -377,7 +496,15 @@ function epaMock() {
       if (PROGRAMS.epa.days.includes(wd) && !epaOff(ds) && r() < att) { const fo = FOCUSES[wk % 4];
         add({mode:'epa', touches: FOCUS[fo].touches, xp:150, rounds:[{epa:{focus:fo, effort: 5 + Math.floor(r() * 5), feel: Math.min(3, Math.max(0, Math.round(mood - 2 + (r() - .5)))), note: r() < .6 ? pick(NOTES_E) : '', coach: pick(coaches)}}]}); }
       else if (r() < eng) add({mode:'goal', touches: Math.round((older ? 1300 : 900) * (.6 + r() * .8) / 50) * 50, xp: 200 + Math.floor(r() * 150), rounds:[]});
-      if (wd === 4 && r() < .6) add({mode:'weekly', touches:0, xp:30, rounds:[{weekly:{best: pick(['Scored in small-sided','Won my 1v1s','Better first touch','Coach said my scanning improved']), hard: pick(['Weak foot passing','Keeping up on sprints','Defending big kids','Staying focused']), goal: pick(NOTES_E), hurt: r() < (older ? .25 : .1) ? [pick(['knee','ankle','hamstring','groin','back'])] : []}}]});
+      if (wd === 4 && r() < .6) { const ment = mood < 3.5 && r() < .55 ? pick(['Stressed','Need to talk']) : pick(['Great','Good','Good','Okay']);
+        add({mode:'weekly', touches:0, xp:50, rounds:[{weekly:{rate: Math.max(3, Math.min(10, Math.round(mood * 2 + (r() - .5) * 3))), proud: pick(['Scored in small-sided','Won my 1v1s','Better first touch','Coach said my scanning improved']), learned: pick(['Check shoulder before the ball comes','Body shape when receiving','Talk more on defense']),
+          effort: 3 + Math.floor(r() * 3), focus: 2 + Math.floor(r() * 4), improved: pick(AREAS_M), challenge: pick(['Weak foot passing','Keeping up on sprints','Defending big kids','Staying focused']), overcome: pick(['Extra reps at home','Asked coach for help','Kept going']),
+          days: pick(['1','2','3','4+']), mins: pick(['15-30','30-60','60+']), worked: ['Ball Mastery','Passing'], sleep: pick(['7-8','8-9','9+','Less than 7']), energy: Math.max(1, Math.min(5, Math.round(mood))), mental: ment,
+          hurt: r() < (older ? .25 : .1) ? [pick(['knee','ankle','hamstring','groin','back'])] : [], goal: pick(NOTES_E), habit: pick(['Sleep by 9:30','Stretch after training','Juggle every day']),
+          coachMsg: r() < .2 ? pick(['My knee was sore Wednesday','Can we do more finishing?','I want to try center mid']) : '', followup: ment === 'Need to talk' || r() < .12 ? 'Yes' : 'No'}}]}); }
+      if (older && wd === 0 && r() < .35) add({mode:'film', touches:0, xp:40, rounds:[{film:{link:'https://example.com/game', date: daysAgo(d + 1), color: pick(['White','Black','Teal']), formation: pick(['4-3-3','4-2-3-1','4-4-2']), position: pick(['Center Back','Def Mid','Att Mid','Right Winger','Forward']),
+        gFrom: 10 + Math.floor(r() * 20), gTo: 12 + Math.floor(r() * 25), gPhase: pick(['Attacking','Defending to Attacking']), gWhy: pick(['Scanned early and played forward first time','Won the ball and released the winger quickly']),
+        bFrom: 40 + Math.floor(r() * 20), bTo: 42 + Math.floor(r() * 25), bPhase: pick(['Attacking to Defending','Defending']), bWhy: pick(['Lost my man on the switch','Turned into pressure and lost it']), aggr: 'Play the line-breaking pass', safe: 'Bounce it back to the 6'}}]});
     }
     p.sess.sort((a,b) => a.created_at < b.created_at ? 1 : -1);
     const home = p.sess.filter(s => s.mode === 'goal' || s.mode === 'epa'); let st = 0; for (let d = 0; d < 28; d++) { if (home.some(s => s.date === daysAgo(d))) st++; else if (d) break; }
@@ -386,7 +513,11 @@ function epaMock() {
     players.push(p);
   });
   sessions.sort((a,b) => a.created_at < b.created_at ? 1 : -1);
-  return EPA_MOCK = {mock:true, families:[fam], fams:{[fam.id]:fam}, players, sessions, notes, byId:Object.fromEntries(players.map(p => [p.id, p]))};
+  const mw = mondays(3), plans = [
+    {id:'mp1', week_start: mw[0], target:{who:'all'}, focus:'First touch week', touches:1100, emphasis:['Ball mastery','Passing','Scanning'], days:{'1':'1,100 touches, wall passes','2':'Light 300, EPA today','3':'Light 300, EPA today','4':'Light 300, EPA today','5':'1,100 touches, weak foot','6':'Juggling ladder','0':'Rest'}, note:'Check your shoulder before every receive.'},
+    {id:'mp2', week_start: mw[1], target:{who:'older'}, focus:'Speed + finishing', touches:900, emphasis:['Speed','Shooting','Recovery'], days:{'1':'Sprints + 900 touches','5':'Finishing 50 reps'}, note:''},
+    {id:'mp3', week_start: mw[1], target:{who:'pos', pos:['ST','W']}, focus:'Weak foot finishing', touches:1000, emphasis:['Weak foot','Shooting'], days:{'6':'100 weak-foot finishes'}, note:''}];
+  return EPA_MOCK = {mock:true, plans, families:[fam], fams:{[fam.id]:fam}, players, sessions, notes, byId:Object.fromEntries(players.map(p => [p.id, p]))};
 }
 
 // ── kid drawer ──
@@ -400,14 +531,18 @@ function openKid(id) {
     ${D.mock ? '<div class="sandbox-banner">🧪 Sandbox player. Edits stay on this screen.</div>' : ''}
     <div class="card"><div class="card-h">PLAYER PROFILE</div>
       <div class="form-row"><span class="small muted" style="width:90px">Preferred</span>${posSel(p,'pos1')}<span class="small muted">Secondary</span>${posSel(p,'pos2')}</div></div>
-    <div class="card"><div class="card-h">SEASON GOALS <span class="legend">set by kid + parent in the app</span></div>
-      ${((p.goals||{}).items||[]).map(g => `<div class="feed-row">${g.done?'✅':'🎯'} ${esc(g.t)}</div>`).join('') || '<div class="muted small">No goals set yet. Parents add them in Plan & level.</div>'}
-      <div class="form-row" style="margin-top:10px"><input id="gComment" style="flex:1" maxlength="300" placeholder="Coach comment on goals (kid + parent see this)" value="${esc((p.goals||{}).coach||'')}"><button class="btn sm" onclick="saveGoalComment('${p.id}')">SAVE</button></div></div>
+    <div class="card"><div class="card-h">GOAL WORKSHEET <span class="legend">kid fills it in the app</span></div>
+      ${(p.goals||{}).sheet ? (() => { const g = p.goals.sheet; return `<div style="font-size:16px;font-weight:900;margin-bottom:8px">🎯 ${esc(g.dream)}</div>
+        ${[['season','This season'],['month','This month'],['week','This week'],['obstacle','Could get in the way'],['overcome','How I will overcome it'],['takes','What I think it takes']].filter(([k]) => g[k]).map(([k,l]) => `<div class="feed-row"><span class="muted small" style="width:150px;flex:none">${l}</span><span>${esc(g[k])}</span></div>`).join('')}
+        <div class="legend" style="margin-top:6px">${g.commit === 'YES' ? '✅ Committed' : ''} ${g.at ? '· ' + esc(g.at) : ''}</div>`; })() : '<div class="muted small">Not filled in yet. It shows on their EPA card.</div>'}
+      ${((p.goals||{}).items||[]).length ? `<div class="muted small" style="margin-top:10px">Parent-set goals: ${p.goals.items.map(g => (g.done?'✅ ':'') + esc(g.t)).join(' · ')}</div>` : ''}
+      <div class="field-lbl" style="margin-top:12px;font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:800">COACH'S STANDARD · WHAT IT WILL ACTUALLY TAKE (KID + PARENT SEE THIS)</div>
+      <div class="form-row" style="margin-top:6px"><textarea id="gComment" rows="3" style="flex:1" maxlength="300" placeholder="The specific skills, habits and effort level I expect to see">${esc((p.goals||{}).coach||'')}</textarea><button class="btn sm" onclick="saveGoalComment('${p.id}')">SAVE</button></div></div>
     <div class="card"><div class="card-h">PRIVATE COACH NOTES <span class="chip c-red">NEVER SHOWN TO KIDS OR PARENTS</span></div>
       <input id="nFocus" style="width:100%;margin-bottom:8px" maxlength="200" placeholder="Focus areas, e.g. weak foot, scanning, defending 1v1" value="${esc((D.notes||{})[p.id]?.focus||'')}">
       <textarea id="nNote" rows="4" style="width:100%" maxlength="1000" placeholder="Attitude, role, what to watch">${esc((D.notes||{})[p.id]?.note||'')}</textarea>
       <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center"><span class="legend">${(D.notes||{})[p.id]?.updated_at ? 'Updated ' + new Date(D.notes[p.id].updated_at).toLocaleDateString() : ''}</span><button class="btn sm" onclick="saveNote('${p.id}')">SAVE NOTES</button></div></div>
-    <div class="card"><div class="card-h">PROGRAMS</div>${progChips(p)} ${epaOf(p).focus ? `<span class="muted small">focus: ${esc(FOCUS[epaOf(p).focus]?.name||epaOf(p).focus)}</span>` : ''}</div>
+    <div class="card"><div class="card-h">PROGRAMS</div>${epaOf(p).id ? `<div class="form-row" style="margin-bottom:8px"><span class="small muted">EPA group</span><select onchange="setGroup('${p.id}',this.value)">${['younger','older'].map(g => `<option ${(epaOf(p).group||'younger')===g?'selected':''}>${g}</option>`).join('')}</select><button class="btn ghost sm" onclick="unenroll('${p.id}')">Remove from EPA</button></div>` : ''}${progChips(p)} ${epaOf(p).focus ? `<span class="muted small">focus: ${esc(FOCUS[epaOf(p).focus]?.name||epaOf(p).focus)}</span>` : ''}</div>
     <div class="card"><div class="card-h">LOGS · LAST 60 DAYS</div>${p.sess.map(s => `<div class="feed-row"><div class="t">${esc(s.date)}</div><div style="flex:1"><span class="chip c-sub">${esc((MODE[s.mode]||s.mode||'session').toUpperCase())}</span> ${detail(s)}</div><div class="num small">${s.touches?fmt(s.touches)+' · ':''}+${s.xp}</div></div>`).join('') || '<div class="empty">No logs</div>'}</div>`;
   dr.classList.add('open');
 }
