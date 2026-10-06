@@ -618,6 +618,17 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .unlock-day{font-size:10px;color:var(--sub);margin-top:2px}
 .unlock-bar{height:3px;background:var(--border);border-radius:2px;margin-top:6px;overflow:hidden}
 .unlock-bar>div{height:3px;background:var(--accent)}
+.unlock-tile{cursor:pointer}.road-all{color:var(--accent);font-weight:800;cursor:pointer}
+.locked-art{opacity:.5;filter:grayscale(.35)}
+.ttl-chip{font-size:9px;font-weight:900;letter-spacing:1px;color:#facc15;border:1.5px solid #facc15;border-radius:6px;padding:3px 5px;line-height:1.1;text-align:center;max-width:76px}
+.road-row{display:flex;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
+.road-row.got .road-name{color:var(--green)}
+.road-art{width:46px;height:46px;flex:none;display:flex;align-items:center;justify-content:center;font-size:28px}.road-art svg{width:46px;height:46px}
+.road-name{font-size:13px;font-weight:900}.road-name span{font-size:9px;color:var(--sub);letter-spacing:1px;margin-left:4px}
+.road-sub{font-size:11px;color:var(--sub);margin-top:2px}
+.home-title{display:inline-block;font-size:10px;font-weight:900;letter-spacing:1.5px;color:#facc15;border:1px solid #facc1588;border-radius:6px;padding:2px 6px;margin-top:3px}
+.celly{font-size:84px;display:inline-block;animation:celly 1.2s ease-out 1}
+@keyframes celly{0%{transform:scale(.2) rotate(-30deg);opacity:0}50%{transform:scale(1.25) rotate(10deg);opacity:1}100%{transform:scale(1) rotate(0)}}
 .reward-card{background:linear-gradient(135deg,#1a1405,#0f1520);border:1px solid #f59e0b55;border-radius:var(--radius);padding:14px}
 .reward-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
 .reward-name{font-size:15px;font-weight:800}
@@ -845,6 +856,34 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .pick{padding:12px 10px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-weight:800;font-size:13px;cursor:pointer;text-align:left}
 .pick.on{border-color:var(--green);background:rgba(34,197,94,.12);color:var(--green)}
 .mix-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-weight:800;font-size:12px;padding:7px 10px;border-radius:10px;cursor:pointer}
+
+.season-card{background:linear-gradient(160deg,var(--bg2),#0d1422);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.ss-top{display:flex;justify-content:space-between;align-items:center}
+.ss-name{font-size:11px;letter-spacing:2px;font-weight:900;color:var(--accent)}
+.ss-left{font-size:11px;color:var(--sub);font-weight:700}
+.ss-rank{display:flex;align-items:center;gap:12px;margin-top:10px}
+.ss-badge{font-size:13px;font-weight:900;letter-spacing:1px;padding:8px 12px;border-radius:10px;border:1px solid}
+.ss-team{font-size:18px;font-weight:900;letter-spacing:.5px}
+.ss-xp{font-size:11px;color:var(--sub);font-weight:700;margin-top:2px}
+.ss-bar{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;margin-top:10px}.ss-bar div{height:100%;border-radius:4px;transition:width .5s}
+.ss-next{font-size:12px;color:var(--sub);font-weight:700;margin-top:8px}
+.ss-next.hot{color:#fff;background:linear-gradient(90deg,#f97316,#fb923c);padding:8px 10px;border-radius:10px;font-weight:900;animation:hotPulse 1.6s ease-in-out infinite}
+@keyframes hotPulse{50%{box-shadow:0 0 18px rgba(249,115,22,.55)}}
+.ss-track{display:flex;justify-content:space-between;margin-top:12px;gap:6px}
+.ss-t{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:9px;font-weight:900;letter-spacing:.5px;color:var(--sub);opacity:.55}
+.ss-t.got{opacity:1;color:var(--text)}
+.ss-ti{width:38px;height:38px;border-radius:10px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:18px}
+.ss-t.got .ss-ti{background:rgba(34,197,94,.15)}
+.ss-kit{width:32px;height:32px}.ss-kit svg{width:100%;height:100%}
+.ss-foot{font-size:11px;color:var(--sub);margin-top:10px;font-weight:700}
+#trophyCard{margin-top:12px}
+.tr-life{font-size:12px;color:var(--sub);margin:4px 0 8px}.tr-life b{color:var(--text)}
+.tr-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--border)}
+.tr-ic{font-size:24px;width:32px;text-align:center}.tr-s{font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:800}.tr-p{font-size:14px;font-weight:900;margin-top:2px}
+.tr-kit{width:34px;height:34px}.tr-kit svg{width:100%;height:100%}
+.xpb{display:grid;grid-template-columns:1fr auto;gap:4px 14px;font-size:13px;margin:10px auto 0;max-width:260px;text-align:left}
+.xpb span{color:var(--sub)}.xpb b{text-align:right}
+.rankups{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.35);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:13px;font-weight:800}
 </style>
 </head>
 <body>
@@ -893,7 +932,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
   <div class="modal-sheet" style="max-height:88vh;overflow-y:auto">
     <div class="modal-handle"></div>
     <div class="modal-title">Your Kit</div>
-    <div class="modal-sub">Build your avatar. Unlock new kits by keeping your streak.</div>
+    <div class="modal-sub">Kits, titles and celebrations unlock on the Unlock Road.</div>
     <div class="av-preview av-wrap" id="avPreview"></div>
     <div id="avEditorBody"></div>
     <button class="modal-save-btn" onclick="saveAvatar()">SAVE</button>
@@ -902,6 +941,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 </div>
 
 <!-- Parent: set reward -->
+<div class="modal-overlay" id="roadModal" onclick="if(event.target===this)closeModal('roadModal')">
+  <div class="modal-sheet" style="max-height:88vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Unlock Road</div>
+    <div class="modal-sub">Streak and touch unlocks are forever. Season rewards reset every 8 weeks.</div>
+    <div id="roadBody"></div>
+    <button class="modal-save-btn" onclick="closeModal('roadModal')">LET'S GO</button>
+  </div>
+</div>
 <div class="modal-overlay" id="rewardModal">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
@@ -1126,17 +1174,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
             <div class="home-date" id="homeSubLabel"></div>
             <div class="home-name" id="homePlayerName"></div>
             <div class="home-streak" id="homeStreakBadge"></div>
+            <div class="home-title" id="homeTitle" style="display:none"></div>
           </div>
         </div>
         <!-- Rank -->
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px">
-          <div class="rank-row">
-            <div class="rank-chip" id="rankChip"></div>
-            <div class="xp-bar-outer"><div class="xp-bar-inner" id="xpFill" style="width:0%"></div></div>
-            <div class="xp-count" id="xpCount"></div>
-          </div>
-          <div id="rankNext"></div>
-        </div>
+        <div class="season-card" id="seasonCard"></div>
         <!-- Reward progress (parent-set) -->
         <div class="reward-card" id="rewardCard" style="display:none"></div>
         <!-- Unlock road -->
@@ -1197,6 +1239,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
         <div class="week-chart" id="weekBars"></div>
         <div class="week-labels" id="weekLabels" style="display:flex;margin-top:6px"></div>
       </div>
+      <div class="badges-card" id="trophyCard"></div>
       <div class="badges-card">
         <div class="badges-title">BADGES</div>
         <div class="badges-grid" id="badgesGrid"></div>
@@ -1369,6 +1412,7 @@ function hydratePlayer(data) {
   if (data.history) set(`sfc_history_${id}`, data.history);
   if (data.xp_days) mergeDays(`sfc_xpdays_${id}`, data.xp_days);
   if (data.pb_days) set(`sfc_pbdays_${id}`, data.pb_days);
+  if (p.seasons && typeof p.seasons === 'object') { const loc = jget(`sfc_seasons_${id}`, {}); Object.entries(p.seasons).forEach(([n,v]) => { if (!loc[n] || (v.xp||0) > (loc[n].xp||0)) loc[n] = v; }); set(`sfc_seasons_${id}`, loc); }
   if (p.pbs) { const loc = JSON.parse(localStorage.getItem(`sfc_pbs_${id}`)||'{}'); const m = {...p.pbs};
     Object.entries(loc).forEach(([k,v]) => { if (!m[k] || v > m[k]) m[k] = v; }); set(`sfc_pbs_${id}`, m); }
   const player = {id, name:p.nickname, color:p.color||'#4fc3f7', age_group:p.age_group||'', club:p.age_group||'',
@@ -1383,7 +1427,7 @@ function playerState(p) {
   return {xp:p.xp||0, streak:p.streak||0, best_streak:bestStreak(p), last_log:localStorage.getItem(`sfc_lastlog_${p.id}`),
     total_touches:p.total_touches||0, sessions:p.sessions||0, juggle_pb:Math.max(p.juggle_pb||0, parseInt(localStorage.getItem(`sfc_juggle_${p.id}`)||'0')),
     avatar:j(`sfc_avatar_${p.id}`), unlocks:j(`sfc_unlocks_${p.id}`)||[], badges:j(`sfc_badges_${p.id}`)||[],
-    pbs:j(`sfc_pbs_${p.id}`)||{}};
+    pbs:j(`sfc_pbs_${p.id}`)||{}, seasons:j(`sfc_seasons_${p.id}`)||{}};
 }
 // Save progress to the server (queued if offline)
 async function pushState(p) {
@@ -1903,7 +1947,7 @@ function renderParentPortal() {
   document.getElementById('portalTitle').textContent = family?.parent_name ? `${family.parent_name.toUpperCase()}'S CREW` : 'YOUR CREW';
   if (players.length) body.appendChild(weekRecapCard());
   players.forEach(p => {
-    const color = p.color || '#4fc3f7', rank = getRank(p.xp||0), w = kidWeek(p);
+    const color = p.color || '#4fc3f7', rank = rankOf(p), w = kidWeek(p);
     const card = document.createElement('div');
     card.className = 'kid-card';
     card.style.cssText = `--player-color:${color}`;
@@ -1913,7 +1957,7 @@ function renderParentPortal() {
         <div class="kid-card-avatar" style="background:${color}">${p.name[0]}</div>
         <div>
           <div class="kid-card-name">${p.name.toUpperCase()}</div>
-          <div class="kid-card-rank">${rank.name} · ${(p.xp||0).toLocaleString()} XP</div>
+          <div class="kid-card-rank" style="color:${rank.color}">${rank.name} · ${seasonXP(p.id).toLocaleString()} XP</div>
         </div>
         <div class="kid-card-streak">🔥${liveStreak(p)}</div>
         <button class="kid-more" onclick="openKidMenu('${p.id}')" aria-label="More">⋯</button>
@@ -1977,6 +2021,8 @@ function launchApp() {
   renderSkillsList();
   renderCrew();
   checkOnline();
+  recordSeason(currentPlayer);
+  const se = seasonEndReveals(currentPlayer); if (se.length) setTimeout(() => showReveals(se), 600);
 }
 
 // ─── KEYBOARD INPUT FOR PIN ─────────────────────────
@@ -2079,22 +2125,13 @@ function renderHome() {
   renderRewardCard();
   document.getElementById('homePlayerName').textContent = p.name.toUpperCase();
   document.getElementById('homeStreakBadge').textContent = `🔥 ${liveStreak(p)} DAY STREAK`;
+  { const t = activeTitle(p), el = document.getElementById('homeTitle'); el.textContent = t; el.style.display = t ? 'inline-block' : 'none'; }
   document.getElementById('homeSubLabel').textContent = getTodayLabel();
 
   // Top bar
   document.getElementById('appPlayerName').textContent = p.name.toUpperCase();
   document.getElementById('appPlayerStreak').textContent = `🔥 ${liveStreak(p)}`;
 
-  const rank = getRank(p.xp||0);
-  document.getElementById('rankChip').textContent = rank.name;
-  document.getElementById('rankChip').style.color = rank.color;
-  document.getElementById('rankChip').style.borderColor = rank.color + '55';
-  document.getElementById('rankChip').style.background = rank.color + '22';
-
-  const nextRank = RANKS[RANKS.indexOf(rank)+1];
-  const progress = nextRank ? (((p.xp||0) - rank.min)/(nextRank.min - rank.min)*100) : 100;
-  document.getElementById('xpFill').style.width = Math.min(100,progress) + '%';
-  document.getElementById('xpCount').textContent = `${(p.xp||0).toLocaleString()} / ${(nextRank?.min||rank.max).toLocaleString()} XP`;
 
   const pb = getJugglePB();
   document.getElementById('jugglePbBadge').textContent = pb > 0 ? `PB: ${pb}` : 'PB: --';
@@ -2103,7 +2140,7 @@ function renderHome() {
   setDifficulty(currentDiff);
   renderToday();
   renderQuests();
-  renderRankNext();
+  renderSeasonCard();
 }
 
 function getTodayLabel() {
@@ -2283,8 +2320,9 @@ function renderProfile() {
   document.getElementById('editAvBtn').style.display = hasUnlock(p.id,'avatar') ? 'inline-block' : 'none';
   document.getElementById('profileName').textContent = p.name.toUpperCase();
   document.getElementById('profileClub').textContent = (p.club||'').toUpperCase();
-  const rank = getRank(p.xp||0);
-  document.getElementById('profileRank').textContent = rank.name;
+  const rank = rankOf(p);
+  document.getElementById('profileRank').textContent = `${rank.name} · ${seasonLabel(seasonOf())}`;
+  renderTrophies();
   document.getElementById('statStreak').textContent = liveStreak(p);
   document.getElementById('statTouches').textContent = ((p.total_touches||0)/1000).toFixed(1)+'K';
   document.getElementById('statSessions').textContent = p.sessions||0;
@@ -2372,11 +2410,12 @@ function renderCrew() {
   let roster = players.length ? players : getSeededPlayers();
   roster = mergeLocal(roster).map(p => p.id===currentPlayer?.id ? currentPlayer : p);
   const wk = crewMode === 'week', left = 6 - dayIdxThisWeek();
-  roster = roster.map(p => ({...p, score: wk ? weekXP(p.id) : (p.xp||0)}));
-  roster = roster.concat(paceBots().map(b => ({...b, score: wk ? b.rate*(dayIdxThisWeek()+1) : b.xp})));
+  const ss = seasonOf(), sDay = ss.start ? dnum(localDate()) - dnum(ss.start) + 1 : 7, ups = crewRankUps(roster);
+  roster = roster.map(p => ({...p, score: wk ? weekXP(p.id) : seasonXP(p.id)}));
+  roster = roster.concat(paceBots().map(b => ({...b, score: b.rate*(wk ? dayIdxThisWeek()+1 : sDay)})));
   roster.sort((a,b)=>b.score-a.score);
   empty.style.display = 'none';
-  list.innerHTML = `<div class="crew-toggle"><button class="${wk?'sel':''}" onclick="crewMode='week';renderCrew()">THIS WEEK</button><button class="${wk?'':'sel'}" onclick="crewMode='all';renderCrew()">ALL TIME</button></div>
+  list.innerHTML = `<div class="crew-toggle"><button class="${wk?'sel':''}" onclick="crewMode='week';renderCrew()">THIS WEEK</button><button class="${wk?'':'sel'}" onclick="crewMode='season';renderCrew()">${ss.n ? 'SEASON '+ss.n : 'PRESEASON'}</button></div>${ups.map(u=>`<div class="rankups">⬆ ${u.p.name} made <span style="color:${u.r.color}">${u.r.name}</span> today</div>`).join('')}
     <div style="font-size:11px;color:var(--sub);margin:-2px 0 12px">${wk ? `Weekly XP · resets Monday${left?` · ${left} day${left===1?'':'s'} left`:' · last day!'} ` : ''}🤖 Pace bots train the same amount every day.</div>`;
   const colors = {};
   roster.forEach((p,i) => {
@@ -2393,7 +2432,7 @@ function renderCrew() {
     } else {
       card.innerHTML = `<div style="width:18px;color:var(--sub);font-weight:800">${i===0&&p.score>0?'👑':i+1}</div>
         <div class="crew-avatar av-wrap" data-pid="${p.id}" style="background:${color}">${p.name[0]}</div>
-        <div><div class="crew-name">${p.name}</div><div class="crew-rank">${getRank(p.xp||0).name} · ${p.score.toLocaleString()} XP${wk?' this week':''}</div></div>
+        <div><div class="crew-name">${p.name}</div><div class="crew-rank">${rankOf(p).name} · ${p.score.toLocaleString()} XP${wk?' this week':''}</div></div>
         <div class="crew-streak">🔥${liveStreak(p)}</div>`;
       paintAvatar(card.querySelector('.crew-avatar'), p, color);
     }
@@ -2425,14 +2464,53 @@ function showToast(msg, type='') {
 
 // ─── ENGAGEMENT: UNLOCKS / AVATAR / REWARDS / BOTS / REVEALS ───
 const DAILY_XP_CAP = 600;   // grinding all day earns nothing extra
-const MILESTONES = [
-  {day:7,  id:'avatar', name:'AVATAR',  ico:'🧑‍🎤', reveal:'AVATAR BUILDER', sub:'Build your kit, pick your number.'},
-  {day:14, id:'samba',  name:'???',     ico:'kit', reveal:'SAMBA KIT #7', sub:'The golden 7 is yours.'},
-  {day:21, id:'test',   name:'TEST DAY',ico:'📊', reveal:'OFFICIAL TEST', sub:'Your first rating unlocks soon.'},
+// Icon kits: famous colorways, generic names. No player names, crests or logos.
+const KITS = {
+  samba:   {name:'SAMBA #7',        primary:'#f7d117', trim:'#0b6b3a', number:'7',  pattern:'samba'},
+  sky:     {name:'SKY STRIPES #10', primary:'#75aadb', trim:'#ffffff', number:'10', pattern:'stripes', numColor:'#1e3a8a'},
+  island:  {name:'ISLAND RED #7',   primary:'#c8102e', trim:'#046a38', number:'7',  pattern:'solid', numColor:'#f4c542'},
+  midnight:{name:'MIDNIGHT #10',    primary:'#111827', trim:'#f472b6', number:'10', pattern:'sash'},
+  legend:  {name:'LEGEND #7',       primary:'#f8fafc', trim:'#d4af37', number:'7',  pattern:'solid'},
+};
+const CELLYS = {fist:{ico:'✊',name:'FIST PUMP'}, slide:{ico:'🧎',name:'KNEE SLIDE'}, spin:{ico:'🌀',name:'JUMP SPIN'}, sky:{ico:'☝️',name:'SKY POINT'}, flip:{ico:'🤸',name:'BACKFLIP'}};
+// The Unlock Road: lifetime, never resets with seasons
+const UNLOCKS = [
+  {id:'t_fire',    track:'streak',  at:3,      kind:'title',   ref:'ON FIRE',      sub:'Your first title. Shows under your name.'},
+  {id:'avatar',    track:'streak',  at:7,      kind:'feature', ico:'🧑‍🎤', name:'AVATAR BUILDER', sub:'Build your kit, pick your number.'},
+  {id:'samba',     track:'streak',  at:14,     kind:'kit',     ref:'samba',        sub:'The golden 7 is yours.'},
+  {id:'test',      track:'streak',  at:21,     kind:'feature', ico:'📊', name:'OFFICIAL TEST', sub:'Your first rating unlocks soon.'},
+  {id:'t_boot',    track:'streak',  at:30,     kind:'title',   ref:'GOLDEN BOOT',  sub:'30 days. Most kids never get here.'},
+  {id:'midnight',  track:'streak',  at:50,     kind:'kit',     ref:'midnight',     sub:'Black and pink. Built for night games.'},
+  {id:'c_sky',     track:'streak',  at:75,     kind:'celly',   ref:'sky',          sub:'Point to the sky after every session.'},
+  {id:'legend',    track:'streak',  at:100,    kind:'kit',     ref:'legend', mystery:true, sub:'100 days. White and gold. Legend status.'},
+  {id:'t_cent',    track:'streak',  at:100,    kind:'title',   ref:'CENTURION', mystery:true, sub:'100-day streak club.'},
+  {id:'t_touch',   track:'touches', at:1000,   kind:'title',   ref:'FIRST TOUCH',  sub:'1,000 lifetime touches.'},
+  {id:'c_slide',   track:'touches', at:5000,   kind:'celly',   ref:'slide',        sub:'Your new celebration. Plays when you finish.'},
+  {id:'sky',       track:'touches', at:10000,  kind:'kit',     ref:'sky',          sub:'Sky blue stripes. The classic 10.'},
+  {id:'c_spin',    track:'touches', at:25000,  kind:'celly',   ref:'spin',         sub:'Jump, spin, land. Everyone watches.'},
+  {id:'island',    track:'touches', at:50000,  kind:'kit',     ref:'island',       sub:'Red and green with a gold 7.'},
+  {id:'t_100k',    track:'touches', at:100000, kind:'title',   ref:'100K CLUB',    sub:'100,000 touches. Elite.'},
+  {id:'c_flip',    track:'touches', at:100000, kind:'celly',   ref:'flip',         sub:'The ultimate celebration.'},
 ];
+function uName(u) { return u.kind==='kit' ? KITS[u.ref].name : u.kind==='title' ? u.ref : u.kind==='celly' ? CELLYS[u.ref].name : u.name; }
+function uKind(u) { return {kit:'KIT', title:'TITLE', celly:'CELEBRATION', feature:'FEATURE'}[u.kind]; }
+function uProg(p, u) { return u.track==='streak' ? bestStreak(p) : (p.total_touches||0); }
+function uAt(u) { return u.track==='streak' ? `DAY ${u.at} STREAK` : `${u.at>=1000?(u.at/1000)+'K':u.at} TOUCHES`; }
+function uLeft(p, u) { const n = Math.max(0, u.at - uProg(p,u)); return u.track==='streak' ? `${n} more day${n===1?'':'s'}` : `${n.toLocaleString()} more touches`; }
+function uArt(u, p, locked) {
+  if (u.kind==='kit') return jerseySVG(KITS[u.ref], locked && u.mystery);
+  if (u.kind==='title') return `<div class="ttl-chip">${locked && u.mystery ? '???' : u.ref}</div>`;
+  if (u.kind==='celly') return CELLYS[u.ref].ico;
+  if (u.id==='avatar' && !locked) return jerseySVG(kitCfg(getAvatar(p, p.color||'#4fc3f7')));
+  return u.ico;
+}
+function nextUnlocks(p, n) {
+  const have = getUnlocks(p.id);
+  return UNLOCKS.filter(u => !have.includes(u.id)).sort((a,b) => (uProg(p,b)/b.at) - (uProg(p,a)/a.at)).slice(0, n);
+}
+function nextUnlockTxt(p) { const u = nextUnlocks(p,1)[0]; return u ? `${uLeft(p,u)} to unlock ${u.mystery?'a mystery '+uKind(u).toLowerCase():uName(u)}` : 'Whole Unlock Road complete 👑'; }
 const KIT_COLORS = ['#4fc3f7','#f59e0b','#39ff14','#ef4444','#a78bfa','#f97316','#ffffff','#111827','#ec4899','#14b8a6'];
 const TRIM_COLORS = ['#ffffff','#111827','#f59e0b','#0b6b3a','#1e3a8a','#ef4444'];
-const SAMBA = {primary:'#f7d117', trim:'#0b6b3a', number:'7', pattern:'samba'};
 
 function bestStreak(p) {
   return Math.max(parseInt(localStorage.getItem(`sfc_beststreak_${p.id}`)||'0'), liveStreak(p));
@@ -2441,8 +2519,8 @@ function getUnlocks(id) { try { return JSON.parse(localStorage.getItem(`sfc_unlo
 function hasUnlock(id, key) { return getUnlocks(id).includes(key); }
 // Unlocks are permanent once earned (losing a streak later never re-locks them)
 function newUnlocks(p) {
-  const have = getUnlocks(p.id), b = bestStreak(p), fresh = [];
-  MILESTONES.forEach(m => { if (b >= m.day && !have.includes(m.id)) { have.push(m.id); fresh.push(m); } });
+  const have = getUnlocks(p.id), fresh = [];
+  UNLOCKS.forEach(u => { if (uProg(p,u) >= u.at && !have.includes(u.id)) { have.push(u.id); fresh.push(u); } });
   localStorage.setItem(`sfc_unlocks_${p.id}`, JSON.stringify(have));
   return fresh;
 }
@@ -2466,14 +2544,18 @@ function jerseySVG(cfg, locked) {
     <path d="${body}" fill="${pc}" stroke="${locked?'#4b5563':'rgba(0,0,0,.25)'}" stroke-width="1.5"/>${pattern}
     <path d="M42 13 Q50 26 58 13 L56 13 Q50 22 44 13Z" fill="${tc}"/>
     <path d="M12 33 L16 27 L23 41 L21 47Z M88 33 L84 27 L77 41 L79 47Z" fill="${tc}"/>
-    <text x="50" y="68" text-anchor="middle" font-size="${locked?30:26}" font-weight="900" font-family="-apple-system,Arial" fill="${locked?'#6b7280':tc}">${num}</text>
+    <text x="50" y="68" text-anchor="middle" font-size="${locked?30:26}" font-weight="900" font-family="-apple-system,Arial" fill="${locked?'#6b7280':(cfg.numColor||tc)}">${num}</text>
     ${locked?'<text x="50" y="86" text-anchor="middle" font-size="12">🔒</text>':''}</svg>`;
 }
 function getAvatar(p, color) {
   let a = null; try { a = JSON.parse(localStorage.getItem(`sfc_avatar_${p.id}`)||'null'); } catch(e) {}
   return a || {primary:color, trim:'#ffffff', number:'10', pattern:'solid', kit:'custom'};
 }
-function kitCfg(a) { return a.kit==='samba' ? SAMBA : a; }
+function kitCfg(a) { if (KITS[a.kit]) return KITS[a.kit]; const m = /^kit_s(\d+)$/.exec(a.kit||''); return m && seasonKit(+m[1]) ? {...seasonKit(+m[1]), number:a.number||'10'} : a; }
+// Equipped title / celebration: chosen one, else the latest earned
+function earned(p, kind) { const have = getUnlocks(p.id); return UNLOCKS.filter(u => u.kind===kind && have.includes(u.id)); }
+function activeTitle(p) { const a = getAvatar(p,'#4fc3f7'), e = earned(p,'title'); if (a.title === 'none') return ''; const t = e.find(u => u.ref===a.title) || e[e.length-1]; return t ? t.ref : ''; }
+function activeCelly(p) { const a = getAvatar(p,'#4fc3f7'), e = earned(p,'celly'); const c = e.find(u => u.ref===a.celly) || e[e.length-1]; return c ? CELLYS[c.ref] : null; }
 function paintAvatar(el, p, color) {
   if (!el) return;
   el.classList.add('av-wrap');
@@ -2487,25 +2569,36 @@ function paintAvatar(el, p, color) {
   }
 }
 
-// Home: unlock road
+// Home: unlock road (next 3 closest) + full road modal
 function renderUnlocks() {
-  const p = currentPlayer, b = bestStreak(p), have = getUnlocks(p.id);
-  const nextIdx = MILESTONES.findIndex(m => !have.includes(m.id));
-  const card = document.getElementById('unlockCard');
-  if (nextIdx === -1) { card.style.display = 'none'; return; }
+  const p = currentPlayer, card = document.getElementById('unlockCard'), nx = nextUnlocks(p, 3);
+  if (!nx.length) { card.style.display = 'none'; return; }
   card.style.display = 'block';
-  card.innerHTML = `<div class="unlock-title">STREAK UNLOCKS</div><div class="unlock-row">${MILESTONES.map((m,i) => {
-    const done = have.includes(m.id), isNext = i===nextIdx;
-    const pct = Math.min(100, Math.round(b/m.day*100));
-    let ico = m.ico==='kit' ? jerseySVG(SAMBA, !done) : m.ico;
-    if (m.id==='avatar') ico = done ? jerseySVG(kitCfg(getAvatar(p, p.color||'#4fc3f7'))) : '🔒';
-    const name = done ? m.reveal.split(' ')[0] : m.name;
-    return `<div class="unlock-tile ${done?'done':''} ${isNext?'next':''}">
-      <div class="unlock-ico">${ico}</div>
-      <div class="unlock-name">${done?'✓ '+name:name}</div>
-      <div class="unlock-day">${done?'UNLOCKED':'DAY '+m.day+' STREAK'}</div>
-      ${!done?`<div class="unlock-bar"><div style="width:${pct}%"></div></div>`:''}
+  card.innerHTML = `<div class="unlock-title" style="display:flex;justify-content:space-between"><span>UNLOCK ROAD</span><span class="road-all" onclick="openRoad()">SEE ALL ›</span></div><div class="unlock-row">${nx.map((u,i) => {
+    const pct = Math.min(100, Math.round(uProg(p,u)/u.at*100));
+    return `<div class="unlock-tile ${i===0?'next':''}" onclick="openRoad()">
+      <div class="unlock-ico locked-art">${uArt(u, p, true)}</div>
+      <div class="unlock-name">${u.mystery ? '???' : uName(u)}</div>
+      <div class="unlock-day">${uAt(u)}</div>
+      <div class="unlock-bar"><div style="width:${pct}%"></div></div>
     </div>`; }).join('')}</div>`;
+}
+function openRoad() {
+  const p = currentPlayer, have = getUnlocks(p.id), s = seasonOf(), r = rankOf(p);
+  const row = u => { const got = have.includes(u.id), pct = Math.min(100, Math.round(uProg(p,u)/u.at*100));
+    return `<div class="road-row ${got?'got':''}"><div class="road-art ${got?'':'locked-art'}">${uArt(u, p, !got)}</div>
+      <div style="flex:1;min-width:0"><div class="road-name">${got || !u.mystery ? uName(u) : '???'} <span>${uKind(u)}</span></div>
+      <div class="road-sub">${got ? '✓ Unlocked' : uAt(u)+' · '+uLeft(p,u)}</div>${got?'':`<div class="unlock-bar"><div style="width:${pct}%"></div></div>`}</div></div>`; };
+  const sk = seasonKit(s.n), kr = kitRank(s.n), sKitGot = have.includes('kit_s'+s.n);
+  const season = [
+    sk ? `<div class="road-row ${sKitGot?'got':''}"><div class="road-art ${sKitGot?'':'locked-art'}">${jerseySVG({...sk, number:''})}</div><div style="flex:1"><div class="road-name">${seasonLabel(s)} KIT <span>KIT</span></div><div class="road-sub">${sKitGot?'✓ Unlocked':`Reach ${LADDER[kr].name} this season · gone after ${s.end}`}</div></div></div>` : '',
+    `<div class="road-row ${r.idx>=SILVER_RANK?'got':''}"><div class="road-art">🥈</div><div style="flex:1"><div class="road-name">SILVER TROPHY <span>TROPHY</span></div><div class="road-sub">Reach ECNL this season</div></div></div>`,
+    `<div class="road-row ${r.idx>=GOLD_RANK?'got':''}"><div class="road-art">🏆</div><div style="flex:1"><div class="road-name">GOLD TROPHY <span>TROPHY</span></div><div class="road-sub">Reach PRO 1ST TEAM this season</div></div></div>`].join('');
+  document.getElementById('roadBody').innerHTML = `
+    <div class="field-lbl">STREAK ROAD · BEST ${bestStreak(p)} DAYS</div>${UNLOCKS.filter(u=>u.track==='streak').map(row).join('')}
+    <div class="field-lbl" style="margin-top:14px">TOUCH ROAD · ${(p.total_touches||0).toLocaleString()} LIFETIME</div>${UNLOCKS.filter(u=>u.track==='touches').map(row).join('')}
+    <div class="field-lbl" style="margin-top:14px">${seasonLabel(s)} · RESETS EACH SEASON</div>${season}`;
+  document.getElementById('roadModal').classList.add('open');
 }
 
 // Rewards (parent-set, real world)
@@ -2570,15 +2663,19 @@ function openAvatarEditor() {
   document.getElementById('avModal').classList.add('open');
 }
 function paintAvatarEditor() {
-  const sambaOK = hasUnlock(currentPlayer.id,'samba');
+  const p = currentPlayer, have = getUnlocks(p.id);
   document.getElementById('avPreview').innerHTML = jerseySVG(kitCfg(avDraft));
   document.getElementById('avPreview').style.background = '#0b1220';
-  const custom = avDraft.kit !== 'samba';
+  const custom = !KITS[avDraft.kit] && !/^kit_s\d+$/.test(avDraft.kit||''), icon = !!KITS[avDraft.kit];
+  const kitU = UNLOCKS.filter(u => u.kind==='kit'), titles = earned(p,'title'), cellys = earned(p,'celly');
+  const numInput = `<div class="field-lbl">NUMBER</div><input class="auth-input" type="text" inputmode="numeric" maxlength="2" value="${avDraft.number||''}" style="margin:6px 0 4px;text-align:center;font-size:22px;font-weight:900" oninput="this.value=this.value.replace(/\\D/g,'');avDraft.number=this.value;document.getElementById('avPreview').innerHTML=jerseySVG(kitCfg(avDraft))">`;
+  const curT = activeTitle({...p}) , curC = activeCelly(p);
   document.getElementById('avEditorBody').innerHTML = `
     <div class="field-lbl">KIT</div>
-    <div class="opt-row">
+    <div class="opt-row" style="flex-wrap:wrap">
       <button class="opt-btn ${custom?'sel':''}" onclick="avDraft.kit='custom';paintAvatarEditor()">CUSTOM</button>
-      <button class="opt-btn ${!custom?'sel':''}" ${sambaOK?'':'disabled'} onclick="avDraft.kit='samba';paintAvatarEditor()">${sambaOK?'SAMBA #7':'🔒 DAY 14'}</button>
+      ${kitU.map(u => { const ok = have.includes(u.id); return `<button class="opt-btn ${avDraft.kit===u.ref?'sel':''}" ${ok?'':'disabled'} onclick="avDraft.kit='${u.ref}';paintAvatarEditor()">${ok ? KITS[u.ref].name : '🔒 '+(u.mystery?'???':uAt(u))}</button>`; }).join('')}
+      ${have.filter(u=>/^kit_s\d+$/.test(u) && seasonKit(+u.slice(5))).map(u=>{ const n=+u.slice(5); return `<button class="opt-btn ${avDraft.kit===u?'sel':''}" onclick="avDraft.kit='${u}';paintAvatarEditor()">${n?'S'+n+' '+SEASON_NAMES[((n-1)%6)+1].toUpperCase():'PRESEASON'}</button>`; }).join('')}
     </div>
     ${custom ? `
     <div class="field-lbl">SHIRT COLOR</div>
@@ -2587,10 +2684,11 @@ function paintAvatarEditor() {
     <div class="swatches">${TRIM_COLORS.map(c=>`<div class="swatch ${avDraft.trim===c?'sel':''}" style="background:${c}" onclick="avDraft.trim='${c}';paintAvatarEditor()"></div>`).join('')}</div>
     <div class="field-lbl">STYLE</div>
     <div class="opt-row">${['solid','stripes','sash'].map(s=>`<button class="opt-btn ${avDraft.pattern===s?'sel':''}" onclick="avDraft.pattern='${s}';paintAvatarEditor()">${s.toUpperCase()}</button>`).join('')}</div>
-    <div class="field-lbl">NUMBER</div>
-    <input class="auth-input" type="text" inputmode="numeric" maxlength="2" value="${avDraft.number}" style="margin:6px 0 4px;text-align:center;font-size:22px;font-weight:900"
-      oninput="this.value=this.value.replace(/\\D/g,'');avDraft.number=this.value;document.getElementById('avPreview').innerHTML=jerseySVG(kitCfg(avDraft))">
-    ` : `<div style="font-size:12px;color:var(--sub);margin-bottom:8px">The golden 7. Earned with a 14-day streak.</div>`}
+    ${numInput}` : icon ? `<div style="font-size:12px;color:var(--sub);margin-bottom:8px">Icon kit. Number is part of the kit.</div>` : `<div style="font-size:12px;color:var(--sub);margin-bottom:8px">Season exclusive. Earned by ranking up that season.</div>${numInput}`}
+    <div class="field-lbl">TITLE</div>
+    <div class="opt-row" style="flex-wrap:wrap">${titles.length ? `<button class="opt-btn ${avDraft.title==='none'?'sel':''}" onclick="avDraft.title='none';paintAvatarEditor()">NONE</button>` + titles.map(u=>`<button class="opt-btn ${avDraft.title!=='none' && (avDraft.title||curT)===u.ref?'sel':''}" onclick="avDraft.title='${u.ref}';paintAvatarEditor()">${u.ref}</button>`).join('') : '<div class="sk-desc">🔒 First title at a 3-day streak</div>'}</div>
+    <div class="field-lbl">CELEBRATION</div>
+    <div class="opt-row" style="flex-wrap:wrap">${cellys.length ? cellys.map(u=>`<button class="opt-btn ${(avDraft.celly ? avDraft.celly===u.ref : curC===CELLYS[u.ref])?'sel':''}" onclick="avDraft.celly='${u.ref}';paintAvatarEditor()">${CELLYS[u.ref].ico} ${CELLYS[u.ref].name}</button>`).join('') : '<div class="sk-desc">🔒 First celebration at 5K lifetime touches</div>'}</div>
   `;
 }
 function saveAvatar() {
@@ -2625,15 +2723,18 @@ function nextReveal() {
   ov.classList.add('open');
   if (revealCur.type === 'done') return showDone(revealCur);
   const front = document.getElementById('rvFront');
-  if (revealCur.type === 'rank') {
+  const sf = seasonRevealFront(revealCur);
+  if (sf) { front.style.setProperty('--rv-color', sf.color); front.innerHTML = sf.html; }
+  else if (revealCur.type === 'rank') {
     const r = revealCur.rank;
     front.style.setProperty('--rv-color', r.color);
-    front.innerHTML = `<div class="rv-eyebrow">RANK UP</div><div class="rv-art">🏆</div><div class="rv-big">${r.name}</div><div class="rv-sub">You moved up a level. Keep the streak alive.</div>`;
+    front.innerHTML = revealCur.main
+      ? `<div class="rv-eyebrow">RANK UP · ${seasonLabel(seasonOf())}</div><div class="rv-art">⬆️</div><div class="rv-big">${r.main}</div><div class="rv-sub">${r.team}. A whole new level. Keep the streak alive.</div>`
+      : `<div class="rv-eyebrow">${seasonLabel(seasonOf())}</div><div class="rv-art">🎽</div><div class="rv-big" style="font-size:26px">MADE ${r.team}</div><div class="rv-sub">${r.name}. Next team is closer than you think.</div>`;
   } else {
-    const m = revealCur.unlock;
-    front.style.setProperty('--rv-color', m.id==='samba' ? '#f7d117' : '#39ff14');
-    const art = m.id==='samba' ? jerseySVG(SAMBA) : (m.id==='avatar' ? jerseySVG(getAvatar(currentPlayer, currentPlayer.color||'#4fc3f7')) : m.ico);
-    front.innerHTML = `<div class="rv-eyebrow">DAY ${m.day} UNLOCK</div><div class="rv-art">${art}</div><div class="rv-big" style="font-size:26px">${m.reveal}</div><div class="rv-sub">${m.sub}</div>`;
+    const u = revealCur.unlock;
+    front.style.setProperty('--rv-color', u.kind==='kit' ? KITS[u.ref].primary : u.kind==='title' ? '#facc15' : '#39ff14');
+    front.innerHTML = `<div class="rv-eyebrow">${uAt(u)} · NEW ${uKind(u)}</div><div class="rv-art">${uArt(u, currentPlayer, false)}</div><div class="rv-big" style="font-size:26px">${uName(u)}</div><div class="rv-sub">${u.sub}</div>`;
   }
   ov.classList.add('shake');
   sfx('build');
@@ -2649,16 +2750,17 @@ function flipPack() {
 function showDone(d) {
   const ov = document.getElementById('reveal'), p = currentPlayer;
   ov.classList.add('plain');
-  const have = getUnlocks(p.id), next = MILESTONES.find(m => !have.includes(m.id)), b = bestStreak(p);
-  const nextTxt = next ? `${Math.max(0,next.day-b)} more day${next.day-b===1?'':'s'} to unlock ${next.id==='samba'?'a mystery kit 🔒':next.reveal.toLowerCase()}` : 'All streak unlocks earned 👑';
+  const nextTxt = '🔓 ' + nextUnlockTxt(p), cel = activeCelly(p);
   document.getElementById('doneWrap').innerHTML = `
-    <div class="done-flame">🔥</div>
+    ${cel ? `<div class="celly">${cel.ico}</div><div style="font-size:11px;letter-spacing:2px;color:var(--sub);font-weight:800">${cel.name}</div>` : '<div class="done-flame">🔥</div>'}
     <div class="done-title">DONE FOR TODAY</div>
     <div class="done-stats">
       <div class="done-stat"><b>+${d.xp}</b><span>XP</span></div>
       <div class="done-stat"><b>${liveStreak(p)}</b><span>DAY STREAK</span></div>
       <div class="done-stat"><b>${(calcHistToday())}</b><span>TOUCHES</span></div>
     </div>
+    ${d.parts ? `<div class="xpb"><span>Session</span><b>+${d.parts.base}</b>${d.parts.boost?`<span>🔥 Streak boost</span><b>+${d.parts.boost}</b>`:''}${d.parts.extra?`<span>PBs, milestones, juggles</span><b>+${d.parts.extra}</b>`:''}${d.parts.quests?`<span>✅ Quests</span><b>+${d.parts.quests}</b>`:''}${d.parts.cut?`<span>Daily max reached</span><b>-${d.parts.cut}</b>`:''}</div>` : ''}
+    ${(() => { const r = rankOf(p), nx = nextStep(r), gap = nx ? nx.min - seasonXP(p.id) : 999; return gap <= 60 ? `<div class="ss-next hot" style="margin:10px auto 0;max-width:300px">🔥 So close: ${gap} XP to ${nx.name}. Go again?</div>` : `<div style="font-size:12px;color:var(--sub);margin-top:8px">${r.name}${nx?` · ${(nx.min - seasonXP(p.id)).toLocaleString()} XP to ${nx.name}`:''}</div>`; })()}
     ${d.pb?`<div style="color:var(--green);font-weight:800;margin-top:6px">🔥 NEW JUGGLE PB: ${d.pb} IN A ROW</div>`:''}
     ${d.jmin?`<div style="color:var(--green);font-weight:700;margin-top:2px">🎯 Daily juggle minimum hit +${JUGGLE_BONUS_XP} XP</div>`:''}
     ${(d.milestones||[]).map(m=>`<div style="color:var(--accent);font-weight:900;margin-top:2px">🏁 ${m.toLocaleString()} TOUCHES TODAY</div>`).join('')}
@@ -2713,8 +2815,7 @@ function updateJuggleBar() {
 // ─── PARENT OVERSIGHT LINE ────────────────────────────
 function statusLine(p) {
   const today = localStorage.getItem(`sfc_lastlog_${p.id}`) === localDate();
-  const have = getUnlocks(p.id), next = MILESTONES.find(m => !have.includes(m.id)), b = bestStreak(p);
-  const unlockTxt = next ? `Next unlock: ${next.id==='samba'?'Mystery kit':next.reveal.toLowerCase()} in ${Math.max(0,next.day-b)} day${next.day-b===1?'':'s'}` : 'All streak unlocks earned';
+  const nu = nextUnlocks(p,1)[0], unlockTxt = nu ? `Next: ${nu.mystery?'mystery '+uKind(nu).toLowerCase():uName(nu)} · ${uLeft(p,nu)}` : 'Unlock Road complete';
   return `<div style="margin-top:10px;display:flex;justify-content:space-between;gap:8px;font-size:11px;font-weight:700">
     <span style="color:${today?'var(--green)':'var(--sub)'}">${today?'✅ Trained today':'⏳ Not yet today'}</span>
     <span style="color:var(--sub)">🔓 ${unlockTxt}</span></div>`;
@@ -2769,7 +2870,7 @@ function testPreviewReveals() {
   currentPlayer = currentPlayer || players[0];
   showReveals([
     {type:'rank', rank:RANKS[1]},
-    ...MILESTONES.map(m=>({type:'unlock', unlock:m})),
+    ...UNLOCKS.slice(0,4).map(u=>({type:'unlock', unlock:u})),
     {type:'done', xp:300, full:true, pb:0},
   ]);
 }
@@ -3200,10 +3301,11 @@ function commitSession() {
   const jBonus = (juggleTotal >= juggleMin(p) && !localStorage.getItem(jKey)) ? JUGGLE_BONUS_XP : 0;
   if (jBonus) localStorage.setItem(jKey, '1');
   const pbNames = S.mode==='goal' ? [] : S.results.filter(r=>r.pb).map(r=>SKILLS[r.skill].name);
-  const rankBefore = getRank(p.xp||0).name, oldPB = getJugglePB();
+  const rankBefore = rankOf(p), oldPB = getJugglePB();
   applyStreak(p, today);
   const mult = streakMult(p.streak||0);
-  const rawXP = Math.round(sessionXP(p, items, S.mode) * mult) + jBonus + milestones.length*15 + pbNames.length*10;
+  const baseXP = sessionXP(p, items, S.mode), boostXP = Math.round(baseXP * mult) - baseXP, extraXP = jBonus + milestones.length*15 + pbNames.length*10;
+  const rawXP = baseXP + boostXP + extraXP;
   const capXP = capDailyXP(p.id, today, rawXP, Math.round(DAILY_XP_CAP * mult));
   if (juggle > oldPB) { localStorage.setItem(`sfc_juggle_${p.id}`, String(juggle)); p.juggle_pb = juggle; }
   addHistory(p.id, today, touches);
@@ -3226,11 +3328,13 @@ function commitSession() {
     if (n >= 5) levelHint = `You're crushing ${LEVELS[levelIdx(p)]} sessions. Ask a parent about moving up to ${LEVELS[levelIdx(p)+1]}.`;
   }
   const fresh = newUnlocks(p);
+  recordSeason(p);
+  const reveals = [], rankAfter = rankOf(p);
+  if (rankAfter.idx > rankBefore.idx) reveals.push({type:'rank', rank:rankAfter, main:rankAfter.mi > rankBefore.mi});
+  reveals.push(...seasonUnlocks(p, rankBefore, rankAfter));
   if (deviceToken()) callOrQueue('sfc_log_session', {p_token:deviceToken(), p_player:p.id, p_session:session, p_state:playerState(p)});
-  const reveals = [], rankAfter = getRank(p.xp||0);
-  if (rankAfter.name !== rankBefore) reveals.push({type:'rank', rank:rankAfter});
   fresh.forEach(u => reveals.push({type:'unlock', unlock:u}));
-  reveals.push({type:'done', xp:xpEarned, capped:capXP<rawXP, mult, quests:quest.done, qbonus:quest.bonus, full:session.full_session, pb:(juggle>oldPB&&juggle>0)?juggle:0, jmin:jBonus>0, milestones, pbs:pbNames, levelHint});
+  reveals.push({type:'done', xp:xpEarned, parts:{base:baseXP, boost:boostXP, extra:extraXP, quests:quest.xp, cut:Math.max(0,rawXP-capXP)}, capped:capXP<rawXP, mult, quests:quest.done, qbonus:quest.bonus, full:session.full_session, pb:(juggle>oldPB&&juggle>0)?juggle:0, jmin:jBonus>0, milestones, pbs:pbNames, levelHint});
   clearSess(); closeSess();
   document.getElementById('juggleToday').value = ''; document.getElementById('juggleStreak').value = ''; saveWip();
   renderHome(); renderProfile(); renderSkillsList(); renderCrew();
@@ -3297,7 +3401,7 @@ const QUEST_POOL = {
   touches: {ico:'⚽', xp:40, need:p => Math.max(250, Math.round(expectedTouches(p)*.75/50)*50), label:n => `Hit ${n.toLocaleString()} touches`, val:(p,q) => todayTouches()},
   allbox:  {ico:'✅', xp:40, need:() => 1, label:() => 'Check every box in your session', val:(p,q) => q.allbox||0},
   juggle:  {ico:'🎯', xp:30, need:p => juggleMin(p), label:n => `Juggle ${n} total`, val:(p,q) => q.juggle||0},
-  wall:    {ico:'🧱', xp:30, need:p => Math.max(30, Math.round(expectedTouches(p)*.1/10)*10), label:n => `${n} wall passes`, val:(p,q) => q.wall||0},
+  wall:    {ico:'🧱', xp:30, need:p => Math.max(30, Math.round(expectedTouches(p)*.07/10)*10), label:n => `${n} wall passes`, val:(p,q) => q.wall||0},
   moves:   {ico:'🌀', xp:30, need:p => Math.max(30, Math.round(expectedTouches(p)*.1/10)*10), label:n => `${n} skill-move reps`, val:(p,q) => q.mv||0},
 };
 function questKey(p) { return `sfc_q_${p.id}_${localDate()}`; }
@@ -3414,6 +3518,102 @@ let betaTaps = 0, betaTimer = null;
 function betaTap() {
   betaTaps++; clearTimeout(betaTimer); betaTimer = setTimeout(() => betaTaps = 0, 1500);
   if (betaTaps >= 5) { betaTaps = 0; const on = localStorage.getItem('sfc_beta') !== '1'; localStorage.setItem('sfc_beta', on ? '1' : '0'); showToast(on ? 'Test tools ON' : 'Test tools OFF'); renderParentPortal(); }
+}
+
+// ─── SEASONS: 8-week seasons, 21 team-tier ranks, exclusive kits ───
+const SEASON1_START = '2026-10-12', SEASON_DAYS = 56;
+const SEASON_NAMES = ['Preseason','Kickoff','Winter Cup','Spring Ball','Summer Heat','Fall Classic','Golden Boot'];
+// Season-exclusive kits (generic colors, no crests). Only Preseason seeded; later seasons get theirs when designed.
+const SEASON_KITS = [
+  {primary:'#334155', trim:'#f97316', pattern:'stripes'},  // Preseason
+];
+const MAIN_RANKS = [['GRASSROOTS','#6b7fa0'],['REC','#22c55e'],['SELECT','#4fc3f7'],['ACADEMY','#a78bfa'],['ECNL','#f59e0b'],['MLS NEXT','#f97316'],['PRO','#ef4444']];
+const TEAMS = ['3RD TEAM','2ND TEAM','1ST TEAM'];
+// 21 steps; a daily trainer reaches PRO 1st Team around day 48 of 56
+const LADDER = (() => { const L = []; let t = 0, s = 300;
+  MAIN_RANKS.forEach(([m,c], mi) => TEAMS.forEach((tm, ti) => { L.push({idx:L.length, main:m, mi, team:tm, ti, name:`${m} ${tm}`, color:c, min:t}); t += Math.round(s/50)*50; s *= 1.13; }));
+  return L; })();
+const KIT_RANK = 9, SILVER_RANK = 12, GOLD_RANK = 20;   // ACADEMY 3rd = season kit, ECNL = silver, PRO 1st = gold
+
+function dnum(ds) { const [y,m,d] = ds.split('-').map(Number); return Math.floor(Date.UTC(y,m-1,d)/86400000); }
+function dstr(n) { const x = new Date(n*86400000); return x.toISOString().slice(0,10); }
+function seasonOf(date) {
+  const d = dnum(date || localDate()), s1 = dnum(SEASON1_START);
+  if (d < s1) return {n:0, name:'Preseason', start:null, end:dstr(s1-1), daysLeft:s1-d};
+  const n = Math.floor((d - s1)/SEASON_DAYS) + 1, st = s1 + (n-1)*SEASON_DAYS, en = st + SEASON_DAYS - 1;
+  return {n, name:SEASON_NAMES[((n-1)%6)+1], start:dstr(st), end:dstr(en), daysLeft:en - d + 1};
+}
+function seasonLabel(s) { return s.n ? `SEASON ${s.n} · ${s.name.toUpperCase()}` : 'PRESEASON'; }
+function seasonKit(n) { return SEASON_KITS[n] || null; }
+function kitRank(n) { return n === 0 ? 6 : KIT_RANK; }   // Preseason is short: kit at SELECT
+function seasonXP(id, s, excludeToday) {
+  s = s || seasonOf(); const xd = xpDays(id), today = localDate();
+  const lo = s.start ? dnum(s.start) : -1e9, hi = dnum(s.end);
+  return Object.entries(xd).reduce((a,[d,v]) => { const n = dnum(d); return (n >= lo && n <= hi && !(excludeToday && d === today)) ? a + (v||0) : a; }, 0);
+}
+function seasonRank(xp) { let r = LADDER[0]; for (const s of LADDER) if (xp >= s.min) r = s; return r; }
+function nextStep(r) { return LADDER[r.idx + 1] || null; }
+function rankOf(p) { return seasonRank(seasonXP(p.id)); }
+
+// Trophies (peak rank per season), kept on the server in sfc_players.seasons
+function getSeasons(id) { return jget(`sfc_seasons_${id}`, {}); }
+function recordSeason(p) {
+  const s = seasonOf(), xp = seasonXP(p.id, s), r = seasonRank(xp), all = getSeasons(p.id), cur = all[s.n] || {};
+  if (xp >= (cur.xp||0)) { all[s.n] = {xp, peak:r.name, idx:r.idx}; localStorage.setItem(`sfc_seasons_${p.id}`, JSON.stringify(all)); }
+  return all;
+}
+// Season unlocks: kit at ACADEMY. Returns reveal cards for anything newly earned.
+function seasonUnlocks(p, before, after) {
+  const s = seasonOf(), out = [], key = `kit_s${s.n}`, have = getUnlocks(p.id);
+  if (seasonKit(s.n) && after.idx >= kitRank(s.n) && !have.includes(key)) { have.push(key); localStorage.setItem(`sfc_unlocks_${p.id}`, JSON.stringify(have)); out.push({type:'kit', season:s}); }
+  if (before.idx < SILVER_RANK && after.idx >= SILVER_RANK) out.push({type:'trophy', tier:'silver', season:s});
+  if (before.idx < GOLD_RANK && after.idx >= GOLD_RANK) out.push({type:'trophy', tier:'gold', season:s});
+  return out;
+}
+// First open in a new season: trophy card for the one that just ended
+function seasonEndReveals(p) {
+  const s = seasonOf(), k = `sfc_seasonseen_${p.id}`, seen = parseInt(localStorage.getItem(k) ?? '-1');
+  localStorage.setItem(k, String(s.n));
+  if (seen < 0 || seen >= s.n) return [];
+  const prev = getSeasons(p.id)[seen];
+  return prev && prev.xp > 0 ? [{type:'seasonEnd', n:seen, data:prev, next:s}] : [];
+}
+function trophyEmoji(idx) { return idx >= GOLD_RANK ? '🏆' : idx >= SILVER_RANK ? '🥈' : idx >= KIT_RANK ? '🥉' : '🎖'; }
+
+// Home: season banner, rank ladder, "almost there"
+function renderSeasonCard() {
+  const p = currentPlayer, el = document.getElementById('seasonCard'); if (!p || !el) return;
+  const s = seasonOf(), xp = seasonXP(p.id, s), r = seasonRank(xp), nx = nextStep(r), have = getUnlocks(p.id);
+  const gap = nx ? nx.min - xp : 0, close = nx && gap <= 60;
+  const sk = seasonKit(s.n), kr = kitRank(s.n);
+  const track = sk ? [[3,'REC','🎽'],[kr,LADDER[kr].main,'👕'],[SILVER_RANK,'ECNL','🥈'],[GOLD_RANK,'PRO 1ST','🏆']] : [[3,'REC','🎽'],[KIT_RANK,'ACADEMY','🎖'],[SILVER_RANK,'ECNL','🥈'],[GOLD_RANK,'PRO 1ST','🏆']];
+  el.innerHTML = `<div class="ss-top"><div class="ss-name">${seasonLabel(s)}</div><div class="ss-left">${s.n ? `${s.daysLeft} day${s.daysLeft===1?'':'s'} left` : `Season 1 starts in ${s.daysLeft} day${s.daysLeft===1?'':'s'}`}</div></div>
+    <div class="ss-rank"><div class="ss-badge" style="background:${r.color}22;border-color:${r.color}88;color:${r.color}">${r.main}</div><div><div class="ss-team">${r.team}</div><div class="ss-xp">${xp.toLocaleString()} season XP</div></div></div>
+    <div class="ss-bar"><div style="width:${nx ? Math.min(100,(xp - r.min)/(nx.min - r.min)*100) : 100}%;background:${r.color}"></div></div>
+    <div class="ss-next ${close?'hot':''}">${nx ? (close ? `🔥 ${gap} XP to ${nx.name}! One bonus round gets it.` : `NEXT: <b style="color:${nx.color}">${nx.name}</b> · ${gap.toLocaleString()} XP to go`) : '👑 PRO 1ST TEAM. Top of the season.'}</div>
+    <div class="ss-track">${track.map(([i,l,ic]) => { const got = r.idx >= i; const kit = sk && i===kr;
+      return `<div class="ss-t ${got?'got':''}"><div class="ss-ti">${kit ? `<div class="ss-kit">${jerseySVG({...sk, number:''}, !got && !have.includes('kit_s'+s.n))}</div>` : ic}</div><span>${l}</span></div>`; }).join('')}</div>
+    ${(() => { const st = liveStreak(p), m = streakMult(st), stp = nextMultStep(st); return `<div class="rk-mult ${m>1?'on':''}">${m>1?`🔥 STREAK BOOST x${m} XP`:''}${stp?`${m>1?' · ':'🔥 '}Day ${stp[0]} streak = x${stp[1]} XP`:''}</div>`; })()}
+    <div class="ss-foot">${!sk ? 'Season kits drop later. Unlock Road rewards never reset.' : have.includes('kit_s'+s.n) ? `✓ ${s.n ? 'Season '+s.n : 'Preseason'} kit earned` : `Reach ${LADDER[kr].main} to earn the ${s.n ? 'Season '+s.n : 'Preseason'} kit. Gone after ${s.n ? 'this season' : 'Oct 11'}.`}</div>`;
+}
+// Reveal cards for kits, trophies, season end
+function seasonRevealFront(c) {
+  if (c.type === 'kit') return {color:seasonKit(c.season.n).primary, html:`<div class="rv-eyebrow">${seasonLabel(c.season)} EXCLUSIVE</div><div class="rv-art">${jerseySVG({...seasonKit(c.season.n), number:(getAvatar(currentPlayer,'#4fc3f7').number||'10')})}</div><div class="rv-big" style="font-size:26px">SEASON KIT</div><div class="rv-sub">Only earned this season. Wear it from your avatar.</div>`};
+  if (c.type === 'trophy') return {color:c.tier==='gold'?'#facc15':'#cbd5e1', html:`<div class="rv-eyebrow">${seasonLabel(c.season)}</div><div class="rv-art">${c.tier==='gold'?'🏆':'🥈'}</div><div class="rv-big" style="font-size:26px">${c.tier==='gold'?'PRO 1ST TEAM':'ECNL REACHED'}</div><div class="rv-sub">${c.tier==='gold'?'Gold trophy. The top of the season.':'Silver trophy for your cabinet.'}</div>`};
+  if (c.type === 'seasonEnd') return {color:'#facc15', html:`<div class="rv-eyebrow">${c.n ? 'SEASON '+c.n+' COMPLETE' : 'PRESEASON COMPLETE'}</div><div class="rv-art">${trophyEmoji(c.data.idx)}</div><div class="rv-big" style="font-size:24px">${c.data.peak}</div><div class="rv-sub">${c.data.xp.toLocaleString()} XP. Saved to your trophy cabinet. ${seasonLabel(c.next)} starts now: everyone back to Grassroots, streak stays.</div>`};
+  return null;
+}
+// Profile: lifetime XP + trophy cabinet
+function renderTrophies() {
+  const p = currentPlayer, el = document.getElementById('trophyCard'); if (!p || !el) return;
+  const all = recordSeason(p), cur = seasonOf().n, keys = Object.keys(all).map(Number).sort((a,b)=>b-a);
+  el.innerHTML = `<div class="badges-title">TROPHY CABINET</div><div class="tr-life">Lifetime XP <b>${(p.xp||0).toLocaleString()}</b></div>
+    ${keys.length ? keys.map(n => { const t = all[n], kit = getUnlocks(p.id).includes('kit_s'+n) && seasonKit(n);
+      return `<div class="tr-row"><div class="tr-ic">${trophyEmoji(t.idx)}</div><div style="flex:1"><div class="tr-s">${n ? 'SEASON '+n+' · '+SEASON_NAMES[((n-1)%6)+1].toUpperCase() : 'PRESEASON'}${n===cur?' · NOW':''}</div><div class="tr-p">${t.peak}</div></div>${kit?`<div class="tr-kit">${jerseySVG({...seasonKit(n), number:''})}</div>`:''}</div>`; }).join('') : '<div class="tr-life">Finish a session to start your first trophy.</div>'}`;
+}
+// Crew: who ranked up today
+function crewRankUps(roster) {
+  return roster.filter(p => !p.bot).map(p => { const a = seasonRank(seasonXP(p.id, null, true)), b = seasonRank(seasonXP(p.id)); return b.idx > a.idx ? {p, r:b} : null; }).filter(Boolean);
 }
 
 // ─── SERVICE WORKER ───────────────────────────────────
