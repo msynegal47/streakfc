@@ -1,4 +1,4 @@
-const CACHE = 'streakfc-v19';
+const CACHE = 'streakfc-v20';
 const OFFLINE_URLS = ['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png', '/logo.png', '/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {

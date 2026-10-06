@@ -73,6 +73,8 @@ tr:hover td{background:#0c121c}
 .mode-btn.on[data-m=live]{border-color:var(--green);color:var(--green)}.mode-btn.on[data-m=sandbox]{border-color:#1ab3bd;color:#1ab3bd;background:#1ab3bd1a}
 .sandbox-banner{background:#1ab3bd14;border:1px dashed #1ab3bd88;color:#9fe3e8;border-radius:12px;padding:10px 14px;font-size:12px;margin-bottom:16px}
 .hm-table td,.hm-table th{text-align:center;padding:8px 6px}.hm{font-weight:900;color:#e8fbfc;border:2px solid var(--bg2);border-radius:6px}.hm-empty{background:transparent}
+.grp-row{font-size:10px;letter-spacing:2px;font-weight:900;color:#1ab3bd;background:#1ab3bd0f;padding:7px 8px}
+textarea{font:inherit;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:9px 11px;outline:none;resize:vertical}
 .kid-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
 .kt{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--sub);border-radius:10px;padding:10px;font-size:12px;display:flex;flex-direction:column;gap:4px}
 .kt span{color:var(--sub);font-size:11px}.kt.hot{border-left-color:var(--green)}.kt.warm{border-left-color:var(--amber)}.kt.cold{border-left-color:var(--red)}.kt.invited{opacity:.5;border-left-style:dashed}
@@ -122,7 +124,7 @@ const FOCUS = {technical:{name:'Technical',ico:'⚽',touches:1200},mixed:{name:'
 const FEELS = ['😫','😐','🙂','🔥'];
 const MODE = {goal:'Home session', timed:'Timed test', recovery:'Recovery', parent:'Parent log', epa:'EPA session', checkin:'Check-in', weekly:'Week log'};
 
-let session = null, D = null, view = 'overview', sortKey = {};
+let session = null, REAL = null, D = null, view = 'overview', sortKey = {};
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt = n => (n||0).toLocaleString();
@@ -181,13 +183,14 @@ async function refresh(silent) {
   const raw = await rpc('sfc_admin_data', {p_days:60});
   const fams = Object.fromEntries(raw.families.map(f => [f.id, f]));
   const players = raw.players.map(p => ({...p, fam:fams[p.family_id]||{}, sess:raw.sessions.filter(s => s.player_id === p.id)}));
-  D = {...raw, fams, players, byId:Object.fromEntries(players.map(p => [p.id, p]))};
+  let notes = {}; try { notes = await rpc('sfc_admin_notes') || {}; } catch(e) {}
+  REAL = D = {...raw, fams, players, notes, byId:Object.fromEntries(players.map(p => [p.id, p]))};
   $('nKids').textContent = players.length; $('nFams').textContent = raw.families.length;
   if (!silent) { render(); toast('Refreshed'); }
 }
 document.querySelectorAll('.nav').forEach(n => n.onclick = () => go(n.dataset.v));
 function go(v) { if (v !== 'coaches' && v !== 'teams' && v !== 'club') coachLens = null; view = v; location.hash = v; document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.v === v)); render(); }
-function render() { $('view').innerHTML = ({overview:vOverview, kids:vKids, families:vFamilies, activity:vActivity, epa:vEPA, club:vClub, teams:vTeams, coaches:vCoaches, seats:vSeats})[view](); }
+function render() { D = (dataMode === 'sandbox' && view === 'epa') ? epaMock() : REAL; $('view').innerHTML = ({overview:vOverview, kids:vKids, families:vFamilies, activity:vActivity, epa:vEPA, club:vClub, teams:vTeams, coaches:vCoaches, seats:vSeats})[view](); }
 
 // ── derived ──
 function liveStreak(p) { return (p.last_log === localDate() || p.last_log === daysAgo(1)) ? (p.streak||0) : 0; }
@@ -198,9 +201,9 @@ function kidCell(p) { return `<div class="kid" onclick="openKid('${p.id}')"><spa
 function progChips(p) { return (p.programs||[]).map(e => `<span class="chip c-teal">${esc((e.id||'').toUpperCase())}${e.group?' · '+esc(e.group[0].toUpperCase()):''}</span>`).join('') || '<span class="muted">-</span>'; }
 function detail(s) {
   const r = (s.rounds||[])[0] || {};
-  if (r.epa) { const f = FOCUS[r.epa.focus]; return `${f?f.ico+' '+f.name:esc(r.epa.focus)} · effort <b>${r.epa.effort}</b> · ${FEELS[r.epa.feel]||''}${r.epa.note?` · <span class="muted">"${esc(r.epa.note)}"</span>`:''}`; }
+  if (r.epa) { const f = FOCUS[r.epa.focus]; return `${r.epa.coach?`<span class="chip c-sub">${esc(r.epa.coach)}</span>`:''}${f?f.ico+' '+f.name:esc(r.epa.focus)} · effort <b>${r.epa.effort}</b> · ${FEELS[r.epa.feel]||''}${r.epa.note?` · <span class="muted">"${esc(r.epa.note)}"</span>`:''}`; }
   if (r.ready) return `Ready <b>${r.ready.score}/5</b> <span class="muted">sleep ${r.ready.sleep} · energy ${r.ready.energy} · legs ${r.ready.legs} · mood ${r.ready.mood}</span>`;
-  if (r.weekly) return `<span class="muted">Best:</span> ${esc(r.weekly.best)} <span class="muted">· Hardest:</span> ${esc(r.weekly.hard)} <span class="muted">· Goal:</span> ${esc(r.weekly.goal)}`;
+  if (r.weekly) return `<span class="muted">Best:</span> ${esc(r.weekly.best)} <span class="muted">· Hardest:</span> ${esc(r.weekly.hard)} <span class="muted">· Goal:</span> ${esc(r.weekly.goal)}${r.weekly.hurt && r.weekly.hurt.length ? ` <span class="chip c-red">SORE: ${r.weekly.hurt.map(esc).join(', ').toUpperCase()}</span>` : ''}`;
   const n = (s.rounds||[]).length; return n ? `<span class="muted">${n} drill${n>1?'s':''}</span>` : '';
 }
 function sortRows(key, rows, defs) {
@@ -284,7 +287,7 @@ function vEPA() {
   const avg = a => a.length ? (a.reduce((x,y)=>x+y,0)/a.length).toFixed(1) : '-';
   const notIn = D.players.filter(p => !E.includes(p));
   const nextOff = PROGRAMS.epa.off.find(([a,b]) => b >= today);
-  return `<div class="hdr"><div><h2>EPA <span class="chip c-teal">BETA</span></h2><div class="s">Tue · Wed · Thu · ${PROGRAMS.epa.mins} min · ${E.length} enrolled${nextOff?` · next break: ${nextOff[2]} (${nextOff[0].slice(5).replace('-','/')})`:''}</div></div></div>
+  return `${D.mock ? `<div class="sandbox-banner">🧪 <b>SANDBOX EPA</b> · 24 fake players (12 younger, 12 older), 4 weeks of logs. Switch DATA to LIVE to see Caysen and Emmitt.</div>` : ''}<div class="hdr"><div><h2>EPA <span class="chip c-teal">BETA</span></h2><div class="s">Tue · Wed · Thu · ${PROGRAMS.epa.mins} min · ${E.length} enrolled${nextOff?` · next break: ${nextOff[2]} (${nextOff[0].slice(5).replace('-','/')})`:''}</div></div></div>
   <div class="kpis">
     <div class="kpi"><b>${E.length}</b><span>ENROLLED</span></div>
     <div class="kpi"><b>${wkLogs.length}/${E.length * due.length || 0}</b><span>LOGGED THIS WEEK</span></div>
@@ -301,35 +304,89 @@ function vEPA() {
     <div class="legend" style="margin-top:8px">Ball-heavy focus (Technical, Mixed) = light home session on EPA days. Speed or tactical = home session stays ball-focused. Breaks = heavier home days.</div></div>
   <div class="card"><div class="card-h">ROSTER</div>
   <table><tr><th>KID</th><th>GROUP</th><th>THIS WEEK</th><th>READY (LAST / 7D)</th><th>LAST EPA</th><th>LAST WEEK LOG</th><th></th></tr>
-  ${E.map(p => { const L = p.sess, ck = L.filter(s => s.mode === 'checkin'), last = L.find(s => s.mode === 'epa'), wl = L.find(s => s.mode === 'weekly');
+  ${['younger','older'].map(g => { const G = E.filter(p => (epaOf(p).group||'younger') === g); return G.length ? `<tr><td colspan="7" class="grp-row">${g.toUpperCase()} · ${G.length} PLAYERS</td></tr>` + G.map(p => { const L = p.sess, ck = L.filter(s => s.mode === 'checkin'), last = L.find(s => s.mode === 'epa'), wl = L.find(s => s.mode === 'weekly');
     const r7 = ck.filter(s => s.date >= lo7).map(s => (s.rounds||[])[0]?.ready?.score).filter(Boolean);
     const lastR = ck[0] && (ck[0].rounds||[])[0]?.ready?.score;
-    return `<tr><td>${kidCell(p)}<div class="muted small" style="margin-left:33px">${esc(p.age_group)}</div></td>
+    return `<tr><td>${kidCell(p)}<div class="muted small" style="margin-left:33px">${esc(p.age_group)}${p.pos1?` · <b style="color:var(--text)">${esc(p.pos1)}</b>`:''}${p.pos2?` / ${esc(p.pos2)}`:''}${D.notes && D.notes[p.id] ? ' · 📝' : ''}</div></td>
       <td><select onchange="setGroup('${p.id}',this.value)">${['younger','older'].map(g => `<option ${(epaOf(p).group||'younger')===g?'selected':''}>${g}</option>`).join('')}</select></td>
       <td><div class="ticks">${wk.map((d,i) => PROGRAMS.epa.days.includes(wdOf(d)) ? `<div class="tick ${L.some(s=>s.mode==='epa'&&s.date===d)?'on':''} ${epaOff(d)?'off':''} ${d===today?'today':''}" title="${d}">${['M','T','W','T','F','S','S'][i]}</div>` : '').join('')}</div></td>
       <td>${lastR ? `<span class="chip ${lastR>=4?'c-green':lastR>=3?'c-amber':'c-red'}">${lastR}</span>` : '<span class="muted">-</span>'} <span class="muted small">${avg(r7)}</span></td>
       <td class="small">${last ? `<span class="muted">${last.date.slice(5).replace('-','/')}</span> ${detail(last)}` : '<span class="muted">none yet</span>'}</td>
       <td class="small">${wl ? detail(wl) : '<span class="muted">-</span>'}</td>
-      <td><button class="btn ghost sm" onclick="unenroll('${p.id}')">Remove</button></td></tr>`; }).join('') || '<tr><td colspan="7" class="empty">Nobody enrolled yet. Add kids below.</td></tr>'}</table>
+      <td style="white-space:nowrap"><button class="btn ghost sm" onclick="openKid('${p.id}')">Profile</button> <button class="btn ghost sm" onclick="unenroll('${p.id}')">Remove</button></td></tr>`; }).join('') : ''; }).join('') || '<tr><td colspan="7" class="empty">Nobody enrolled yet. Add kids below.</td></tr>'}</table>
   ${notIn.length ? '' : '<div class="legend" style="margin-top:12px">Every kid is enrolled.</div>'}<div class="form-row" style="margin-top:14px;${notIn.length?'':'display:none'}"><select id="addKid">${notIn.map(p => `<option value="${p.id}">${esc(p.nickname)} · ${esc(p.age_group)} · ${esc(p.fam.parent_name||'')}</option>`).join('')}</select>
-    <select id="addGroup"><option>younger</option><option>older</option></select>
+    <select id="addGroup"><option value="auto">Group by age (U13+ older)</option><option>younger</option><option>older</option></select>
     <button class="btn" onclick="enroll()" ${notIn.length?'':'disabled'}>ENROLL IN EPA</button>
     <span class="legend">Kids see the EPA card next time their app loads.</span></div></div>
   <div class="card"><div class="card-h">CALENDAR (TENTATIVE · GILBERT PUBLIC SCHOOLS)</div>
     <div class="small">${PROGRAMS.epa.off.map(([a,b,n]) => `<span class="chip ${b<today?'c-sub':'c-amber'}">${esc(n)} · ${a.slice(5).replace('-','/')}${a!==b?' to '+b.slice(5).replace('-','/'):''}</span>`).join(' ')}</div>
     <div class="legend" style="margin-top:8px">Season ${PROGRAMS.epa.start} to ${PROGRAMS.epa.end}. Fall break left out because EPA ran this week. Lesson plans: coming once McGhee weighs in.</div></div>`;
 }
-async function saveProgs(p, programs) { await rpc('sfc_admin_set_programs', {p_player:p.id, p_programs:programs}); p.programs = programs; }
+function autoGroup(a) { const n = parseInt(String(a||'').replace(/\D/g,'')); return n >= 13 ? 'older' : 'younger'; }
+async function saveProgs(p, programs) { if (D.mock) { p.programs = programs; toast('Sandbox: changed here only'); return; } await rpc('sfc_admin_set_programs', {p_player:p.id, p_programs:programs}); p.programs = programs; }
 async function enroll() {
   const p = D.byId[$('addKid').value]; if (!p) return;
   const cur = enrolled()[0] ? epaOf(enrolled()[0]) : {};
-  try { await saveProgs(p, [...(p.programs||[]).filter(e => e.id !== 'epa'), {id:'epa', group:$('addGroup').value, focus:cur.focus||'', note:cur.note||''}]); toast(`${p.nickname} enrolled`); render(); } catch(e) { toast('Failed: ' + e.message); }
+  try { await saveProgs(p, [...(p.programs||[]).filter(e => e.id !== 'epa'), {id:'epa', group:$('addGroup').value === 'auto' ? autoGroup(p.age_group) : $('addGroup').value, focus:cur.focus||'', note:cur.note||''}]); toast(`${p.nickname} enrolled`); render(); } catch(e) { toast('Failed: ' + e.message); }
 }
 async function unenroll(id) { const p = D.byId[id]; if (!confirm(`Remove ${p.nickname} from EPA? Their logs stay.`)) return; try { await saveProgs(p, (p.programs||[]).filter(e => e.id !== 'epa')); toast('Removed'); render(); } catch(e) { toast('Failed: ' + e.message); } }
 async function setGroup(id, g) { const p = D.byId[id]; try { await saveProgs(p, (p.programs||[]).map(e => e.id === 'epa' ? {...e, group:g} : e)); toast('Saved'); } catch(e) { toast('Failed: ' + e.message); } }
 async function applyFocus() {
   const focus = $('fFocus').value, note = $('fNote').value.trim();
+  if (D.mock) { enrolled().forEach(p => p.programs = p.programs.map(e => e.id === 'epa' ? {...e, focus, note} : e)); toast('Sandbox: changed here only'); return render(); }
   try { const n = await rpc('sfc_admin_epa_focus', {p_focus:focus, p_note:note}); enrolled().forEach(p => p.programs = p.programs.map(e => e.id === 'epa' ? {...e, focus, note} : e)); toast(`Focus set for ${n} kid${n===1?'':'s'}`); render(); } catch(e) { toast('Failed: ' + e.message); }
+}
+
+// ── player profile edits ──
+const POSITIONS = ['GK','CB','FB','CDM','CM','CAM','W','ST'];
+function posSel(p, k) { return `<select onchange="savePos('${p.id}','${k}',this.value)"><option value="">-</option>${POSITIONS.map(x => `<option ${p[k]===x?'selected':''}>${x}</option>`).join('')}</select>`; }
+async function adminPatch(p, patch, msg) {
+  if (D.mock) { toast('Sandbox: changed here only'); return true; }
+  try { await rpc('sfc_admin_update_player', {p_player:p.id, p_patch:patch}); toast(msg||'Saved'); return true; } catch(e) { toast('Failed: ' + e.message); return false; }
+}
+async function savePos(id, k, v) { const p = D.byId[id]; if (await adminPatch(p, {[k]:v})) { p[k] = v; render(); } }
+async function saveGoalComment(id) { const p = D.byId[id], c = $('gComment').value.trim(); if (await adminPatch(p, {goal_comment:c}, 'Comment saved')) { p.goals = {...(p.goals||{}), coach:c}; } }
+async function saveNote(id) {
+  const focus = $('nFocus').value.trim(), note = $('nNote').value.trim();
+  if (!D.mock) { try { await rpc('sfc_admin_set_note', {p_player:id, p_focus:focus, p_note:note}); toast('Notes saved'); } catch(e) { return toast('Failed: ' + e.message); } } else toast('Sandbox: changed here only');
+  D.notes = D.notes || {}; D.notes[id] = {focus, note, updated_at:new Date().toISOString()}; render();
+}
+
+// ── EPA sandbox: 24 fake players (12 younger, 12 older), 4 weeks of logs ──
+let EPA_MOCK = null;
+function epaMock() {
+  if (EPA_MOCK) return EPA_MOCK;
+  const r = rng(4242), pick = a => a[Math.floor(r() * a.length)], coaches = ['Head Coach', 'Asst. Rivera', 'Asst. Kim'];
+  const NAMES = ['Leo','Mateo','Liam','Noah','Diego','Ethan','Lucas','Gabe','Kai','Owen','Jace','Eli','Adrian','Nico','Marco','Isaac','Ryan','Theo','Jonah','Caleb','Andres','Miles','Zane','Luca'];
+  const NOTES_E = ['first touch out of feet','scanning before receiving','left foot finishing','turning out of pressure','1v1 moves at speed','passing on the half turn','weighted through balls','defending body shape'];
+  const GOALS = ['Use my weak foot in games','30-day streak','Score from outside the box','Make the next team up','Juggle 100 in a row','Win more 1v1s','Be a louder communicator','Get faster over 20 yards'];
+  const FOCUSES = ['technical','technical','mixed','speed'], fam = {id:'mockfam', parent_name:'Sandbox'};
+  const players = [], sessions = [], notes = {}, today = localDate();
+  NAMES.forEach((n, i) => {
+    const older = i >= 12, age = older ? 13 + Math.floor(r() * 4) : 9 + Math.floor(r() * 4), id = 'mk' + i;
+    const p = {id, nickname: n + ' ' + String.fromCharCode(65 + Math.floor(r() * 26)) + '.', age_group: 'U' + age, color: pick(['#4fc3f7','#f59e0b','#22c55e','#a78bfa','#ef4444','#ec4899','#14b8a6']),
+      skill_level: pick(['developing','intermediate','advanced']), pos1: pick(POSITIONS.slice(1)), pos2: pick(POSITIONS), family_id: fam.id, fam,
+      programs: [{id:'epa', group: older ? 'older' : 'younger', focus:'technical', note:'Week 7: first touch out of pressure'}],
+      goals: {items: [...GOALS].sort(() => r() - .5).slice(0, 3).map(t => ({t, done: r() < .15})), ...(r() < .4 ? {coach: pick(['Love the weak foot goal. Start there.','Great goals. Streak goal first.','Add one about communication.'])} : {})}, sess: []};
+    if (p.pos2 === p.pos1) p.pos2 = '';
+    const att = .65 + r() * .33, eng = .35 + r() * .55, mood = 2.8 + r() * 1.8;
+    for (let d = 27; d >= 0; d--) {
+      const ds = daysAgo(d), wd = wdOf(ds), wk = Math.floor(d / 7);
+      const add = x => { const row = {player_id:id, family_id:fam.id, date:ds, created_at: ds + 'T' + String(15 + Math.floor(r() * 5)).padStart(2,'0') + ':' + String(Math.floor(r() * 60)).padStart(2,'0') + ':00', ...x}; p.sess.push(row); sessions.push(row); };
+      if (r() < (older ? .7 : .55)) add({mode:'checkin', touches:0, xp:20, rounds:[{ready:(() => { const v = () => Math.max(1, Math.min(5, Math.round(mood + (r() - .5) * 2.2))), q = {sleep:v(), energy:v(), legs:v(), mood:v()}; q.score = Math.round((q.sleep + q.energy + q.legs + q.mood) / 4 * 10) / 10; return q; })()}]});
+      if (PROGRAMS.epa.days.includes(wd) && !epaOff(ds) && r() < att) { const fo = FOCUSES[wk % 4];
+        add({mode:'epa', touches: FOCUS[fo].touches, xp:150, rounds:[{epa:{focus:fo, effort: 5 + Math.floor(r() * 5), feel: Math.min(3, Math.max(0, Math.round(mood - 2 + (r() - .5)))), note: r() < .6 ? pick(NOTES_E) : '', coach: pick(coaches)}}]}); }
+      else if (r() < eng) add({mode:'goal', touches: Math.round((older ? 1300 : 900) * (.6 + r() * .8) / 50) * 50, xp: 200 + Math.floor(r() * 150), rounds:[]});
+      if (wd === 4 && r() < .6) add({mode:'weekly', touches:0, xp:30, rounds:[{weekly:{best: pick(['Scored in small-sided','Won my 1v1s','Better first touch','Coach said my scanning improved']), hard: pick(['Weak foot passing','Keeping up on sprints','Defending big kids','Staying focused']), goal: pick(NOTES_E), hurt: r() < (older ? .25 : .1) ? [pick(['knee','ankle','hamstring','groin','back'])] : []}}]});
+    }
+    p.sess.sort((a,b) => a.created_at < b.created_at ? 1 : -1);
+    const home = p.sess.filter(s => s.mode === 'goal' || s.mode === 'epa'); let st = 0; for (let d = 0; d < 28; d++) { if (home.some(s => s.date === daysAgo(d))) st++; else if (d) break; }
+    Object.assign(p, {streak: st, last_log: home[0] ? home[0].date : null, best_streak: st + Math.floor(r() * 6), total_touches: home.reduce((a,s) => a + s.touches, 0) + Math.floor(r() * 30000), xp: p.sess.reduce((a,s) => a + s.xp, 0)});
+    if (r() < .5) notes[id] = {focus: pick(NOTES_E) + ', ' + pick(NOTES_E), note: pick(['Great attitude, quiet in games. Push him to talk more.','Coachable. Needs to trust left foot.','Leader in older group. Watch load, plays 2 teams.','Low energy on Tuesdays, check sleep.']), updated_at: new Date(Date.now() - r() * 12 * 864e5).toISOString()};
+    players.push(p);
+  });
+  sessions.sort((a,b) => a.created_at < b.created_at ? 1 : -1);
+  return EPA_MOCK = {mock:true, families:[fam], fams:{[fam.id]:fam}, players, sessions, notes, byId:Object.fromEntries(players.map(p => [p.id, p]))};
 }
 
 // ── kid drawer ──
@@ -340,6 +397,16 @@ function openKid(id) {
     <div class="muted small" style="margin:6px 0 14px">${esc(p.age_group)} · ${esc(p.skill_level||'')} · ${esc(p.fam.parent_name||'')} family</div>
     <div class="kpis"><div class="kpi"><b>${liveStreak(p)}</b><span>STREAK</span></div><div class="kpi"><b>${p.best_streak||0}</b><span>BEST</span></div><div class="kpi"><b>${fmtK(p.total_touches)}</b><span>LIFETIME</span></div><div class="kpi"><b>${fmt(p.xp)}</b><span>XP</span></div></div>
     <div class="card"><div class="card-h">TOUCHES · LAST 14 DAYS</div><div class="bars" style="height:90px">${per.map((n,i) => `<div class="bar ${n?'':'zero'}" style="height:${n/mx*100}%" title="${days[i]}: ${n}"></div>`).join('')}</div></div>
+    ${D.mock ? '<div class="sandbox-banner">🧪 Sandbox player. Edits stay on this screen.</div>' : ''}
+    <div class="card"><div class="card-h">PLAYER PROFILE</div>
+      <div class="form-row"><span class="small muted" style="width:90px">Preferred</span>${posSel(p,'pos1')}<span class="small muted">Secondary</span>${posSel(p,'pos2')}</div></div>
+    <div class="card"><div class="card-h">SEASON GOALS <span class="legend">set by kid + parent in the app</span></div>
+      ${((p.goals||{}).items||[]).map(g => `<div class="feed-row">${g.done?'✅':'🎯'} ${esc(g.t)}</div>`).join('') || '<div class="muted small">No goals set yet. Parents add them in Plan & level.</div>'}
+      <div class="form-row" style="margin-top:10px"><input id="gComment" style="flex:1" maxlength="300" placeholder="Coach comment on goals (kid + parent see this)" value="${esc((p.goals||{}).coach||'')}"><button class="btn sm" onclick="saveGoalComment('${p.id}')">SAVE</button></div></div>
+    <div class="card"><div class="card-h">PRIVATE COACH NOTES <span class="chip c-red">NEVER SHOWN TO KIDS OR PARENTS</span></div>
+      <input id="nFocus" style="width:100%;margin-bottom:8px" maxlength="200" placeholder="Focus areas, e.g. weak foot, scanning, defending 1v1" value="${esc((D.notes||{})[p.id]?.focus||'')}">
+      <textarea id="nNote" rows="4" style="width:100%" maxlength="1000" placeholder="Attitude, role, what to watch">${esc((D.notes||{})[p.id]?.note||'')}</textarea>
+      <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center"><span class="legend">${(D.notes||{})[p.id]?.updated_at ? 'Updated ' + new Date(D.notes[p.id].updated_at).toLocaleDateString() : ''}</span><button class="btn sm" onclick="saveNote('${p.id}')">SAVE NOTES</button></div></div>
     <div class="card"><div class="card-h">PROGRAMS</div>${progChips(p)} ${epaOf(p).focus ? `<span class="muted small">focus: ${esc(FOCUS[epaOf(p).focus]?.name||epaOf(p).focus)}</span>` : ''}</div>
     <div class="card"><div class="card-h">LOGS · LAST 60 DAYS</div>${p.sess.map(s => `<div class="feed-row"><div class="t">${esc(s.date)}</div><div style="flex:1"><span class="chip c-sub">${esc((MODE[s.mode]||s.mode||'session').toUpperCase())}</span> ${detail(s)}</div><div class="num small">${s.touches?fmt(s.touches)+' · ':''}+${s.xp}</div></div>`).join('') || '<div class="empty">No logs</div>'}</div>`;
   dr.classList.add('open');

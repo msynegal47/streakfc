@@ -625,7 +625,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .road-row.got .road-name{color:var(--green)}
 .road-art{width:46px;height:46px;flex:none;display:flex;align-items:center;justify-content:center;font-size:28px}.road-art svg{width:46px;height:46px}
 .road-name{font-size:13px;font-weight:900}.road-name span{font-size:9px;color:var(--sub);letter-spacing:1px;margin-left:4px}
-.beta-pill{font-size:8px;letter-spacing:1px;background:#a78bfa33;color:#a78bfa;border-radius:4px;padding:1px 4px;vertical-align:middle;font-weight:900}
+.beta-pill{font-size:8px;letter-spacing:1px;background:#1ab3bd2e;color:#1ab3bd;border-radius:4px;padding:1px 4px;vertical-align:middle;font-weight:900}
 .epa-coach{font-size:12px;color:var(--text);background:var(--bg3);border-radius:10px;padding:8px 10px;margin:8px 0}.epa-coach div{color:var(--sub);margin-top:3px}
 .epa-strip{display:flex;gap:8px;margin:10px 0}
 .epa-d{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:6px;text-align:center}.epa-d b{display:block;font-size:10px;letter-spacing:1px;color:var(--sub)}.epa-d span{font-size:12px;font-weight:800;color:var(--sub)}
@@ -638,6 +638,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .epa-nums button.sel,.epa-emo button.sel{border-color:var(--accent);background:#4fc3f722}
 .epa-emo{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:6px 0 12px}.epa-emo button{font-size:26px}
 .epa-parent{margin-top:10px;font-size:11px;color:var(--sub);background:var(--bg3);border-radius:10px;padding:8px 10px}.epa-parent b{color:var(--text)}.epa-parent div{margin-top:3px}
+.goal-row{font-size:13px;font-weight:700;padding:7px 0;border-bottom:1px solid var(--border)}.goal-row.done{color:var(--green)}.goal-coach{font-size:12px;color:var(--sub);margin-top:8px}
+.hurt-chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}.hurt-chips button{padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-weight:800;font-size:12px}.hurt-chips button.sel{border-color:var(--red);background:#ef444422}.hurt-chips button.none.sel{border-color:var(--green);background:#22c55e22}
 .road-sub{font-size:11px;color:var(--sub);margin-top:2px}
 .home-title{display:inline-block;font-size:10px;font-weight:900;letter-spacing:1.5px;color:#facc15;border:1px solid #facc1588;border-radius:6px;padding:2px 6px;margin-top:3px}
 .celly{font-size:84px;display:inline-block;animation:celly 1.2s ease-out 1}
@@ -1262,6 +1264,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
         <div class="week-chart" id="weekBars"></div>
         <div class="week-labels" id="weekLabels" style="display:flex;margin-top:6px"></div>
       </div>
+      <div class="badges-card" id="goalsCard" style="display:none"></div>
       <div class="badges-card" id="trophyCard"></div>
       <div class="badges-card">
         <div class="badges-title">BADGES</div>
@@ -1441,7 +1444,7 @@ function hydratePlayer(data) {
   const player = {id, name:p.nickname, color:p.color||'#4fc3f7', age_group:p.age_group||'', club:p.age_group||'',
     xp:p.xp||0, streak:p.streak||0, best_streak:best, total_touches:p.total_touches||0, sessions:p.sessions||0,
     juggle_pb:p.juggle_pb||0, juggle_min:p.juggle_min||150, created_at:p.created_at,
-    skill_level:p.skill_level||'developing', schedule:p.schedule||{}, growing:!!p.growing, programs:Array.isArray(p.programs)?p.programs:[]};
+    skill_level:p.skill_level||'developing', schedule:p.schedule||{}, growing:!!p.growing, programs:Array.isArray(p.programs)?p.programs:[], pos1:p.pos1||'', pos2:p.pos2||'', goals:(p.goals&&typeof p.goals==='object')?p.goals:{}};
   localStorage.setItem(`sfc_playerdata_${id}`, JSON.stringify(player));
   return player;
 }
@@ -2345,7 +2348,10 @@ function renderProfile() {
   paintAvatar(document.getElementById('profileAvatar'), p, color);
   document.getElementById('editAvBtn').style.display = hasUnlock(p.id,'avatar') ? 'inline-block' : 'none';
   document.getElementById('profileName').textContent = p.name.toUpperCase();
-  document.getElementById('profileClub').textContent = (p.club||'').toUpperCase();
+  document.getElementById('profileClub').textContent = [(p.club||'').toUpperCase(), [p.pos1, p.pos2].filter(Boolean).join(' / ')].filter(Boolean).join(' · ');
+  { const g = (p.goals && p.goals.items) || [], el = document.getElementById('goalsCard');
+    el.style.display = g.length ? 'block' : 'none';
+    el.innerHTML = `<div class="badges-title">MY SEASON GOALS</div>${g.map(x => `<div class="goal-row ${x.done?'done':''}">${x.done?'✅':'🎯'} ${esc(x.t)}</div>`).join('')}${(p.goals||{}).coach ? `<div class="goal-coach">💬 Coach: ${esc(p.goals.coach)}</div>` : ''}`; }
   const rank = rankOf(p);
   document.getElementById('profileRank').textContent = `${rank.name} · ${seasonLabel(seasonOf())}`;
   renderTrophies();
@@ -3377,7 +3383,8 @@ function commitSession() {
 let planFor = null, planDraft = null;
 function openPlanModal(id) {
   const p = players.find(x=>x.id===id); if (!p) return;
-  planFor = id; planDraft = {skill_level:p.skill_level||'developing', schedule:{practice:[...(p.schedule?.practice||[])], game:[...(p.schedule?.game||[])]}, growing:!!p.growing, programs:JSON.parse(JSON.stringify(p.programs||[]))};
+  planFor = id; planDraft = {skill_level:p.skill_level||'developing', schedule:{practice:[...(p.schedule?.practice||[])], game:[...(p.schedule?.game||[])]}, growing:!!p.growing, programs:JSON.parse(JSON.stringify(p.programs||[])), pos1:p.pos1||'', pos2:p.pos2||'',
+    goals:{...(p.goals||{}), items:[0,1,2].map(i => ({t:'', done:false, ...((p.goals&&p.goals.items||[])[i]||{})}))}};
   document.getElementById('planTitle').textContent = `${p.name}'s Plan`;
   paintPlan(); document.getElementById('planModal').classList.add('open');
 }
@@ -3393,7 +3400,17 @@ function paintPlan() {
     <div class="field-lbl">GAME DAYS</div><div class="day-chips">${chips('game')}</div>
     <label class="ob-check" style="margin-top:4px"><input type="checkbox" ${planDraft.growing?'checked':''} onchange="planDraft.growing=this.checked">
       <span><b style="color:var(--text)">Growing fast lately?</b> Shoe size jumps, outgrowing clothes, sore knees or heels. Adds more recovery days. General guidance, not medical advice.</span></label>
+    ${planPlayerHTML()}
     ${programsOn() ? planEpaHTML() : ''}`;
+}
+const POSITIONS = [['GK','Goalkeeper'],['CB','Center back'],['FB','Fullback'],['CDM','Defensive mid'],['CM','Center mid'],['CAM','Attacking mid'],['W','Winger'],['ST','Striker']];
+function planPlayerHTML() {
+  const pc = k => `<div class="opt-row" style="flex-wrap:wrap">${POSITIONS.map(([v,l]) => `<button class="opt-btn ${planDraft[k]===v?'sel':''}" title="${l}" onclick="planDraft.${k}=planDraft.${k}==='${v}'?'':'${v}';paintPlan()">${v}</button>`).join('')}</div>`;
+  return `<div class="field-lbl" style="margin-top:14px">PREFERRED POSITION</div>${pc('pos1')}
+    <div class="field-lbl">SECONDARY POSITION</div>${pc('pos2')}
+    <div class="field-lbl">SEASON GOALS (SET THEM TOGETHER)</div>
+    ${planDraft.goals.items.map((g,i) => `<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><input type="checkbox" ${g.done?'checked':''} onchange="planDraft.goals.items[${i}].done=this.checked"><input class="auth-input" style="margin:0;flex:1" maxlength="80" placeholder="${['e.g. Use my left foot in games','e.g. 30-day streak','e.g. Make the next team up'][i]}" value="${esc(g.t)}" oninput="planDraft.goals.items[${i}].t=this.value"></div>`).join('')}
+    ${planDraft.goals.coach ? `<div class="sk-desc" style="font-size:12px">💬 Coach: ${esc(planDraft.goals.coach)}</div>` : ''}`;
 }
 function programsOn() { return localStorage.getItem('sfc_beta') === '1' || !!(family && family.flags && family.flags.programs); }
 function planEpaHTML() {
@@ -3411,9 +3428,15 @@ async function savePlan() {
   const p = players.find(x=>x.id===planFor); if (!p) return;
   Object.assign(p, planDraft);
   localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p));
-  const body = {...planDraft}; if (!programsOn()) delete body.programs;
+  const body = {...planDraft, goals:{...planDraft.goals, items:planDraft.goals.items.filter(g => g.t.trim()).map(g => ({t:g.t.trim(), done:!!g.done}))}}; if (!programsOn()) delete body.programs;
+  delete body.goals.coach;  // coach comment is set by the coach only
+  body.goals = {...(p.goals||{}), items:body.goals.items}; p.goals = body.goals;
   try { await sb(`sfc_players?id=eq.${p.id}`, {method:'PATCH', prefer:'return=minimal', body:JSON.stringify(body)}); showToast('Plan saved','success'); }
-  catch(e) { showToast('Could not save: ' + e.message, 'error'); }
+  catch(e) {
+    // Database not updated yet (v8): save the rest so the plan still works
+    if (/pos1|pos2|goals|column/i.test(e.message)) { const b2 = {...body}; delete b2.pos1; delete b2.pos2; delete b2.goals;
+      try { await sb(`sfc_players?id=eq.${p.id}`, {method:'PATCH', prefer:'return=minimal', body:JSON.stringify(b2)}); showToast('Saved (positions + goals need the v8 update)','success'); } catch(e2) { showToast('Could not save: ' + e2.message, 'error'); } }
+    else showToast('Could not save: ' + e.message, 'error'); }
   closeModal('planModal'); renderParentPortal();
 }
 
@@ -3630,7 +3653,7 @@ function openEpaLog() {
   paintEpa(); openEpaModal("Today's EPA", `${PROGRAMS.epa.mins} min with the group. 20 seconds to log.`);
 }
 function openCheckin() { epaDraft = {kind:'ready', sleep:0, energy:0, legs:0, mood:0}; paintEpa(); openEpaModal('Check in', 'Tap one for each. Be honest, it helps your coach.'); }
-function openWeekLog() { epaDraft = {kind:'weekly', best:'', hard:'', goal:''}; paintEpa(); openEpaModal('Week log', 'Three quick ones about your EPA week.'); }
+function openWeekLog() { epaDraft = {kind:'weekly', best:'', hard:'', goal:'', hurt:null}; paintEpa(); openEpaModal('Week log', 'Three quick ones about your EPA week.'); }
 function paintEpa() {
   const d = epaDraft, B = document.getElementById('epaBody'); let ok = false, h = '';
   if (d.kind === 'epa') {
@@ -3645,12 +3668,15 @@ function paintEpa() {
     h = READY_Q.map(([k,l,lo,hi]) => `<div class="field-lbl">${l} <span style="float:right">${lo} → ${hi}</span></div><div class="epa-nums five">${[1,2,3,4,5].map(n => `<button class="${d[k]===n?'sel':''}" onclick="epaDraft.${k}=${n};paintEpa()">${n}</button>`).join('')}</div>`).join('');
   } else {
     ok = (d.best + d.hard + d.goal).trim().length >= 3;
-    h = [['best','BEST PART OF THE WEEK'],['hard','HARDEST THING'],['goal','ONE GOAL FOR NEXT WEEK']].map(([k,l]) => `<div class="field-lbl">${l}</div><input class="auth-input" maxlength="80" value="${esc(d[k])}" oninput="epaDraft.${k}=this.value;document.getElementById('epaSave').disabled=(epaDraft.best+epaDraft.hard+epaDraft.goal).trim().length<3">`).join('');
+    h = [['best','BEST PART OF THE WEEK'],['hard','HARDEST THING'],['goal','ONE GOAL FOR NEXT WEEK']].map(([k,l]) => `<div class="field-lbl">${l}</div><input class="auth-input" maxlength="80" value="${esc(d[k])}" oninput="epaDraft.${k}=this.value;document.getElementById('epaSave').disabled=(epaDraft.best+epaDraft.hard+epaDraft.goal).trim().length<3">`).join('')
+      + `<div class="field-lbl">ANYTHING HURTING? (OPTIONAL)</div><div class="hurt-chips"><button class="none ${Array.isArray(d.hurt)&&!d.hurt.length?'sel':''}" onclick="epaDraft.hurt=[];paintEpa()">NOPE 👍</button>${HURT.map(x => `<button class="${(d.hurt||[]).includes(x)?'sel':''}" onclick="toggleHurt('${x}')">${x.toUpperCase()}</button>`).join('')}</div>`;
   }
   B.innerHTML = h;
   const s = document.getElementById('epaSave'); s.disabled = !ok;
   s.textContent = d.kind === 'epa' ? `LOG IT +${EPA_XP} XP` : d.kind === 'ready' ? `CHECK IN +${CHECKIN_XP} XP` : `SAVE +${WEEKLOG_XP} XP`;
 }
+const HURT = ['ankle','foot','knee','shin','quad','hamstring','groin','hip','back','other'];
+function toggleHurt(x) { const h = Array.isArray(epaDraft.hurt) ? epaDraft.hurt : []; epaDraft.hurt = h.includes(x) ? h.filter(y => y !== x) : [...h, x]; paintEpa(); }
 function saveEpa() {
   const d = epaDraft; if (!d) return;
   closeModal('epaModal');
@@ -3658,7 +3684,7 @@ function saveEpa() {
   const p = currentPlayer, today = localDate(), xp = d.kind === 'ready' ? CHECKIN_XP : WEEKLOG_XP;
   let data, key = today, field = d.kind;
   if (d.kind === 'ready') { const score = Math.round(READY_Q.reduce((a,[k]) => a + d[k], 0) / READY_Q.length * 10) / 10; data = {sleep:d.sleep, energy:d.energy, legs:d.legs, mood:d.mood, score}; }
-  else { data = {best:d.best.trim(), hard:d.hard.trim(), goal:d.goal.trim()}; key = 'wk_' + weekDates(0)[0]; field = 'weekly'; }
+  else { data = {best:d.best.trim(), hard:d.hard.trim(), goal:d.goal.trim(), ...(Array.isArray(d.hurt) ? {hurt:d.hurt} : {})}; key = 'wk_' + weekDates(0)[0]; field = 'weekly'; }
   if ((epaLog(p.id)[key]||{})[field]) return;
   setEpaLog(p.id, key, field, data);
   addDay(`sfc_xpdays_${p.id}`, today, xp); p.xp = (p.xp||0) + xp;
@@ -3697,7 +3723,8 @@ function epaParentLine(p) {
   const ready = rows.filter(r => r.mode === 'checkin' && wk.includes(r.date)).map(r => (r.rounds||[])[0]?.ready?.score).filter(Boolean);
   const last = rows.filter(r => r.mode === 'epa').sort((a,b) => a.date < b.date ? 1 : -1)[0], le = last && (last.rounds||[])[0]?.epa;
   const avg = ready.length ? (ready.reduce((a,b)=>a+b,0)/ready.length).toFixed(1) : null;
-  return `<div class="epa-parent"><b>🏟 EPA <span class="beta-pill">BETA</span></b> ${done.length}/${sched.filter(d=>d<=today).length || sched.length} logged this wk${avg?` · ready ${avg}/5`:''}${le?`<div>Last: ${FOCUS[le.focus]?.name||le.focus} · effort ${le.effort} · ${FEELS[le.feel]||''}${le.note?` · "${esc(le.note)}"`:''}</div>`:''}</div>`;
+  const wl = rows.filter(r => r.mode === 'weekly').sort((a,b) => a.date < b.date ? 1 : -1)[0], hurt = wl && (wl.rounds||[])[0]?.weekly?.hurt;
+  return `<div class="epa-parent"><b>🏟 EPA <span class="beta-pill">BETA</span></b> ${done.length}/${sched.filter(d=>d<=today).length || sched.length} logged this wk${avg?` · ready ${avg}/5`:''}${hurt && hurt.length ? `<div style="color:var(--red)">⚠️ Sore this week: ${hurt.map(esc).join(', ')}</div>` : ''}${le?`<div>Last: ${FOCUS[le.focus]?.name||le.focus} · effort ${le.effort} · ${FEELS[le.feel]||''}${le.note?` · "${esc(le.note)}"`:''}</div>`:''}</div>`;
 }
 
 // ─── SEASONS: 8-week seasons, 21 team-tier ranks, exclusive kits ───
