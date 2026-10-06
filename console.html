@@ -294,7 +294,7 @@ function vEPA() {
       <td class="small">${last ? `<span class="muted">${last.date.slice(5).replace('-','/')}</span> ${detail(last)}` : '<span class="muted">none yet</span>'}</td>
       <td class="small">${wl ? detail(wl) : '<span class="muted">-</span>'}</td>
       <td><button class="btn ghost sm" onclick="unenroll('${p.id}')">Remove</button></td></tr>`; }).join('') || '<tr><td colspan="7" class="empty">Nobody enrolled yet. Add kids below.</td></tr>'}</table>
-  <div class="form-row" style="margin-top:14px"><select id="addKid">${notIn.map(p => `<option value="${p.id}">${esc(p.nickname)} · ${esc(p.age_group)} · ${esc(p.fam.parent_name||'')}</option>`).join('')}</select>
+  ${notIn.length ? '' : '<div class="legend" style="margin-top:12px">Every kid is enrolled.</div>'}<div class="form-row" style="margin-top:14px;${notIn.length?'':'display:none'}"><select id="addKid">${notIn.map(p => `<option value="${p.id}">${esc(p.nickname)} · ${esc(p.age_group)} · ${esc(p.fam.parent_name||'')}</option>`).join('')}</select>
     <select id="addGroup"><option>younger</option><option>older</option></select>
     <button class="btn" onclick="enroll()" ${notIn.length?'':'disabled'}>ENROLL IN EPA</button>
     <span class="legend">Kids see the EPA card next time their app loads.</span></div></div>
