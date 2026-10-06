@@ -3393,8 +3393,9 @@ function paintPlan() {
     <div class="field-lbl">GAME DAYS</div><div class="day-chips">${chips('game')}</div>
     <label class="ob-check" style="margin-top:4px"><input type="checkbox" ${planDraft.growing?'checked':''} onchange="planDraft.growing=this.checked">
       <span><b style="color:var(--text)">Growing fast lately?</b> Shoe size jumps, outgrowing clothes, sore knees or heels. Adds more recovery days. General guidance, not medical advice.</span></label>
-    ${localStorage.getItem('sfc_beta') === '1' ? planEpaHTML() : ''}`;
+    ${programsOn() ? planEpaHTML() : ''}`;
 }
+function programsOn() { return localStorage.getItem('sfc_beta') === '1' || !!(family && family.flags && family.flags.programs); }
 function planEpaHTML() {
   const e = planDraft.programs.find(x => x.id === 'epa');
   return `<div class="field-lbl" style="margin-top:14px">PROGRAMS <span class="beta-pill">BETA</span></div>
@@ -3410,7 +3411,7 @@ async function savePlan() {
   const p = players.find(x=>x.id===planFor); if (!p) return;
   Object.assign(p, planDraft);
   localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p));
-  const body = {...planDraft}; if (localStorage.getItem('sfc_beta') !== '1') delete body.programs;
+  const body = {...planDraft}; if (!programsOn()) delete body.programs;
   try { await sb(`sfc_players?id=eq.${p.id}`, {method:'PATCH', prefer:'return=minimal', body:JSON.stringify(body)}); showToast('Plan saved','success'); }
   catch(e) { showToast('Could not save: ' + e.message, 'error'); }
   closeModal('planModal'); renderParentPortal();

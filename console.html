@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>StreakFC Console</title>
+<style>
+:root{--bg:#05070c;--bg2:#0f1520;--bg3:#151d2e;--border:#1e2a3d;--text:#e8edf5;--sub:#6b7fa0;--accent:#f97316;--green:#22c55e;--red:#ef4444;--blue:#4fc3f7;--amber:#f59e0b;--violet:#a78bfa}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font:14px/1.4 -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",system-ui,sans-serif;min-height:100vh}
+button{font:inherit;cursor:pointer}
+input,select,textarea{font:inherit;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:9px 11px;outline:none}
+input:focus,select:focus{border-color:var(--accent)}
+.btn{background:var(--accent);color:#140700;border:none;border-radius:9px;padding:9px 14px;font-weight:800;letter-spacing:.3px}
+.btn.ghost{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn:disabled{opacity:.4;cursor:default}
+/* login */
+#login{max-width:380px;margin:12vh auto;padding:28px;background:var(--bg2);border:1px solid var(--border);border-radius:18px;display:none}
+#login h1{font-family:Impact,"Arial Narrow Bold",sans-serif;letter-spacing:1px;font-size:26px}
+#login p{color:var(--sub);margin:6px 0 18px;font-size:13px}
+#login input{width:100%;margin-bottom:10px}#login .btn{width:100%}
+#loginStatus{font-size:12px;margin-top:10px;color:var(--sub)}
+/* shell */
+#app{display:none;min-height:100vh}
+.side{position:fixed;inset:0 auto 0 0;width:220px;background:#03050a;border-right:1px solid var(--border);padding:22px 14px;display:flex;flex-direction:column;gap:3px}
+.brand{font-family:Impact,"Arial Narrow Bold",sans-serif;font-size:20px;letter-spacing:1px;padding:0 10px}.brand span{color:var(--accent)}
+.brand-sub{font-size:10px;letter-spacing:2px;color:var(--sub);font-weight:800;padding:0 10px;margin:2px 0 22px}
+.nav{padding:9px 12px;border-radius:9px;font-weight:700;color:var(--sub);display:flex;gap:10px;align-items:center;cursor:pointer;user-select:none}
+.nav:hover{color:var(--text)}.nav.on{background:#f973161f;color:var(--accent)}
+.nav .n{margin-left:auto;font-size:11px;color:var(--sub)}
+.sep{font-size:10px;letter-spacing:2px;color:#41526d;font-weight:800;margin:16px 12px 6px}
+.side-foot{margin-top:auto;font-size:11px;color:var(--sub);padding:0 10px}
+.side-foot a{color:var(--sub)}
+.main{margin-left:220px;padding:26px 32px 60px;max-width:1500px}
+.hdr{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px}
+.hdr h2{font-size:24px;font-weight:900;letter-spacing:-.3px}.hdr .s{color:var(--sub);font-size:13px;margin-top:3px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px}
+.kpi b{font-size:26px;font-weight:900;display:block;font-variant-numeric:tabular-nums}.kpi span{font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:800}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:16px}
+.card-h{font-size:11px;letter-spacing:2px;color:var(--sub);font-weight:800;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.grid2{display:grid;grid-template-columns:1.6fr 1fr;gap:16px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:10px;letter-spacing:1.4px;color:var(--sub);font-weight:800;padding:7px 8px;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+td{padding:9px 8px;border-bottom:1px solid #121a28;vertical-align:top}
+tr:hover td{background:#0c121c}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.kid{display:flex;gap:9px;align-items:center;font-weight:800;cursor:pointer}
+.dot{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#04101a;flex:none}
+.chip{display:inline-block;font-size:10px;font-weight:900;padding:2px 7px;border-radius:6px;letter-spacing:.5px;margin-right:4px}
+.c-green{background:#22c55e22;color:var(--green)}.c-amber{background:#f59e0b22;color:var(--amber)}.c-red{background:#ef444422;color:var(--red)}.c-violet{background:#a78bfa26;color:var(--violet)}.c-blue{background:#4fc3f722;color:var(--blue)}.c-sub{background:var(--bg3);color:var(--sub)}
+.muted{color:var(--sub)}.small{font-size:12px}
+.bars{display:flex;align-items:flex-end;gap:4px;height:120px;padding-top:6px}
+.bar{flex:1;background:var(--accent);border-radius:4px 4px 0 0;min-height:2px;position:relative;opacity:.85}
+.bar:hover{opacity:1}.bar.zero{background:var(--border)}
+.bar span{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:10px;color:var(--sub);margin-bottom:2px}
+.bar-x{display:flex;gap:4px;margin-top:5px}.bar-x div{flex:1;font-size:9px;color:var(--sub);text-align:center}
+.ticks{display:flex;gap:4px}.tick{width:30px;height:24px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:var(--sub)}
+.tick.on{background:#22c55e26;border-color:var(--green);color:var(--green)}.tick.off{opacity:.35}.tick.today{border-color:var(--accent)}
+.form-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.feed-row{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid #121a28;font-size:13px}
+.feed-row .t{width:120px;color:var(--sub);font-size:12px;flex:none}
+#drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--bg2);border-left:1px solid var(--border);padding:22px;overflow:auto;transform:translateX(100%);transition:transform .2s;z-index:10}
+#drawer.open{transform:none}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border);padding:10px 16px;border-radius:10px;font-weight:700;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+#toast.show{opacity:1}
+.empty{color:var(--sub);padding:18px 0;text-align:center}
+.legend{font-size:11px;color:var(--sub)}
+@media (max-width:900px){.side{position:static;width:auto;flex-direction:row;flex-wrap:wrap;padding:12px}.side-foot,.sep,.brand-sub{display:none}.main{margin-left:0;padding:16px}.grid2{grid-template-columns:1fr}}
+</style></head>
+<body>
+<div id="login">
+  <h1>STREAK<span style="color:var(--accent)">FC</span> CONSOLE</h1>
+  <p>Admin and coach access. Same email you use for StreakFC.</p>
+  <input id="email" type="email" placeholder="you@email.com" autocomplete="email">
+  <button class="btn" id="sendBtn" onclick="sendCode()">SEND CODE</button>
+  <div id="codeWrap" style="display:none;margin-top:12px"><input id="code" inputmode="numeric" maxlength="8" placeholder="6-digit code"><button class="btn" onclick="verify()">SIGN IN</button></div>
+  <div id="loginStatus"></div>
+</div>
+
+<div id="app">
+  <aside class="side">
+    <div class="brand">STREAK<span>FC</span></div><div class="brand-sub">CONSOLE · ADMIN</div>
+    <div class="nav" data-v="overview">📊 Overview</div>
+    <div class="nav" data-v="kids">👟 Kids <span class="n" id="nKids"></span></div>
+    <div class="nav" data-v="families">🏠 Families <span class="n" id="nFams"></span></div>
+    <div class="nav" data-v="activity">⚡ Activity</div>
+    <div class="sep">PROGRAMS</div>
+    <div class="nav" data-v="epa">🏟 EPA <span class="chip c-violet" style="margin-left:auto">BETA</span></div>
+    <div class="side-foot"><div id="who"></div><div style="margin-top:6px"><a href="#" onclick="refresh();return false">Refresh</a> · <a href="#" onclick="signOut();return false">Sign out</a></div><div style="margin-top:6px"><a href="/">Open app</a></div></div>
+  </aside>
+  <main class="main" id="view"></main>
+</div>
+<div id="drawer"></div>
+<div id="toast"></div>
+
+<script>
+const SB_URL = 'https://zrdtwiuekozfteaurrzp.supabase.co';
+const SB_KEY = 'sb_publishable_KFpa8NmzxgtF_r2UX2se_Q_8UoN1hbc';
+// Keep in sync with index.html PROGRAMS / FOCUS
+const PROGRAMS = {epa:{name:'EPA', days:[2,3,4], mins:90, start:'2026-07-28', end:'2027-05-27',
+  off:[['2026-11-11','2026-11-11','Veterans Day'],['2026-11-25','2026-11-27','Thanksgiving'],['2026-12-21','2027-01-03','Winter Break'],
+       ['2027-01-18','2027-01-18','MLK Day'],['2027-02-15','2027-02-15','Presidents Day'],['2027-03-15','2027-03-28','Spring Break']]}};
+const FOCUS = {technical:{name:'Technical',ico:'⚽',touches:1200},mixed:{name:'Mixed',ico:'🔀',touches:700},tactical:{name:'Small-sided / tactical',ico:'🧠',touches:500},speed:{name:'Speed + agility',ico:'⚡',touches:200}};
+const FEELS = ['😫','😐','🙂','🔥'];
+const MODE = {goal:'Home session', timed:'Timed test', recovery:'Recovery', parent:'Parent log', epa:'EPA session', checkin:'Check-in', weekly:'Week log'};
+
+let session = null, D = null, view = 'overview', sortKey = {};
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = n => (n||0).toLocaleString();
+const fmtK = n => { n = n||0; return n < 1000 ? String(n) : (n/1000).toFixed(n < 10000 ? 1 : 0).replace(/\.0$/,'') + 'K'; };
+function localDate(d = new Date()) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function daysAgo(n) { const d = new Date(); d.setDate(d.getDate()-n); return localDate(d); }
+function weekDates(off=0) { const d = new Date(); d.setDate(d.getDate() - (d.getDay()+6)%7 + off*7); return [...Array(7)].map((_,i) => { const x = new Date(d); x.setDate(d.getDate()+i); return localDate(x); }); }
+function wdOf(s) { return new Date(s+'T12:00:00').getDay(); }
+function epaOff(s) { return PROGRAMS.epa.off.find(([a,b]) => s >= a && s <= b); }
+function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2400); }
+function ago(ds) { if (!ds) return '<span class="muted">never</span>'; const n = Math.round((new Date(localDate()+'T12:00') - new Date(ds+'T12:00'))/864e5); return n <= 0 ? '<span class="chip c-green">TODAY</span>' : n === 1 ? 'yesterday' : `${n}d ago`; }
+
+// ── auth (shares the app's sign-in on this browser) ──
+function saveSession(d) { session = {access_token:d.access_token, refresh_token:d.refresh_token, expires_at: d.expires_at || (Math.floor(Date.now()/1000) + (+d.expires_in||3600))}; localStorage.setItem('sfc_session', JSON.stringify(session)); }
+async function refreshSession() {
+  if (!session?.refresh_token) return false;
+  const r = await fetch(`${SB_URL}/auth/v1/token?grant_type=refresh_token`, {method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json'}, body:JSON.stringify({refresh_token:session.refresh_token})});
+  if (!r.ok) return false; saveSession(await r.json()); return true;
+}
+async function rpc(fn, args={}) {
+  if (session && session.expires_at - 60 < Date.now()/1000) await refreshSession();
+  const r = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, {method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json','Authorization':`Bearer ${session?.access_token||SB_KEY}`}, body:JSON.stringify(args)});
+  const t = await r.text(); if (!r.ok) { let m = 'error_'+r.status; try { m = JSON.parse(t).message || m; } catch(e) {} throw new Error(m); }
+  return t ? JSON.parse(t) : null;
+}
+async function sendCode() {
+  const email = $('email').value.trim(); if (!email) return;
+  $('sendBtn').disabled = true;
+  const r = await fetch(`${SB_URL}/auth/v1/otp`, {method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json'}, body:JSON.stringify({email, create_user:false})});
+  $('sendBtn').disabled = false;
+  $('loginStatus').textContent = r.ok ? 'Code sent. Check your email.' : (r.status === 429 ? 'Too many requests, wait a minute.' : 'Could not send. Use the email you use in StreakFC.');
+  if (r.ok) { $('codeWrap').style.display = 'block'; $('code').focus(); }
+}
+async function verify() {
+  const r = await fetch(`${SB_URL}/auth/v1/verify`, {method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json'}, body:JSON.stringify({type:'email', email:$('email').value.trim(), token:$('code').value.replace(/\D/g,'')})});
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok || !d.access_token) { $('loginStatus').textContent = d.msg || 'Code invalid or expired'; return; }
+  saveSession(d); boot();
+}
+function signOut() { localStorage.removeItem('sfc_session'); location.reload(); }
+function showLogin(msg) { $('app').style.display = 'none'; $('login').style.display = 'block'; if (msg) $('loginStatus').textContent = msg; }
+
+async function boot() {
+  try { session = JSON.parse(localStorage.getItem('sfc_session')||'null'); } catch(e) {}
+  if (!session) return showLogin();
+  try {
+    if (!(await rpc('sfc_is_admin'))) return showLogin('This account is not an admin. Coach access is coming.');
+    const u = await fetch(`${SB_URL}/auth/v1/user`, {headers:{'apikey':SB_KEY,'Authorization':`Bearer ${session.access_token}`}}).then(r => r.json()).catch(() => ({}));
+    $('who').textContent = u.email || '';
+    await refresh(true);
+    $('login').style.display = 'none'; $('app').style.display = 'block';
+    const h = location.hash.slice(1); go(['overview','kids','families','activity','epa'].includes(h) ? h : 'overview');
+  } catch(e) { if (/JWT|401|expired/i.test(e.message) && await refreshSession()) return boot(); showLogin('Sign in again: ' + e.message); }
+}
+async function refresh(silent) {
+  const raw = await rpc('sfc_admin_data', {p_days:60});
+  const fams = Object.fromEntries(raw.families.map(f => [f.id, f]));
+  const players = raw.players.map(p => ({...p, fam:fams[p.family_id]||{}, sess:raw.sessions.filter(s => s.player_id === p.id)}));
+  D = {...raw, fams, players, byId:Object.fromEntries(players.map(p => [p.id, p]))};
+  $('nKids').textContent = players.length; $('nFams').textContent = raw.families.length;
+  if (!silent) { render(); toast('Refreshed'); }
+}
+document.querySelectorAll('.nav').forEach(n => n.onclick = () => go(n.dataset.v));
+function go(v) { view = v; location.hash = v; document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.v === v)); render(); }
+function render() { $('view').innerHTML = ({overview:vOverview, kids:vKids, families:vFamilies, activity:vActivity, epa:vEPA})[view](); }
+
+// ── derived ──
+function liveStreak(p) { return (p.last_log === localDate() || p.last_log === daysAgo(1)) ? (p.streak||0) : 0; }
+function lastActive(p) { return p.sess.length ? p.sess[0].date : p.last_log; }
+function sumT(p, days) { const lo = daysAgo(days-1); return p.sess.filter(s => s.date >= lo).reduce((a,s) => a + (s.touches||0), 0); }
+function activeDays(p, days) { const lo = daysAgo(days-1); return new Set(p.sess.filter(s => s.date >= lo && s.mode !== 'checkin' && s.mode !== 'weekly').map(s => s.date)).size; }
+function kidCell(p) { return `<div class="kid" onclick="openKid('${p.id}')"><span class="dot" style="background:${esc(p.color||'#4fc3f7')}">${esc((p.nickname||'?')[0])}</span>${esc(p.nickname)}</div>`; }
+function progChips(p) { return (p.programs||[]).map(e => `<span class="chip c-violet">${esc((e.id||'').toUpperCase())}${e.group?' · '+esc(e.group[0].toUpperCase()):''}</span>`).join('') || '<span class="muted">-</span>'; }
+function detail(s) {
+  const r = (s.rounds||[])[0] || {};
+  if (r.epa) { const f = FOCUS[r.epa.focus]; return `${f?f.ico+' '+f.name:esc(r.epa.focus)} · effort <b>${r.epa.effort}</b> · ${FEELS[r.epa.feel]||''}${r.epa.note?` · <span class="muted">"${esc(r.epa.note)}"</span>`:''}`; }
+  if (r.ready) return `Ready <b>${r.ready.score}/5</b> <span class="muted">sleep ${r.ready.sleep} · energy ${r.ready.energy} · legs ${r.ready.legs} · mood ${r.ready.mood}</span>`;
+  if (r.weekly) return `<span class="muted">Best:</span> ${esc(r.weekly.best)} <span class="muted">· Hardest:</span> ${esc(r.weekly.hard)} <span class="muted">· Goal:</span> ${esc(r.weekly.goal)}`;
+  const n = (s.rounds||[]).length; return n ? `<span class="muted">${n} drill${n>1?'s':''}</span>` : '';
+}
+function sortRows(key, rows, defs) {
+  const k = sortKey[key]; if (!k) return rows;
+  const f = defs[k.col]; return [...rows].sort((a,b) => { const x = f(a), y = f(b); return (x > y ? 1 : x < y ? -1 : 0) * k.dir; });
+}
+function setSort(key, col) { const k = sortKey[key]; sortKey[key] = {col, dir: k && k.col === col ? -k.dir : -1}; render(); }
+
+// ── views ──
+function vOverview() {
+  const P = D.players, today = localDate(), lo7 = daysAgo(6);
+  const s7 = D.sessions.filter(s => s.date >= lo7 && !['checkin','weekly'].includes(s.mode));
+  const activeToday = P.filter(p => p.sess.some(s => s.date === today)).length, active7 = P.filter(p => p.sess.some(s => s.date >= lo7)).length;
+  const days = [...Array(30)].map((_,i) => daysAgo(29-i));
+  const perDay = days.map(d => new Set(D.sessions.filter(s => s.date === d).map(s => s.player_id)).size), mx = Math.max(1, ...perDay);
+  const atRisk = P.filter(p => liveStreak(p) >= 3 && p.last_log === daysAgo(1));
+  const gone = P.filter(p => { const la = lastActive(p); return la && la < daysAgo(6); });
+  return `<div class="hdr"><div><h2>Overview</h2><div class="s">${new Date().toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})} · everything across StreakFC</div></div></div>
+  <div class="kpis">
+    <div class="kpi"><b>${D.families.length}</b><span>FAMILIES</span></div>
+    <div class="kpi"><b>${P.length}</b><span>KIDS</span></div>
+    <div class="kpi"><b>${activeToday}</b><span>ACTIVE TODAY</span></div>
+    <div class="kpi"><b>${active7}</b><span>ACTIVE 7 DAYS</span></div>
+    <div class="kpi"><b>${s7.length}</b><span>SESSIONS 7 DAYS</span></div>
+    <div class="kpi"><b>${fmtK(s7.reduce((a,s)=>a+(s.touches||0),0))}</b><span>TOUCHES 7 DAYS</span></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><div class="card-h">KIDS ACTIVE PER DAY · LAST 30 DAYS</div>
+      <div class="bars">${perDay.map((n,i) => `<div class="bar ${n?'':'zero'}" style="height:${n/mx*100}%" title="${days[i]}: ${n}">${n?`<span>${n}</span>`:''}</div>`).join('')}</div>
+      <div class="bar-x">${days.map((d,i) => `<div>${i%5===4||i===29?d.slice(5).replace('-','/'):''}</div>`).join('')}</div></div>
+    <div class="card"><div class="card-h">NEEDS A NUDGE</div>
+      ${atRisk.length ? atRisk.map(p => `<div class="feed-row">${kidCell(p)}<span class="muted small" style="margin-left:auto">🔥${liveStreak(p)} streak, not trained today</span></div>`).join('') : ''}
+      ${gone.length ? gone.map(p => `<div class="feed-row">${kidCell(p)}<span class="muted small" style="margin-left:auto">inactive since ${lastActive(p)}</span></div>`).join('') : ''}
+      ${!atRisk.length && !gone.length ? '<div class="empty">Nobody at risk right now.</div>' : ''}</div>
+  </div>
+  ${kidsTable()}`;
+}
+function kidsTable() {
+  const defs = {name:p=>p.nickname, fam:p=>p.fam.parent_name||'', age:p=>p.age_group, streak:p=>liveStreak(p), best:p=>p.best_streak||0, last:p=>lastActive(p)||'', xp:p=>p.xp||0, life:p=>p.total_touches||0, t7:p=>sumT(p,7), d7:p=>activeDays(p,7)};
+  const rows = sortRows('kids', D.players, defs), th = (c,l,cls='') => `<th class="${cls}" onclick="setSort('kids','${c}')">${l}</th>`;
+  return `<div class="card"><div class="card-h">ALL KIDS <span class="legend">Click a column to sort · click a kid for detail</span></div>
+  <table><tr>${th('name','KID')}${th('fam','FAMILY')}${th('age','AGE')}<th>LEVEL</th>${th('streak','STREAK','num')}${th('best','BEST','num')}${th('d7','DAYS 7D','num')}${th('t7','TOUCHES 7D','num')}${th('life','LIFETIME','num')}${th('xp','XP','num')}${th('last','LAST ACTIVE')}<th>PROGRAMS</th></tr>
+  ${rows.map(p => `<tr><td>${kidCell(p)}</td><td>${esc(p.fam.parent_name||'')}</td><td>${esc(p.age_group)}</td><td class="muted">${esc(p.skill_level||'')}</td>
+    <td class="num">${liveStreak(p) ? '🔥'+liveStreak(p) : '<span class="muted">0</span>'}</td><td class="num">${p.best_streak||0}</td><td class="num">${activeDays(p,7)}/7</td>
+    <td class="num">${fmt(sumT(p,7))}</td><td class="num">${fmtK(p.total_touches)}</td><td class="num">${fmt(p.xp)}</td><td>${ago(lastActive(p))}</td><td>${progChips(p)}</td></tr>`).join('') || '<tr><td colspan="12" class="empty">No kids yet</td></tr>'}</table></div>`;
+}
+function vKids() { return `<div class="hdr"><div><h2>Kids</h2><div class="s">Nicknames and age groups only. Click a kid for their last 60 days.</div></div></div>${kidsTable()}`; }
+
+function vFamilies() {
+  return `<div class="hdr"><div><h2>Families</h2><div class="s">Feature flags turn beta features on per family. Nobody else sees them.</div></div></div>
+  <div class="card"><table><tr><th>PARENT</th><th>EMAIL</th><th>JOINED</th><th>KIDS</th><th class="num">SESSIONS 7D</th><th>PROGRAMS (BETA)</th></tr>
+  ${D.families.map(f => { const kids = D.players.filter(p => p.family_id === f.id), lo = daysAgo(6);
+    return `<tr><td><b>${esc(f.parent_name||'(no name)')}</b></td><td class="muted">${esc(f.email||'')}</td><td class="muted">${esc((f.created_at||'').slice(0,10))}</td>
+      <td>${kids.map(kidCell).join('') || '<span class="muted">none</span>'}</td>
+      <td class="num">${D.sessions.filter(s => s.family_id === f.id && s.date >= lo).length}</td>
+      <td><label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" ${f.flags&&f.flags.programs?'checked':''} onchange="setFlag('${f.id}','programs',this.checked)"> <span class="small muted">Programs in Plan screen</span></label></td></tr>`; }).join('')}</table></div>`;
+}
+async function setFlag(fid, k, on) {
+  const f = D.fams[fid], flags = {...(f.flags||{})}; if (on) flags[k] = true; else delete flags[k];
+  try { await rpc('sfc_admin_set_flags', {p_family:fid, p_flags:flags}); f.flags = flags; toast('Saved'); } catch(e) { toast('Failed: ' + e.message); render(); }
+}
+
+function vActivity() {
+  const rows = D.sessions.slice(0, 150);
+  return `<div class="hdr"><div><h2>Activity</h2><div class="s">Latest 150 logs across every family</div></div></div>
+  <div class="card">${rows.map(s => { const p = D.byId[s.player_id]; if (!p) return '';
+    return `<div class="feed-row"><div class="t">${esc(s.date)}<br>${new Date(s.created_at).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}</div>
+      <div style="width:150px;flex:none">${kidCell(p)}</div><div style="width:120px;flex:none"><span class="chip ${s.mode==='epa'?'c-violet':s.mode==='checkin'||s.mode==='weekly'?'c-blue':'c-sub'}">${esc((MODE[s.mode]||s.mode||'session').toUpperCase())}</span></div>
+      <div style="flex:1">${detail(s)}</div><div class="num" style="width:150px;flex:none">${s.touches?fmt(s.touches)+' touches · ':''}<b>+${s.xp}</b> XP</div></div>`; }).join('') || '<div class="empty">No activity yet</div>'}</div>`;
+}
+
+// ── EPA ──
+function enrolled() { return D.players.filter(p => (p.programs||[]).some(e => e.id === 'epa')); }
+function epaOf(p) { return (p.programs||[]).find(e => e.id === 'epa') || {}; }
+function vEPA() {
+  const E = enrolled(), wk = weekDates(0), today = localDate(), lo7 = daysAgo(6);
+  const sched = wk.filter(d => PROGRAMS.epa.days.includes(wdOf(d)) && !epaOff(d)), due = sched.filter(d => d <= today);
+  const cur = E[0] ? epaOf(E[0]) : {};
+  const logs = D.sessions.filter(s => s.mode === 'epa' && E.some(p => p.id === s.player_id));
+  const wkLogs = logs.filter(s => wk.includes(s.date)), ready7 = D.sessions.filter(s => s.mode === 'checkin' && s.date >= lo7 && E.some(p => p.id === s.player_id)).map(s => (s.rounds||[])[0]?.ready?.score).filter(Boolean);
+  const avg = a => a.length ? (a.reduce((x,y)=>x+y,0)/a.length).toFixed(1) : '-';
+  const notIn = D.players.filter(p => !E.includes(p));
+  const nextOff = PROGRAMS.epa.off.find(([a,b]) => b >= today);
+  return `<div class="hdr"><div><h2>EPA <span class="chip c-violet">BETA</span></h2><div class="s">Tue · Wed · Thu · ${PROGRAMS.epa.mins} min · ${E.length} enrolled${nextOff?` · next break: ${nextOff[2]} (${nextOff[0].slice(5).replace('-','/')})`:''}</div></div></div>
+  <div class="kpis">
+    <div class="kpi"><b>${E.length}</b><span>ENROLLED</span></div>
+    <div class="kpi"><b>${wkLogs.length}/${E.length * due.length || 0}</b><span>LOGGED THIS WEEK</span></div>
+    <div class="kpi"><b>${avg(ready7)}</b><span>AVG READINESS 7D</span></div>
+    <div class="kpi"><b>${avg(wkLogs.map(s => (s.rounds||[])[0]?.epa?.effort).filter(Boolean))}</b><span>AVG EFFORT THIS WEEK</span></div>
+    <div class="kpi"><b>${fmtK(wkLogs.reduce((a,s)=>a+(s.touches||0),0))}</b><span>EPA TOUCHES CREDITED</span></div>
+  </div>
+  <div class="card"><div class="card-h">THIS WEEK'S FOCUS · SHOWS ON EVERY ENROLLED KID'S HOME SCREEN</div>
+    <div class="form-row">
+      <select id="fFocus"><option value="">Not set</option>${Object.entries(FOCUS).map(([k,f]) => `<option value="${k}" ${cur.focus===k?'selected':''}>${f.ico} ${f.name}</option>`).join('')}</select>
+      <input id="fNote" maxlength="100" style="flex:1;min-width:260px" placeholder="Coach note, e.g. Week 6: first touch out of pressure" value="${esc(cur.note||'')}">
+      <button class="btn" onclick="applyFocus()" ${E.length?'':'disabled'}>APPLY TO ALL ${E.length}</button>
+    </div>
+    <div class="legend" style="margin-top:8px">Ball-heavy focus (Technical, Mixed) = light home session on EPA days. Speed or tactical = home session stays ball-focused. Breaks = heavier home days.</div></div>
+  <div class="card"><div class="card-h">ROSTER</div>
+  <table><tr><th>KID</th><th>GROUP</th><th>THIS WEEK</th><th>READY (LAST / 7D)</th><th>LAST EPA</th><th>LAST WEEK LOG</th><th></th></tr>
+  ${E.map(p => { const L = p.sess, ck = L.filter(s => s.mode === 'checkin'), last = L.find(s => s.mode === 'epa'), wl = L.find(s => s.mode === 'weekly');
+    const r7 = ck.filter(s => s.date >= lo7).map(s => (s.rounds||[])[0]?.ready?.score).filter(Boolean);
+    const lastR = ck[0] && (ck[0].rounds||[])[0]?.ready?.score;
+    return `<tr><td>${kidCell(p)}<div class="muted small" style="margin-left:33px">${esc(p.age_group)}</div></td>
+      <td><select onchange="setGroup('${p.id}',this.value)">${['younger','older'].map(g => `<option ${(epaOf(p).group||'younger')===g?'selected':''}>${g}</option>`).join('')}</select></td>
+      <td><div class="ticks">${wk.map((d,i) => PROGRAMS.epa.days.includes(wdOf(d)) ? `<div class="tick ${L.some(s=>s.mode==='epa'&&s.date===d)?'on':''} ${epaOff(d)?'off':''} ${d===today?'today':''}" title="${d}">${['M','T','W','T','F','S','S'][i]}</div>` : '').join('')}</div></td>
+      <td>${lastR ? `<span class="chip ${lastR>=4?'c-green':lastR>=3?'c-amber':'c-red'}">${lastR}</span>` : '<span class="muted">-</span>'} <span class="muted small">${avg(r7)}</span></td>
+      <td class="small">${last ? `<span class="muted">${last.date.slice(5).replace('-','/')}</span> ${detail(last)}` : '<span class="muted">none yet</span>'}</td>
+      <td class="small">${wl ? detail(wl) : '<span class="muted">-</span>'}</td>
+      <td><button class="btn ghost sm" onclick="unenroll('${p.id}')">Remove</button></td></tr>`; }).join('') || '<tr><td colspan="7" class="empty">Nobody enrolled yet. Add kids below.</td></tr>'}</table>
+  <div class="form-row" style="margin-top:14px"><select id="addKid">${notIn.map(p => `<option value="${p.id}">${esc(p.nickname)} · ${esc(p.age_group)} · ${esc(p.fam.parent_name||'')}</option>`).join('')}</select>
+    <select id="addGroup"><option>younger</option><option>older</option></select>
+    <button class="btn" onclick="enroll()" ${notIn.length?'':'disabled'}>ENROLL IN EPA</button>
+    <span class="legend">Kids see the EPA card next time their app loads.</span></div></div>
+  <div class="card"><div class="card-h">CALENDAR (TENTATIVE · GILBERT PUBLIC SCHOOLS)</div>
+    <div class="small">${PROGRAMS.epa.off.map(([a,b,n]) => `<span class="chip ${b<today?'c-sub':'c-amber'}">${esc(n)} · ${a.slice(5).replace('-','/')}${a!==b?' to '+b.slice(5).replace('-','/'):''}</span>`).join(' ')}</div>
+    <div class="legend" style="margin-top:8px">Season ${PROGRAMS.epa.start} to ${PROGRAMS.epa.end}. Fall break left out because EPA ran this week. Lesson plans: coming once McGhee weighs in.</div></div>`;
+}
+async function saveProgs(p, programs) { await rpc('sfc_admin_set_programs', {p_player:p.id, p_programs:programs}); p.programs = programs; }
+async function enroll() {
+  const p = D.byId[$('addKid').value]; if (!p) return;
+  const cur = enrolled()[0] ? epaOf(enrolled()[0]) : {};
+  try { await saveProgs(p, [...(p.programs||[]).filter(e => e.id !== 'epa'), {id:'epa', group:$('addGroup').value, focus:cur.focus||'', note:cur.note||''}]); toast(`${p.nickname} enrolled`); render(); } catch(e) { toast('Failed: ' + e.message); }
+}
+async function unenroll(id) { const p = D.byId[id]; if (!confirm(`Remove ${p.nickname} from EPA? Their logs stay.`)) return; try { await saveProgs(p, (p.programs||[]).filter(e => e.id !== 'epa')); toast('Removed'); render(); } catch(e) { toast('Failed: ' + e.message); } }
+async function setGroup(id, g) { const p = D.byId[id]; try { await saveProgs(p, (p.programs||[]).map(e => e.id === 'epa' ? {...e, group:g} : e)); toast('Saved'); } catch(e) { toast('Failed: ' + e.message); } }
+async function applyFocus() {
+  const focus = $('fFocus').value, note = $('fNote').value.trim();
+  try { const n = await rpc('sfc_admin_epa_focus', {p_focus:focus, p_note:note}); enrolled().forEach(p => p.programs = p.programs.map(e => e.id === 'epa' ? {...e, focus, note} : e)); toast(`Focus set for ${n} kid${n===1?'':'s'}`); render(); } catch(e) { toast('Failed: ' + e.message); }
+}
+
+// ── kid drawer ──
+function openKid(id) {
+  const p = D.byId[id], dr = $('drawer'); if (!p) return;
+  const days = [...Array(14)].map((_,i) => daysAgo(13-i)), per = days.map(d => p.sess.filter(s => s.date === d).reduce((a,s) => a + (s.touches||0), 0)), mx = Math.max(1, ...per);
+  dr.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div class="kid" style="font-size:20px"><span class="dot" style="width:36px;height:36px;background:${esc(p.color||'#4fc3f7')}">${esc(p.nickname[0])}</span>${esc(p.nickname)}</div><button class="btn ghost sm" onclick="$('drawer').classList.remove('open')">Close</button></div>
+    <div class="muted small" style="margin:6px 0 14px">${esc(p.age_group)} · ${esc(p.skill_level||'')} · ${esc(p.fam.parent_name||'')} family</div>
+    <div class="kpis"><div class="kpi"><b>${liveStreak(p)}</b><span>STREAK</span></div><div class="kpi"><b>${p.best_streak||0}</b><span>BEST</span></div><div class="kpi"><b>${fmtK(p.total_touches)}</b><span>LIFETIME</span></div><div class="kpi"><b>${fmt(p.xp)}</b><span>XP</span></div></div>
+    <div class="card"><div class="card-h">TOUCHES · LAST 14 DAYS</div><div class="bars" style="height:90px">${per.map((n,i) => `<div class="bar ${n?'':'zero'}" style="height:${n/mx*100}%" title="${days[i]}: ${n}"></div>`).join('')}</div></div>
+    <div class="card"><div class="card-h">PROGRAMS</div>${progChips(p)} ${epaOf(p).focus ? `<span class="muted small">focus: ${esc(FOCUS[epaOf(p).focus]?.name||epaOf(p).focus)}</span>` : ''}</div>
+    <div class="card"><div class="card-h">LOGS · LAST 60 DAYS</div>${p.sess.map(s => `<div class="feed-row"><div class="t">${esc(s.date)}</div><div style="flex:1"><span class="chip c-sub">${esc((MODE[s.mode]||s.mode||'session').toUpperCase())}</span> ${detail(s)}</div><div class="num small">${s.touches?fmt(s.touches)+' · ':''}+${s.xp}</div></div>`).join('') || '<div class="empty">No logs</div>'}</div>`;
+  dr.classList.add('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('drawer').classList.remove('open'); });
+$('code').addEventListener('keydown', e => { if (e.key === 'Enter') verify(); });
+$('email').addEventListener('keydown', e => { if (e.key === 'Enter') sendCode(); });
+boot();
+</script>
+</body></html>
