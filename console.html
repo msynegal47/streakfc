@@ -68,6 +68,16 @@ tr:hover td{background:#0c121c}
 #toast.show{opacity:1}
 .empty{color:var(--sub);padding:18px 0;text-align:center}
 .legend{font-size:11px;color:var(--sub)}
+.mode{display:flex;gap:4px;align-items:center;margin-bottom:12px}.mode span{font-size:9px;letter-spacing:1.5px;font-weight:800;margin-right:4px}
+.mode-btn{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--sub);border-radius:7px;padding:5px 0;font-size:10px;font-weight:900;letter-spacing:1px}
+.mode-btn.on[data-m=live]{border-color:var(--green);color:var(--green)}.mode-btn.on[data-m=sandbox]{border-color:#1ab3bd;color:#1ab3bd;background:#1ab3bd1a}
+.sandbox-banner{background:#1ab3bd14;border:1px dashed #1ab3bd88;color:#9fe3e8;border-radius:12px;padding:10px 14px;font-size:12px;margin-bottom:16px}
+.hm-table td,.hm-table th{text-align:center;padding:8px 6px}.hm{font-weight:900;color:#e8fbfc;border:2px solid var(--bg2);border-radius:6px}.hm-empty{background:transparent}
+.kid-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.kt{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--sub);border-radius:10px;padding:10px;font-size:12px;display:flex;flex-direction:column;gap:4px}
+.kt span{color:var(--sub);font-size:11px}.kt.hot{border-left-color:var(--green)}.kt.warm{border-left-color:var(--amber)}.kt.cold{border-left-color:var(--red)}.kt.invited{opacity:.5;border-left-style:dashed}
+.spark{display:flex;align-items:flex-end;gap:2px;height:26px}.spark i{flex:1;background:#1ab3bd;border-radius:2px}.spark i.z{background:var(--border)}
+.meter{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;min-width:120px}.meter div{height:6px;background:#1ab3bd}
 @media (max-width:900px){.side{position:static;width:auto;flex-direction:row;flex-wrap:wrap;padding:12px}.side-foot,.sep,.brand-sub{display:none}.main{margin-left:0;padding:16px}.grid2{grid-template-columns:1fr}}
 </style></head>
 <body>
@@ -87,9 +97,14 @@ tr:hover td{background:#0c121c}
     <div class="nav" data-v="kids">👟 Kids <span class="n" id="nKids"></span></div>
     <div class="nav" data-v="families">🏠 Families <span class="n" id="nFams"></span></div>
     <div class="nav" data-v="activity">⚡ Activity</div>
+    <div class="sep">CLUB <span class="chip c-teal" style="margin-left:4px">SANDBOX</span></div>
+    <div class="nav" data-v="club">🏆 Club</div>
+    <div class="nav" data-v="teams">👥 Teams</div>
+    <div class="nav" data-v="coaches">🧢 Coaches</div>
+    <div class="nav" data-v="seats">🎟 Seats + billing</div>
     <div class="sep">PROGRAMS</div>
     <div class="nav" data-v="epa">🏟 EPA <span class="chip c-teal" style="margin-left:auto">BETA</span></div>
-    <div class="side-foot"><div id="who"></div><div style="margin-top:6px"><a href="#" onclick="refresh();return false">Refresh</a> · <a href="#" onclick="signOut();return false">Sign out</a></div><div style="margin-top:6px"><a href="/">Open app</a></div></div>
+    <div class="side-foot"><div class="mode"><span>DATA</span><button class="mode-btn" data-m="live" onclick="setMode('live')">LIVE</button><button class="mode-btn" data-m="sandbox" onclick="setMode('sandbox')">SANDBOX</button></div><div id="who"></div><div style="margin-top:6px"><a href="#" onclick="refresh();return false">Refresh</a> · <a href="#" onclick="signOut();return false">Sign out</a></div><div style="margin-top:6px"><a href="/">Open app</a></div></div>
   </aside>
   <main class="main" id="view"></main>
 </div>
@@ -111,7 +126,7 @@ let session = null, D = null, view = 'overview', sortKey = {};
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt = n => (n||0).toLocaleString();
-const fmtK = n => { n = n||0; return n < 1000 ? String(n) : (n/1000).toFixed(n < 10000 ? 1 : 0).replace(/\.0$/,'') + 'K'; };
+const fmtK = n => { n = n||0; if (n >= 1e6) return (n/1e6).toFixed(1).replace(/\.0$/,'') + 'M'; return n < 1000 ? String(n) : (n/1000).toFixed(n < 10000 ? 1 : 0).replace(/\.0$/,'') + 'K'; };
 function localDate(d = new Date()) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function daysAgo(n) { const d = new Date(); d.setDate(d.getDate()-n); return localDate(d); }
 function weekDates(off=0) { const d = new Date(); d.setDate(d.getDate() - (d.getDay()+6)%7 + off*7); return [...Array(7)].map((_,i) => { const x = new Date(d); x.setDate(d.getDate()+i); return localDate(x); }); }
@@ -159,7 +174,7 @@ async function boot() {
     $('who').textContent = u.email || '';
     await refresh(true);
     $('login').style.display = 'none'; $('app').style.display = 'block';
-    const h = location.hash.slice(1); go(['overview','kids','families','activity','epa'].includes(h) ? h : 'overview');
+    const h = location.hash.slice(1); paintMode(); go(['overview','kids','families','activity','epa','club','teams','coaches','seats'].includes(h) ? h : 'overview');
   } catch(e) { if (/JWT|401|expired/i.test(e.message) && await refreshSession()) return boot(); showLogin('Sign in again: ' + e.message); }
 }
 async function refresh(silent) {
@@ -171,8 +186,8 @@ async function refresh(silent) {
   if (!silent) { render(); toast('Refreshed'); }
 }
 document.querySelectorAll('.nav').forEach(n => n.onclick = () => go(n.dataset.v));
-function go(v) { view = v; location.hash = v; document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.v === v)); render(); }
-function render() { $('view').innerHTML = ({overview:vOverview, kids:vKids, families:vFamilies, activity:vActivity, epa:vEPA})[view](); }
+function go(v) { if (v !== 'coaches' && v !== 'teams' && v !== 'club') coachLens = null; view = v; location.hash = v; document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.v === v)); render(); }
+function render() { $('view').innerHTML = ({overview:vOverview, kids:vKids, families:vFamilies, activity:vActivity, epa:vEPA, club:vClub, teams:vTeams, coaches:vCoaches, seats:vSeats})[view](); }
 
 // ── derived ──
 function liveStreak(p) { return (p.last_log === localDate() || p.last_log === daysAgo(1)) ? (p.streak||0) : 0; }
@@ -332,6 +347,164 @@ function openKid(id) {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') $('drawer').classList.remove('open'); });
 $('code').addEventListener('keydown', e => { if (e.key === 'Enter') verify(); });
 $('email').addEventListener('keydown', e => { if (e.key === 'Enter') sendCode(); });
+// ── CLUB SANDBOX: fake club, teams, coaches, players. Generated in the browser only.
+// Never written to the database, never touches real kids, XP, streaks or rewards.
+let dataMode = localStorage.getItem('sfc_console_mode') || 'live', CLUB = null, clubFilter = {g:'all', age:'all', tier:'all'}, coachLens = null, teamOpen = null;
+function setMode(m) { dataMode = m; localStorage.setItem('sfc_console_mode', m); paintMode(); render(); }
+function paintMode() { document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('on', b.dataset.m === dataMode)); }
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const FN_B = ['Leo','Mateo','Liam','Noah','Diego','Ethan','Lucas','Gabe','Kai','Owen','Jace','Eli','Adrian','Nico','Marco','Isaac','Ryan','Theo','Jonah','Caleb','Andres','Miles','Zane','Luca','Rafa','Dylan','Aiden','Seth','Omar','Tyler'];
+const FN_G = ['Mia','Sofia','Ava','Emma','Isla','Lucia','Zoe','Ella','Nora','Maya','Aria','Lily','Camila','Harper','Chloe','Grace','Elena','Ivy','Sienna','Riley','Nina','Paige','Leah','Bella','Jade','Tessa','Kira','Sage','Ruby','Alana'];
+const COACH_LN = ['Alvarez','Brooks','Castillo','Duran','Ellis','Flores','Garcia','Hayes','Ibarra','Jensen','Keller','Lopez','Moreno','Nash','Ortega','Price','Quinn','Reyes','Santos','Torres','Underwood','Vega','Walsh','Young','Zamora','Baker','Cruz','Dean','Ford','Gill','Hart','Ivers','Juarez','Kim','Lane','Mendez','Novak','Oliver','Park','Rios'];
+function tiersFor(age) { return age <= 10 ? ['TL1','TL2','TL3'] : age <= 12 ? ['Pre-ECNL','Pre-ECNL RL','TL1','TL2','TL3'] : age <= 14 ? ['ECNL','ECNL RL','TL1','TL2','TL3'] : ['ECNL','ECNL RL','TL1','TL2']; }
+const TIER_ORDER = ['ECNL','Pre-ECNL','ECNL RL','Pre-ECNL RL','TL1','TL2','TL3'];
+const TIER_PROP = {'ECNL':.6,'Pre-ECNL':.58,'ECNL RL':.5,'Pre-ECNL RL':.48,'TL1':.38,'TL2':.3,'TL3':.25};
+function buildClub() {
+  const r = rng(20261006), teams = [], players = [], coaches = [];
+  let coach = null, cap = 0; const newCoach = () => { const i = coaches.length; coach = {id:'c'+i, name:`Coach ${'JMDARSTCLBKE'[i % 12]}. ${COACH_LN[(i * 7) % COACH_LN.length]}`, teams:[]}; coaches.push(coach); cap = 1 + Math.floor(r() * 3); };
+  for (let age = 8; age <= 19; age++) for (const g of ['B','G']) for (const tier of tiersFor(age)) {
+    const elite = /ECNL/.test(tier) && !/RL/.test(tier), size = (elite ? 15 : 12) + Math.floor(r() * (elite ? 4 : 5));
+    if (!coach || coach.teams.length >= cap || coach.g !== g || Math.abs(coach.age - age) > 1) { newCoach(); coach.g = g; coach.age = age; }
+    const t = {id:`t${teams.length}`, age, g, tier, name:`U${age} ${g === 'B' ? 'Boys' : 'Girls'} ${tier}`, coach:coach.id, kids:[]};
+    coach.teams.push(t.id); teams.push(t);
+    const teamBoost = (r() - .5) * .3, expected = age <= 9 ? 600 : age <= 12 ? 1000 : 1300;
+    for (let k = 0; k < size; k++) {
+      const names = g === 'B' ? FN_B : FN_G, roll = r();
+      const status = roll < .17 ? 'invited' : roll < .3 ? 'premium' : 'active';
+      const prop = Math.max(.05, Math.min(.95, TIER_PROP[tier] + teamBoost + (r() - .5) * .5));
+      const days = [];
+      for (let d = 0; d < 30; d++) { const dow = new Date(Date.now() - (29 - d) * 864e5).getDay(), wknd = dow === 0 || dow === 6 ? .75 : 1;
+        days.push(status !== 'invited' && r() < prop * wknd ? Math.round(expected * (.55 + r() * .9) / 50) * 50 : 0); }
+      let streak = 0; for (let d = 29; d >= 0 && days[d]; d--) streak++;
+      if (!streak && days[28]) { for (let d = 28; d >= 0 && days[d]; d--) streak++; }
+      const test = status === 'invited' ? null : Math.round(Math.max(20, Math.min(98, 45 + TIER_ORDER.length * 4 - TIER_ORDER.indexOf(tier) * 5 + (age - 8) * 1.5 + (r() - .5) * 30)));
+      const p = {id:`k${players.length}`, name:`${names[Math.floor(r() * names.length)]} ${String.fromCharCode(65 + Math.floor(r() * 26))}.`, team:t.id, status, days, streak, test,
+        ready: status === 'invited' ? null : Math.round((2.6 + r() * 2.3) * 10) / 10};
+      t.kids.push(p.id); players.push(p);
+    }
+  }
+  const byId = Object.fromEntries(players.map(p => [p.id, p])), teamById = Object.fromEntries(teams.map(t => [t.id, t]));
+  return {name: localStorage.getItem('sfc_club_name') || 'Sandbox SC', teams, players, coaches: coaches.filter(c => c.teams.length), byId, teamById,
+    seats: Math.round(players.length * .82 / 50) * 50, price: +(localStorage.getItem('sfc_club_price') || 25)};
+}
+function club() { return CLUB || (CLUB = buildClub()); }
+// per-player and per-team stats
+function k7(p) { return p.days.slice(23).reduce((a,b) => a + b, 0); }
+function d7(p) { return p.days.slice(23).filter(Boolean).length; }
+function last(p) { for (let d = 29; d >= 0; d--) if (p.days[d]) return 29 - d; return null; }
+function teamStats(t) {
+  const C = club(), K = t.kids.map(id => C.byId[id]), act = K.filter(p => p.status !== 'invited'), on7 = act.filter(p => d7(p) > 0);
+  return {roster:K.length, activated:act.length, active7:on7.length, pct7: K.length ? on7.length / K.length : 0,
+    tpp: act.length ? Math.round(act.reduce((a,p) => a + k7(p), 0) / act.length) : 0, streak: act.length ? act.reduce((a,p) => a + p.streak, 0) / act.length : 0,
+    test: act.filter(p => p.test).length ? Math.round(act.reduce((a,p) => a + (p.test||0), 0) / act.filter(p => p.test).length) : 0, premium: K.filter(p => p.status === 'premium').length, K};
+}
+function clubTeams() { const C = club(); return C.teams.filter(t => (clubFilter.g === 'all' || t.g === clubFilter.g) && (clubFilter.age === 'all' || t.age === +clubFilter.age) && (clubFilter.tier === 'all' || t.tier === clubFilter.tier) && (!coachLens || t.coach === coachLens)); }
+function pctChip(x) { const v = Math.round(x * 100); return `<span class="chip ${v >= 60 ? 'c-green' : v >= 40 ? 'c-amber' : 'c-red'}">${v}%</span>`; }
+function sandboxBanner() { return `<div class="sandbox-banner">🧪 <b>SANDBOX</b> · ${fmt(club().players.length)} fake players generated in your browser. Nothing here touches real kids, XP, streaks or rewards.</div>`; }
+function liveEmpty(title) { return `<div class="hdr"><div><h2>${title}</h2><div class="s">Live data</div></div></div><div class="card"><div class="empty">No clubs connected yet. Switch the data toggle (bottom left) to <b>Sandbox</b> to preview the club experience.</div></div>`; }
+function clubFilters() {
+  const C = club(), ages = [...new Set(C.teams.map(t => t.age))];
+  const sel = (k, opts) => `<select onchange="clubFilter.${k}=this.value;render()">${opts.map(([v,l]) => `<option value="${v}" ${String(clubFilter[k]) === String(v) ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
+  return `<div class="form-row" style="margin-bottom:14px">${sel('g', [['all','Boys + Girls'],['B','Boys'],['G','Girls']])}${sel('age', [['all','All ages'], ...ages.map(a => [a, 'U' + a])])}${sel('tier', [['all','All tiers'], ...TIER_ORDER.map(t => [t, t])])}
+    ${coachLens ? `<span class="chip c-teal" style="padding:6px 10px">VIEWING AS ${esc(C.coaches.find(c => c.id === coachLens).name.toUpperCase())} <a href="#" style="color:inherit;margin-left:6px" onclick="coachLens=null;render();return false">✕</a></span>` : ''}</div>`;
+}
+function editName() { const n = prompt('Club name for demos', club().name); if (n) { localStorage.setItem('sfc_club_name', n.slice(0, 40)); club().name = n.slice(0, 40); render(); } }
+
+function vClub() {
+  if (dataMode !== 'sandbox') return liveEmpty('Club');
+  const C = club(), T = clubTeams(), S = T.map(teamStats), K = S.flatMap(s => s.K), act = K.filter(p => p.status !== 'invited'), on7 = act.filter(p => d7(p) > 0);
+  const t7 = act.reduce((a,p) => a + k7(p), 0), days = [...Array(30)].map((_,i) => i), perDay = days.map(d => act.filter(p => p.days[d]).length), mx = Math.max(1, ...perDay);
+  const ages = [...new Set(T.map(t => t.age))].sort((a,b) => a - b), tiers = TIER_ORDER.filter(x => T.some(t => t.tier === x));
+  const cell = (age, tier) => { const ts = T.filter(t => t.age === age && t.tier === tier); if (!ts.length) return '<td class="hm-empty"></td>'; const kk = ts.flatMap(t => teamStats(t).K), v = kk.length ? kk.filter(p => d7(p) > 0).length / kk.length : 0;
+    return `<td class="hm" style="background:rgba(26,179,189,${.08 + v * .8})" title="U${age} ${tier}: ${Math.round(v*100)}% active 7d">${Math.round(v * 100)}</td>`; };
+  const ranked = T.map((t,i) => ({t, s:S[i]})).sort((a,b) => b.s.pct7 - a.s.pct7);
+  const teamRow = ({t,s}) => `<div class="feed-row" style="cursor:pointer" onclick="openTeam('${t.id}')"><div style="flex:1"><b>${esc(t.name)}</b> <span class="muted small">${esc(C.coaches.find(c => c.id === t.coach).name)}</span></div><div class="small muted" style="width:120px">${fmtK(s.tpp)} touches/kid</div>${pctChip(s.pct7)}</div>`;
+  return `${sandboxBanner()}<div class="hdr"><div><h2 style="cursor:pointer" onclick="editName()" title="Click to rename for demos">${esc(C.name)} <span class="chip c-teal">CLUB</span></h2><div class="s">Director view · ${T.length} teams · ${C.coaches.length} coaches · last 30 days</div></div></div>
+  ${clubFilters()}
+  <div class="kpis">
+    <div class="kpi"><b>${fmt(K.length)}</b><span>PLAYERS ROSTERED</span></div>
+    <div class="kpi"><b>${Math.round(act.length / Math.max(1,K.length) * 100)}%</b><span>ACTIVATED</span></div>
+    <div class="kpi"><b>${Math.round(on7.length / Math.max(1,K.length) * 100)}%</b><span>ACTIVE 7 DAYS</span></div>
+    <div class="kpi"><b>${fmtK(t7)}</b><span>TOUCHES 7 DAYS</span></div>
+    <div class="kpi"><b>${act.length ? (act.reduce((a,p) => a + d7(p), 0) / act.length).toFixed(1) : 0}</b><span>DAYS / WEEK PER KID</span></div>
+    <div class="kpi"><b>${fmt(K.filter(p => p.status === 'premium').length)}</b><span>PREMIUM FAMILIES</span></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><div class="card-h">ENGAGEMENT BY AGE + TIER · % OF ROSTER ACTIVE LAST 7 DAYS</div>
+      <table class="hm-table"><tr><th></th>${tiers.map(t => `<th>${esc(t)}</th>`).join('')}</tr>${ages.map(a => `<tr><th>U${a}</th>${tiers.map(t => cell(a, t)).join('')}</tr>`).join('')}</table></div>
+    <div class="card"><div class="card-h">PLAYERS ACTIVE PER DAY · 30 DAYS</div>
+      <div class="bars" style="height:150px">${perDay.map(n => `<div class="bar" style="height:${n/mx*100}%;background:#1ab3bd" title="${n}"></div>`).join('')}</div>
+      <div class="legend" style="margin-top:8px">Weekend dips are normal. Tuesday-Thursday spikes follow team training nights.</div></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><div class="card-h">TOP TEAMS</div>${ranked.slice(0, 6).map(teamRow).join('')}</div>
+    <div class="card"><div class="card-h">NEEDS ATTENTION</div>${ranked.slice(-6).reverse().map(teamRow).join('')}</div>
+  </div>`;
+}
+function vTeams() {
+  if (dataMode !== 'sandbox') return liveEmpty('Teams');
+  const C = club(), rows = clubTeams().map(t => ({t, s:teamStats(t)}));
+  const defs = {name:x => x.t.age * 100 + TIER_ORDER.indexOf(x.t.tier), coach:x => x.t.coach, roster:x => x.s.roster, act:x => x.s.activated / x.s.roster, pct:x => x.s.pct7, tpp:x => x.s.tpp, streak:x => x.s.streak, test:x => x.s.test, prem:x => x.s.premium};
+  const sorted = sortRows('teams', rows, defs), th = (c,l,cls='') => `<th class="${cls}" onclick="setSort('teams','${c}')">${l}</th>`;
+  return `${sandboxBanner()}<div class="hdr"><div><h2>Teams</h2><div class="s">${sorted.length} teams · click a team for its roster</div></div></div>${clubFilters()}
+  <div class="card"><table><tr>${th('name','TEAM')}${th('coach','COACH')}${th('roster','ROSTER','num')}${th('act','ACTIVATED','num')}${th('pct','ACTIVE 7D','num')}${th('tpp','TOUCHES / KID 7D','num')}${th('streak','AVG STREAK','num')}${th('test','SKILLS TEST','num')}${th('prem','PREMIUM','num')}</tr>
+  ${sorted.map(({t,s}) => `<tr style="cursor:pointer" onclick="openTeam('${t.id}')"><td><b>${esc(t.name)}</b></td><td class="muted">${esc(C.coaches.find(c => c.id === t.coach).name)}</td><td class="num">${s.roster}</td>
+    <td class="num">${s.activated}/${s.roster}</td><td class="num">${pctChip(s.pct7)}</td><td class="num">${fmt(s.tpp)}</td><td class="num">${s.streak.toFixed(1)}</td><td class="num">${s.test || '-'}</td><td class="num">${s.premium}</td></tr>`).join('')}</table></div>`;
+}
+function vCoaches() {
+  if (dataMode !== 'sandbox') return liveEmpty('Coaches');
+  const C = club();
+  if (coachLens) return vCoachLens();
+  return `${sandboxBanner()}<div class="hdr"><div><h2>Coaches</h2><div class="s">${C.coaches.length} coaches · most run 1 to 3 teams · "View as" shows exactly what that coach sees</div></div></div>
+  <div class="card"><table><tr><th>COACH</th><th>TEAMS</th><th class="num">PLAYERS</th><th class="num">ACTIVE 7D</th><th class="num">TOUCHES / KID 7D</th><th></th></tr>
+  ${C.coaches.map(c => { const T = c.teams.map(id => C.teamById[id]), S = T.map(teamStats), K = S.flatMap(s => s.K), act = K.filter(p => p.status !== 'invited');
+    return `<tr><td><b>${esc(c.name)}</b></td><td>${T.map(t => `<span class="chip c-sub" style="cursor:pointer" onclick="openTeam('${t.id}')">${esc(t.name)}</span>`).join('')}</td><td class="num">${K.length}</td>
+      <td class="num">${pctChip(K.filter(p => d7(p) > 0).length / Math.max(1, K.length))}</td><td class="num">${fmt(act.length ? Math.round(act.reduce((a,p) => a + k7(p), 0) / act.length) : 0)}</td>
+      <td><button class="btn ghost sm" onclick="coachLens='${c.id}';render()">View as</button></td></tr>`; }).join('')}</table></div>`;
+}
+function vCoachLens() {
+  const C = club(), c = C.coaches.find(x => x.id === coachLens), T = c.teams.map(id => C.teamById[id]);
+  return `${sandboxBanner()}<div class="hdr"><div><h2>${esc(c.name)} <span class="chip c-teal">COACH VIEW</span></h2><div class="s">${T.length} team${T.length > 1 ? 's' : ''} · only their players · <a href="#" style="color:var(--accent)" onclick="coachLens=null;render();return false">exit coach view</a></div></div></div>
+  ${T.map(t => { const s = teamStats(t), att = s.K.filter(p => p.status !== 'invited').sort((a,b) => d7(a) - d7(b));
+    return `<div class="card"><div class="card-h"><span style="color:var(--text);font-size:13px;letter-spacing:.5px">${esc(t.name.toUpperCase())}</span><span>${s.active7}/${s.roster} active this week · ${fmt(s.tpp)} touches/kid · skills test avg ${s.test}</span></div>
+      <div class="kid-grid">${att.map(p => kidTile(p)).join('')}${s.K.filter(p => p.status === 'invited').map(p => `<div class="kt invited"><b>${esc(p.name)}</b><span>Invited · not activated</span></div>`).join('')}</div></div>`; }).join('')}`;
+}
+function kidTile(p) {
+  const w = d7(p), cls = w === 0 ? 'cold' : w <= 2 ? 'warm' : 'hot';
+  return `<div class="kt ${cls}"><div style="display:flex;justify-content:space-between"><b>${esc(p.name)}</b>${p.status === 'premium' ? '<span class="chip c-amber">PRO</span>' : ''}</div>
+    <div class="spark">${p.days.slice(16).map(v => `<i style="height:${v ? Math.max(15, Math.min(100, v / 18)) : 4}%" class="${v ? '' : 'z'}"></i>`).join('')}</div>
+    <span>🔥${p.streak} · ${w}/7 days · ${fmtK(k7(p))} touches</span><span>Ready ${p.ready ?? '-'} · Test ${p.test ?? '-'}</span></div>`;
+}
+function openTeam(id) {
+  const C = club(), t = C.teamById[id], s = teamStats(t), dr = $('drawer');
+  dr.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:20px;font-weight:900">${esc(t.name)}</div><div class="muted small">${esc(C.coaches.find(c => c.id === t.coach).name)} · ${s.roster} players · <span class="chip c-teal">SANDBOX</span></div></div><button class="btn ghost sm" onclick="$('drawer').classList.remove('open')">Close</button></div>
+    <div class="kpis" style="margin-top:14px"><div class="kpi"><b>${s.active7}/${s.roster}</b><span>ACTIVE 7D</span></div><div class="kpi"><b>${fmt(s.tpp)}</b><span>TOUCHES / KID</span></div><div class="kpi"><b>${s.test}</b><span>SKILLS TEST AVG</span></div></div>
+    <table><tr><th>PLAYER</th><th>STATUS</th><th class="num">STREAK</th><th class="num">DAYS 7D</th><th class="num">TOUCHES 7D</th><th class="num">TEST</th><th>LAST</th></tr>
+    ${s.K.sort((a,b) => k7(b) - k7(a)).map(p => { const l = last(p); return `<tr><td><b>${esc(p.name)}</b></td><td><span class="chip ${p.status === 'premium' ? 'c-amber' : p.status === 'active' ? 'c-green' : 'c-sub'}">${p.status.toUpperCase()}</span></td>
+      <td class="num">${p.streak}</td><td class="num">${d7(p)}</td><td class="num">${fmt(k7(p))}</td><td class="num">${p.test ?? '-'}</td><td class="small">${l === null ? '<span class="muted">never</span>' : l === 0 ? 'today' : l + 'd ago'}</td></tr>`; }).join('')}</table>`;
+  dr.classList.add('open');
+}
+function vSeats() {
+  if (dataMode !== 'sandbox') return liveEmpty('Seats + billing');
+  const C = club(), K = C.players, act = K.filter(p => p.status !== 'invited').length, prem = K.filter(p => p.status === 'premium').length;
+  const ages = [...new Set(C.teams.map(t => t.age))];
+  return `${sandboxBanner()}<div class="hdr"><div><h2>Seats + billing</h2><div class="s">Example model: club buys seats for rostered players, families can upgrade to premium. All numbers are made up.</div></div></div>
+  <div class="kpis">
+    <div class="kpi"><b>${fmt(C.seats)}</b><span>SEATS PURCHASED</span></div>
+    <div class="kpi"><b>${fmt(Math.min(C.seats, K.length))}</b><span>SEATS ASSIGNED</span></div>
+    <div class="kpi"><b>${fmt(act)}</b><span>ACTIVATED BY FAMILIES</span></div>
+    <div class="kpi"><b>${fmt(Math.max(0, K.length - C.seats))}</b><span>ROSTERED, NO SEAT</span></div>
+    <div class="kpi"><b>${fmt(prem)}</b><span>FAMILY PREMIUM UPGRADES</span></div>
+  </div>
+  <div class="grid2"><div class="card"><div class="card-h">SEATS BY AGE GROUP</div><table><tr><th>AGE</th><th class="num">ROSTERED</th><th class="num">ACTIVATED</th><th class="num">PREMIUM</th><th>ACTIVATION</th></tr>
+    ${ages.map(a => { const kk = C.teams.filter(t => t.age === a).flatMap(t => t.kids.map(id => C.byId[id])), ac = kk.filter(p => p.status !== 'invited').length;
+      return `<tr><td><b>U${a}</b></td><td class="num">${kk.length}</td><td class="num">${ac}</td><td class="num">${kk.filter(p => p.status === 'premium').length}</td><td><div class="meter"><div style="width:${ac / kk.length * 100}%"></div></div></td></tr>`; }).join('')}</table></div>
+  <div class="card"><div class="card-h">EXAMPLE PRICING</div>
+    <div class="form-row"><span class="small muted">Price per seat / year</span><input type="number" min="0" style="width:90px" value="${C.price}" onchange="club().price=+this.value||0;localStorage.setItem('sfc_club_price',club().price);render()"></div>
+    <div style="margin-top:14px;font-size:28px;font-weight:900">$${fmt(C.seats * C.price)}<span class="muted small" style="font-weight:700"> / year club contract</span></div>
+    <div class="legend" style="margin-top:6px">${fmt(C.seats)} seats × $${C.price}. Family premium upgrades on top.</div></div></div>`;
+}
+
 boot();
 </script>
 </body></html>
