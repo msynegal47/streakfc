@@ -3,6 +3,8 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>StreakFC Console</title>
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <style>
 :root{--bg:#05070c;--bg2:#0f1520;--bg3:#151d2e;--border:#1e2a3d;--text:#e8edf5;--sub:#6b7fa0;--accent:#f97316;--green:#22c55e;--red:#ef4444;--blue:#4fc3f7;--amber:#f59e0b;--violet:#a78bfa}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -48,7 +50,7 @@ tr:hover td{background:#0c121c}
 .kid{display:flex;gap:9px;align-items:center;font-weight:800;cursor:pointer}
 .dot{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#04101a;flex:none}
 .chip{display:inline-block;font-size:10px;font-weight:900;padding:2px 7px;border-radius:6px;letter-spacing:.5px;margin-right:4px}
-.c-green{background:#22c55e22;color:var(--green)}.c-amber{background:#f59e0b22;color:var(--amber)}.c-red{background:#ef444422;color:var(--red)}.c-violet{background:#a78bfa26;color:var(--violet)}.c-blue{background:#4fc3f722;color:var(--blue)}.c-sub{background:var(--bg3);color:var(--sub)}
+.c-green{background:#22c55e22;color:var(--green)}.c-amber{background:#f59e0b22;color:var(--amber)}.c-red{background:#ef444422;color:var(--red)}.c-violet{background:#a78bfa26;color:var(--violet)}.c-teal{background:#1ab3bd26;color:#1ab3bd}.c-blue{background:#4fc3f722;color:var(--blue)}.c-sub{background:var(--bg3);color:var(--sub)}
 .muted{color:var(--sub)}.small{font-size:12px}
 .bars{display:flex;align-items:flex-end;gap:4px;height:120px;padding-top:6px}
 .bar{flex:1;background:var(--accent);border-radius:4px 4px 0 0;min-height:2px;position:relative;opacity:.85}
@@ -86,7 +88,7 @@ tr:hover td{background:#0c121c}
     <div class="nav" data-v="families">🏠 Families <span class="n" id="nFams"></span></div>
     <div class="nav" data-v="activity">⚡ Activity</div>
     <div class="sep">PROGRAMS</div>
-    <div class="nav" data-v="epa">🏟 EPA <span class="chip c-violet" style="margin-left:auto">BETA</span></div>
+    <div class="nav" data-v="epa">🏟 EPA <span class="chip c-teal" style="margin-left:auto">BETA</span></div>
     <div class="side-foot"><div id="who"></div><div style="margin-top:6px"><a href="#" onclick="refresh();return false">Refresh</a> · <a href="#" onclick="signOut();return false">Sign out</a></div><div style="margin-top:6px"><a href="/">Open app</a></div></div>
   </aside>
   <main class="main" id="view"></main>
@@ -178,7 +180,7 @@ function lastActive(p) { return p.sess.length ? p.sess[0].date : p.last_log; }
 function sumT(p, days) { const lo = daysAgo(days-1); return p.sess.filter(s => s.date >= lo).reduce((a,s) => a + (s.touches||0), 0); }
 function activeDays(p, days) { const lo = daysAgo(days-1); return new Set(p.sess.filter(s => s.date >= lo && s.mode !== 'checkin' && s.mode !== 'weekly').map(s => s.date)).size; }
 function kidCell(p) { return `<div class="kid" onclick="openKid('${p.id}')"><span class="dot" style="background:${esc(p.color||'#4fc3f7')}">${esc((p.nickname||'?')[0])}</span>${esc(p.nickname)}</div>`; }
-function progChips(p) { return (p.programs||[]).map(e => `<span class="chip c-violet">${esc((e.id||'').toUpperCase())}${e.group?' · '+esc(e.group[0].toUpperCase()):''}</span>`).join('') || '<span class="muted">-</span>'; }
+function progChips(p) { return (p.programs||[]).map(e => `<span class="chip c-teal">${esc((e.id||'').toUpperCase())}${e.group?' · '+esc(e.group[0].toUpperCase()):''}</span>`).join('') || '<span class="muted">-</span>'; }
 function detail(s) {
   const r = (s.rounds||[])[0] || {};
   if (r.epa) { const f = FOCUS[r.epa.focus]; return `${f?f.ico+' '+f.name:esc(r.epa.focus)} · effort <b>${r.epa.effort}</b> · ${FEELS[r.epa.feel]||''}${r.epa.note?` · <span class="muted">"${esc(r.epa.note)}"</span>`:''}`; }
@@ -251,7 +253,7 @@ function vActivity() {
   return `<div class="hdr"><div><h2>Activity</h2><div class="s">Latest 150 logs across every family</div></div></div>
   <div class="card">${rows.map(s => { const p = D.byId[s.player_id]; if (!p) return '';
     return `<div class="feed-row"><div class="t">${esc(s.date)}<br>${new Date(s.created_at).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}</div>
-      <div style="width:150px;flex:none">${kidCell(p)}</div><div style="width:120px;flex:none"><span class="chip ${s.mode==='epa'?'c-violet':s.mode==='checkin'||s.mode==='weekly'?'c-blue':'c-sub'}">${esc((MODE[s.mode]||s.mode||'session').toUpperCase())}</span></div>
+      <div style="width:150px;flex:none">${kidCell(p)}</div><div style="width:120px;flex:none"><span class="chip ${s.mode==='epa'?'c-teal':s.mode==='checkin'||s.mode==='weekly'?'c-blue':'c-sub'}">${esc((MODE[s.mode]||s.mode||'session').toUpperCase())}</span></div>
       <div style="flex:1">${detail(s)}</div><div class="num" style="width:150px;flex:none">${s.touches?fmt(s.touches)+' touches · ':''}<b>+${s.xp}</b> XP</div></div>`; }).join('') || '<div class="empty">No activity yet</div>'}</div>`;
 }
 
@@ -267,7 +269,7 @@ function vEPA() {
   const avg = a => a.length ? (a.reduce((x,y)=>x+y,0)/a.length).toFixed(1) : '-';
   const notIn = D.players.filter(p => !E.includes(p));
   const nextOff = PROGRAMS.epa.off.find(([a,b]) => b >= today);
-  return `<div class="hdr"><div><h2>EPA <span class="chip c-violet">BETA</span></h2><div class="s">Tue · Wed · Thu · ${PROGRAMS.epa.mins} min · ${E.length} enrolled${nextOff?` · next break: ${nextOff[2]} (${nextOff[0].slice(5).replace('-','/')})`:''}</div></div></div>
+  return `<div class="hdr"><div><h2>EPA <span class="chip c-teal">BETA</span></h2><div class="s">Tue · Wed · Thu · ${PROGRAMS.epa.mins} min · ${E.length} enrolled${nextOff?` · next break: ${nextOff[2]} (${nextOff[0].slice(5).replace('-','/')})`:''}</div></div></div>
   <div class="kpis">
     <div class="kpi"><b>${E.length}</b><span>ENROLLED</span></div>
     <div class="kpi"><b>${wkLogs.length}/${E.length * due.length || 0}</b><span>LOGGED THIS WEEK</span></div>
