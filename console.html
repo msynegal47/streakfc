@@ -88,6 +88,7 @@ table.tight td{padding:6px 8px;vertical-align:middle}tr.click{cursor:pointer}
 .cal-d{min-height:92px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px;display:flex;flex-direction:column;gap:3px;font-size:11px}.cal-d.dim{opacity:.35}.cal-d.today{border-color:var(--accent)}.cal-d.epa{border-left:3px solid #1ab3bd}.cal-d.off{background:#f59e0b0d}
 .cal-n{font-weight:900;font-size:12px}.cal-epa{color:#1ab3bd;font-weight:800;font-size:10px}.cal-plan{background:#4fc3f726;color:#4fc3f7;border-radius:5px;padding:2px 5px;font-weight:800;font-size:10px;cursor:pointer}.cal-note{color:var(--sub);font-size:10px;line-height:1.25}
 .timeline{border-left:2px solid var(--border);margin-left:6px;padding-left:16px}.node{position:relative;padding:0 0 14px}.node-dot{position:absolute;left:-23px;top:4px;width:12px;height:12px;border-radius:50%;background:#1ab3bd;border:2px solid var(--bg2)}.node-body{display:flex;flex-direction:column;gap:3px}
+.td-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}.td-cell{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:6px 8px}.td-cell span{flex:1;font-size:12px;font-weight:800}.td-cell input{width:72px;padding:6px}
 .grp-row{font-size:10px;letter-spacing:2px;font-weight:900;color:#1ab3bd;background:#1ab3bd0f;padding:7px 8px}
 textarea{font:inherit;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:9px 11px;outline:none;resize:vertical}
 .kid-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
@@ -139,7 +140,7 @@ const PROGRAMS = {epa:{name:'EPA', days:[2,3,4], mins:90, start:'2026-07-28', en
        ['2027-01-18','2027-01-18','MLK Day'],['2027-02-15','2027-02-15','Presidents Day'],['2027-03-15','2027-03-28','Spring Break']]}};
 const FOCUS = {technical:{name:'Technical',ico:'⚽',touches:1200},mixed:{name:'Mixed',ico:'🔀',touches:700},tactical:{name:'Small-sided / tactical',ico:'🧠',touches:500},speed:{name:'Speed + agility',ico:'⚡',touches:200}};
 const FEELS = ['😫','😐','🙂','🔥'];
-const MODE = {film:'Game analysis', goalsheet:'Goal worksheet', goal:'Home session', timed:'Timed test', recovery:'Recovery', parent:'Parent log', epa:'EPA session', checkin:'Check-in', weekly:'Weekly journal'};
+const MODE = {speed:'Speed test', film:'Game analysis', goalsheet:'Goal worksheet', goal:'Home session', timed:'Timed test', recovery:'Recovery', parent:'Parent log', epa:'EPA session', checkin:'Check-in', weekly:'Weekly journal'};
 
 let session = null, REAL = null, D = null, view = 'overview', sortKey = {};
 const $ = id => document.getElementById(id);
@@ -228,6 +229,7 @@ function detail(s) {
       <div><span class="chip c-green">GOOD ${esc(m.gFrom)}-${esc(m.gTo)}'</span><span class="muted">${esc(m.gPhase)}:</span> ${esc(m.gWhy)}</div>
       <div><span class="chip c-red">IMPROVE ${esc(m.bFrom)}-${esc(m.bTo)}'</span><span class="muted">${esc(m.bPhase)}:</span> ${esc(m.bWhy)}</div>
       <div class="muted">Aggressive: ${esc(m.aggr)}${m.safe ? ' · Safe: ' + esc(m.safe) : ''}</div>`; }
+  if (r.speed) { const t = (typeof SPEED_TESTS !== 'undefined' ? SPEED_TESTS : []).find(x => x.id === r.speed.test) || {name:r.speed.test, unit:'s'}; return `⚡ ${esc(t.name)} <b>${r.speed.val}${t.unit === 's' ? 's' : ''}</b>${r.speed.pb ? ' <span class="chip c-green">PB</span>' : ''}${r.speed.by ? ` <span class="muted">· timed by ${esc(r.speed.by)}</span>` : ''}`; }
   if (r.sheet) return `🎯 Dream: <b>${esc(r.sheet.dream)}</b>`;
   if (r.weekly) return `<span class="muted">Best:</span> ${esc(r.weekly.best)} <span class="muted">· Hardest:</span> ${esc(r.weekly.hard)} <span class="muted">· Goal:</span> ${esc(r.weekly.goal)}${r.weekly.hurt && r.weekly.hurt.length ? ` <span class="chip c-red">SORE: ${r.weekly.hurt.map(esc).join(', ').toUpperCase()}</span>` : ''}`;
   const n = (s.rounds||[]).length; return n ? `<span class="muted">${n} drill${n>1?'s':''}</span>` : '';
@@ -304,6 +306,42 @@ function vActivity() {
 // ── EPA ──
 function enrolled() { return D.players.filter(p => (p.programs||[]).some(e => e.id === 'epa')); }
 function epaOf(p) { return (p.programs||[]).find(e => e.id === 'epa') || {}; }
+// ── speed + agility (console) ──
+const SPEED_TESTS = [{id:'s10',name:'10m sprint',unit:'s'},{id:'s20',name:'20m sprint',unit:'s'},{id:'s30',name:'30m sprint',unit:'s'},{id:'shuttle',name:'5-10-5 shuttle',unit:'s'},{id:'ttest',name:'T-test',unit:'s'},{id:'illinois',name:'Illinois agility',unit:'s'},{id:'slalom',name:'Dribble slalom',unit:'s'},{id:'yoyo',name:'Yo-Yo test',unit:'lvl',up:true}];
+let spdTest = 's20', testDay = false;
+function spdRows(p, test) { return p.sess.filter(s => s.mode === 'speed' && ((s.rounds||[])[0]||{}).speed && (!test || s.rounds[0].speed.test === test)).map(s => ({date:s.date, at:s.created_at||'', ...s.rounds[0].speed})).sort((a,b) => (a.date + a.at) < (b.date + b.at) ? -1 : 1); }
+function spdBest(rows, t) { return rows.length ? rows.reduce((b, x) => (t.up ? x.val > b.val : x.val < b.val) ? x : b) : null; }
+function spdFmt(v, t) { return v == null ? '-' : v + (t.unit === 's' ? 's' : ''); }
+function spdCard(p) {
+  const tested = SPEED_TESTS.filter(t => spdRows(p, t.id).length);
+  return `<div class="card"><div class="card-h">⚡ SPEED + AGILITY</div>${tested.length ? `<table class="tight"><tr><th>TEST</th><th class="num">BEST</th><th class="num">FIRST</th><th class="num">CHANGE</th><th>HISTORY</th></tr>${tested.map(t => { const R = spdRows(p, t.id), b = spdBest(R, t), f = R[0], ch = b.val - f.val;
+    return `<tr><td><b>${t.name}</b></td><td class="num"><b>${spdFmt(b.val, t)}</b></td><td class="num muted">${spdFmt(f.val, t)}</td><td class="num">${R.length > 1 && ch ? `<span style="color:var(--green)">${ch > 0 ? '+' : ''}${ch.toFixed(2)}</span>` : '-'}</td><td class="small muted">${R.map(x => `${x.date.slice(5).replace('-','/')}: ${x.val}${x.by ? ' (' + esc(x.by) + ')' : ''}`).join(' · ')}</td></tr>`; }).join('')}</table>` : '<div class="muted small">No tests logged yet. Kids log from Profile or the EPA card, or you enter a test day from the Testing tab.</div>'}</div>`;
+}
+function epaTesting() {
+  const t = SPEED_TESTS.find(x => x.id === spdTest), E = enrolled();
+  const rows = E.map(p => { const R = spdRows(p, t.id), b = spdBest(R, t); return {p, R, b, f: R[0]}; }), has = rows.filter(r => r.b).sort((a,b) => t.up ? b.b.val - a.b.val : a.b.val - b.b.val), none = rows.filter(r => !r.b);
+  const grp = g => has.filter(r => (epaOf(r.p).group||'younger') === g);
+  const table = (title, list) => list.length ? `<tr><td colspan="7" class="grp-row">${title}</td></tr>` + list.map((r,i) => { const ch = r.R.length > 1 ? r.b.val - r.f.val : 0;
+    return `<tr class="click" onclick="openKid('${r.p.id}')"><td><b>${i+1}</b></td><td>${kidCell(r.p)}</td><td class="muted small">${esc(r.p.age_group)} · ${esc(r.p.pos1||'')}</td><td class="num"><b>${spdFmt(r.b.val, t)}</b></td><td class="num">${ch ? `<span style="color:var(--green)">${ch > 0 ? '+' : ''}${ch.toFixed(2)}</span>` : '-'}</td><td class="num muted">${r.R.length}</td><td class="small muted">${r.R[r.R.length-1].date.slice(5).replace('-','/')}</td></tr>`; }).join('') : '';
+  return `<div class="filters">${SPEED_TESTS.map(x => `<button class="seg ${spdTest===x.id?'on':''}" onclick="spdTest='${x.id}';render()">${x.name}</button>`).join('')}<button class="btn" style="margin-left:auto" onclick="testDay=!testDay;render()">${testDay ? 'CLOSE TEST DAY' : '⏱ ENTER TEST DAY RESULTS'}</button></div>
+  ${testDay ? `<div class="card" style="border-color:#1ab3bd66"><div class="card-h">TEST DAY · ${t.name.toUpperCase()} <span class="legend">enter ${t.unit === 's' ? 'times in seconds' : 'levels'}, leave blank if absent</span></div>
+    <div class="form-row" style="margin-bottom:10px"><span class="small muted">Date</span><input type="date" id="tdDate" value="${localDate()}"></div>
+    <div class="td-grid">${E.map(p => `<label class="td-cell"><span>${esc(p.nickname)}</span><input type="number" step="0.01" min="0" data-pid="${p.id}" placeholder="${spdBest(spdRows(p, t.id), t) ? 'PB ' + spdBest(spdRows(p, t.id), t).val : '-'}"></label>`).join('')}</div>
+    <button class="btn" style="margin-top:12px" onclick="saveTestDay()">SAVE RESULTS</button></div>` : ''}
+  <div class="card" style="padding:6px 14px"><table class="tight"><tr><th>#</th><th>PLAYER</th><th>AGE · POS</th><th class="num">BEST</th><th class="num">CHANGE</th><th class="num">TESTS</th><th>LAST</th></tr>
+    ${table('YOUNGER', grp('younger'))}${table('OLDER', grp('older'))}${!has.length ? '<tr><td colspan="7" class="empty">No results for this test yet.</td></tr>' : ''}</table>
+    ${none.length && has.length ? `<div class="legend" style="padding:8px">Not tested yet: ${none.map(r => esc(r.p.nickname)).join(', ')}</div>` : ''}</div>`;
+}
+async function saveTestDay() {
+  const t = SPEED_TESTS.find(x => x.id === spdTest), date = $('tdDate').value || localDate(), ins = [...document.querySelectorAll('.td-grid input')].filter(i => parseFloat(i.value) > 0);
+  if (!ins.length) return toast('Enter at least one result');
+  let n = 0;
+  for (const i of ins) { const p = D.byId[i.dataset.pid], val = Math.round(parseFloat(i.value) * 100) / 100, row = {player_id:p.id, family_id:p.family_id, date, touches:0, xp:0, mode:'speed', source:'coach', rounds:[{speed:{test:t.id, val, by:'Coach'}}], created_at:new Date().toISOString()};
+    if (!D.mock) { try { await rpc('sfc_admin_log_session', {p_player:p.id, p_session:{date, mode:'speed', rounds:row.rounds}}); } catch(e) { toast('Failed: ' + e.message); continue; } }
+    p.sess.unshift(row); D.sessions.unshift(row); n++; }
+  testDay = false; toast(D.mock ? `Sandbox: ${n} results added here only` : `${n} results saved`); render();
+}
+
 let epaTab = 'roster', epaF = {g:'all', pos:'', flag:'', q:''}, calMonth = null;
 const EMPHASIS = ['Ball mastery','Moves','Passing','Juggling','Weak foot','Shooting','Scanning','Speed','Agility','Recovery'];
 function lastJournal(p) { const w = p.sess.find(s => s.mode === 'weekly'); return w ? {row:w, j:((w.rounds||[])[0]||{}).weekly||{}} : null; }
@@ -325,7 +363,7 @@ function vEPA() {
   const avg = a => a.length ? (a.reduce((x,y)=>x+y,0)/a.length).toFixed(1) : '-', nextOff = PROGRAMS.epa.off.find(([a,b]) => b >= today);
   const flagsN = k => E.filter(p => kidFlags(p)[k]).length;
   const tab = (k, l, n) => `<button class="tab ${epaTab===k?'on':''}" onclick="epaTab='${k}';render()">${l}${n!=null?` <span>${n}</span>`:''}</button>`;
-  const body = epaTab === 'plans' ? epaPlans() : epaTab === 'calendar' ? epaCalendar() : epaTab === 'journals' ? epaJournals() : epaRoster();
+  const body = epaTab === 'testing' ? epaTesting() : epaTab === 'plans' ? epaPlans() : epaTab === 'calendar' ? epaCalendar() : epaTab === 'journals' ? epaJournals() : epaRoster();
   return `${D.mock ? `<div class="sandbox-banner">🧪 <b>SANDBOX EPA</b> · 24 fake players, 4 weeks of logs. Switch DATA to LIVE for Caysen and Emmitt.</div>` : ''}
   <div class="hdr"><div><h2>EPA <span class="chip c-teal">BETA</span></h2><div class="s">Tue · Wed · Thu · ${PROGRAMS.epa.mins} min · ${E.length} players${nextOff?` · next break: ${nextOff[2]} (${nextOff[0].slice(5).replace('-','/')})`:''}</div></div>
     <button class="btn add-btn" onclick="openAddPlayer()">＋ ADD PLAYER</button></div>
@@ -336,7 +374,7 @@ function vEPA() {
     <div class="kpi" style="cursor:pointer" onclick="epaTab='roster';setEpaF('flag','follow')"><b style="color:${flagsN('follow')?'var(--amber)':'inherit'}">${flagsN('follow')}</b><span>FOLLOW-UPS</span></div>
     <div class="kpi" style="cursor:pointer" onclick="epaTab='roster';setEpaF('flag','sore')"><b style="color:${flagsN('sore')?'var(--red)':'inherit'}">${flagsN('sore')}</b><span>SORE</span></div>
   </div>
-  <div class="tabs">${tab('roster','👥 Roster',E.length)}${tab('plans','🗓 Touch plans',(D.plans||[]).filter(x => x.week_start >= wk[0]).length)}${tab('calendar','📅 Calendar')}${tab('journals','📝 Journals + film')}</div>
+  <div class="tabs">${tab('roster','👥 Roster',E.length)}${tab('plans','🗓 Touch plans',(D.plans||[]).filter(x => x.week_start >= wk[0]).length)}${tab('calendar','📅 Calendar')}${tab('testing','⚡ Testing')}${tab('journals','📝 Journals + film')}</div>
   ${body}`;
 }
 function epaRoster() {
@@ -359,7 +397,7 @@ function epaRoster() {
   ${groups.map(g => { const G = E.filter(p => (epaOf(p).group||'younger') === g); return G.length ? `<tr><td colspan="8" class="grp-row">${g.toUpperCase()} · ${G.length}</td></tr>` + G.map(row).join('') : ''; }).join('') || '<tr><td colspan="8" class="empty">No players match. Clear filters or add a player.</td></tr>'}</table></div>`;
 }
 function epaJournals() {
-  const ids = new Set(enrolled().map(p => p.id)), rows = D.sessions.filter(s => ids.has(s.player_id) && ['weekly','film','goalsheet'].includes(s.mode)).slice(0, 80);
+  const ids = new Set(enrolled().map(p => p.id)), rows = D.sessions.filter(s => ids.has(s.player_id) && ['weekly','film','goalsheet','speed'].includes(s.mode)).slice(0, 80);
   return `<div class="card">${rows.map(s => { const p = D.byId[s.player_id]; return `<div class="feed-row"><div class="t">${esc(s.date)}</div><div style="width:150px;flex:none">${kidCell(p)}</div><div style="width:120px;flex:none"><span class="chip ${s.mode==='film'?'c-teal':s.mode==='goalsheet'?'c-green':'c-blue'}">${esc((MODE[s.mode]||s.mode).toUpperCase())}</span></div><div style="flex:1" class="small">${detail(s)}</div></div>`; }).join('') || '<div class="empty">No journals or game analyses yet.</div>'}</div>`;
 }
 // ── touch plans ──
@@ -509,6 +547,9 @@ function epaMock() {
         gFrom: 10 + Math.floor(r() * 20), gTo: 12 + Math.floor(r() * 25), gPhase: pick(['Attacking','Defending to Attacking']), gWhy: pick(['Scanned early and played forward first time','Won the ball and released the winger quickly']),
         bFrom: 40 + Math.floor(r() * 20), bTo: 42 + Math.floor(r() * 25), bPhase: pick(['Attacking to Defending','Defending']), bWhy: pick(['Lost my man on the switch','Turned into pressure and lost it']), aggr: 'Play the line-breaking pass', safe: 'Bounce it back to the 6'}}]});
     }
+    { const base20 = (older ? 3.35 : 3.85) + (r() - .5) * .5, baseSh = (older ? 4.95 : 5.6) + (r() - .5) * .6;
+      [24, 10].forEach((ago, j) => { if (r() < .85) { const ds = daysAgo(ago), mk = (test, v, by) => { const row = {player_id:id, family_id:fam.id, date:ds, created_at: ds + 'T16:30:00', mode:'speed', touches:0, xp:0, source:'coach', rounds:[{speed:{test, val: Math.round(v * 100) / 100, by}}]}; p.sess.push(row); sessions.push(row); };
+        mk('s20', base20 - j * (.03 + r() * .1), 'Coach'); mk('shuttle', baseSh - j * (.04 + r() * .14), 'Coach'); } }); }
     p.sess.sort((a,b) => a.created_at < b.created_at ? 1 : -1);
     const home = p.sess.filter(s => s.mode === 'goal' || s.mode === 'epa'); let st = 0; for (let d = 0; d < 28; d++) { if (home.some(s => s.date === daysAgo(d))) st++; else if (d) break; }
     Object.assign(p, {streak: st, last_log: home[0] ? home[0].date : null, best_streak: st + Math.floor(r() * 6), total_touches: home.reduce((a,s) => a + s.touches, 0) + Math.floor(r() * 30000), xp: p.sess.reduce((a,s) => a + s.xp, 0)});
@@ -545,6 +586,7 @@ function openKid(id) {
       <input id="nFocus" style="width:100%;margin-bottom:8px" maxlength="200" placeholder="Focus areas, e.g. weak foot, scanning, defending 1v1" value="${esc((D.notes||{})[p.id]?.focus||'')}">
       <textarea id="nNote" rows="4" style="width:100%" maxlength="1000" placeholder="Attitude, role, what to watch">${esc((D.notes||{})[p.id]?.note||'')}</textarea>
       <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center"><span class="legend">${(D.notes||{})[p.id]?.updated_at ? 'Updated ' + new Date(D.notes[p.id].updated_at).toLocaleDateString() : ''}</span><button class="btn sm" onclick="saveNote('${p.id}')">SAVE NOTES</button></div></div>
+    ${spdCard(p)}
     <div class="card"><div class="card-h">PROGRAMS</div>${epaOf(p).id ? `<div class="form-row" style="margin-bottom:8px"><span class="small muted">EPA group</span><select onchange="setGroup('${p.id}',this.value)">${['younger','older'].map(g => `<option ${(epaOf(p).group||'younger')===g?'selected':''}>${g}</option>`).join('')}</select><button class="btn ghost sm" onclick="unenroll('${p.id}')">Remove from EPA</button></div>` : ''}${progChips(p)} ${epaOf(p).focus ? `<span class="muted small">focus: ${esc(FOCUS[epaOf(p).focus]?.name||epaOf(p).focus)}</span>` : ''}</div>
     <div class="card"><div class="card-h">LOGS · LAST 60 DAYS</div>${p.sess.map(s => `<div class="feed-row"><div class="t">${esc(s.date)}</div><div style="flex:1"><span class="chip c-sub">${esc((MODE[s.mode]||s.mode||'session').toUpperCase())}</span> ${detail(s)}</div><div class="num small">${s.touches?fmt(s.touches)+' · ':''}+${s.xp}</div></div>`).join('') || '<div class="empty">No logs</div>'}</div>`;
   dr.classList.add('open');
@@ -738,6 +780,7 @@ function trBuild() {
       lessons, next: next == null ? null : daysAgo(-next), nextTime: next == null ? null : pick(['4:00 PM','4:30 PM','5:00 PM','5:30 PM','6:00 PM']), days, streak, done7, hw,
       adherence: Math.min(100, Math.round(done7 / hw.days * 100)), pkg: a === 'rebook' ? Math.floor(r() * 2) : 1 + Math.floor(r() * 6),
       parentNote: a === 'away' ? pick(['We are out of town for fall break, back on the 17th.','Traveling for fall break, will book when back.']) : '',
+      speed: (() => { const b = 3.4 + (14 - age) * .08 + (r() - .5) * .4, out = []; [40, 20, 3].forEach((ago, j) => { if (r() < .8) { out.push({date: daysAgo(ago), test:'s20', val: Math.round((b - j * (.02 + r() * .08)) * 100) / 100}); out.push({date: daysAgo(ago), test:'shuttle', val: Math.round((b * 1.5 - j * (.03 + r() * .1)) * 100) / 100}); } }); return out; })(),
       goal: pick(['Make the Pre-ECNL team','Use my left foot in games','Score more from outside the box','Win more 1v1s']), linked: daysAgo(30 + Math.floor(r() * 120))};
   });
   return {name: localStorage.getItem('sfc_trainer_name') || 'Sandbox Training Co.', coach: 'Coach (you)', kids};
@@ -786,6 +829,7 @@ function trStack() {
   const K = [...tr().kids].sort((a,b) => k7t(b) - k7t(a)), mx = Math.max(1, ...K.map(k7t));
   return `<div class="grid2"><div class="card"><div class="card-h">HOME TOUCHES · LAST 7 DAYS <span class="legend">players see a version of this in their Crew tab</span></div>
     ${K.map((k,i) => `<div class="feed-row" style="cursor:pointer" onclick="trOpen('${k.id}')"><b style="width:24px">${i+1}</b><span style="width:110px">${esc(k.name)}</span><div style="flex:1"><div class="meter" style="height:10px"><div style="width:${k7t(k)/mx*100}%;height:10px"></div></div></div><span class="num small" style="width:70px">${fmt(k7t(k))}</span></div>`).join('')}</div>
+    <div class="card"><div class="card-h">⚡ 20M SPRINT · BEST TIMES</div>${tr().kids.map(k => ({k, b: k.speed.filter(x => x.test === 's20').reduce((m, x) => !m || x.val < m.val ? x : m, null)})).filter(x => x.b).sort((a,b) => a.b.val - b.b.val).map((x,i) => `<div class="feed-row" style="cursor:pointer" onclick="trOpen('${x.k.id}')"><b style="width:24px">${i+1}</b><span style="width:110px">${esc(x.k.name)}</span><span class="small muted" style="flex:1">${x.k.age}</span><b>${x.b.val}s</b></div>`).join('')}</div>
     <div class="card"><div class="card-h">HOME PLAN FOLLOW-THROUGH · THIS WEEK</div>
     ${[...K].sort((a,b) => b.adherence - a.adherence).map(k => `<div class="feed-row" style="cursor:pointer" onclick="trOpen('${k.id}')"><span style="width:110px">${esc(k.name)}</span><span class="small muted" style="flex:1">${esc(k.hw.drills[0])} · ${fmt(k.hw.touches)}/day · ${k.hw.days}x/wk</span>${pctChip(k.adherence/100)}</div>`).join('')}</div></div>`;
 }
@@ -817,6 +861,8 @@ function trOpen(id) {
       <div class="pf"><label>TRAINING NOTES <span class="chip c-red">PRIVATE</span></label><input id="trTrain" placeholder="Technical detail only you see"></div>
       <div class="pf"><label>NOTE FOR PARENTS</label><input id="trPar" placeholder="What to do at home, what went well"></div>
       <button class="btn" style="margin-top:10px" onclick="trLog('${k.id}')">SAVE SESSION</button></div>
+    <div class="card"><div class="card-h">⚡ SPEED + AGILITY</div>${['s20','shuttle'].map(tid => { const R = k.speed.filter(x => x.test === tid); if (!R.length) return ''; const b = R.reduce((m, x) => x.val < m.val ? x : m), ch = b.val - R[0].val;
+      return `<div class="feed-row"><b style="width:130px">${tid === 's20' ? '20m sprint' : '5-10-5 shuttle'}</b><span style="flex:1" class="small muted">${R.map(x => x.date.slice(5).replace('-','/') + ': ' + x.val + 's').join(' · ')}</span><b>${b.val}s</b>${ch ? `<span class="small" style="color:var(--green);margin-left:6px">${ch.toFixed(2)}</span>` : ''}</div>`; }).join('') || '<div class="muted small">No tests yet.</div>'}</div>
     <div class="card"><div class="card-h">PLAYER GOAL</div><div class="small">🎯 ${esc(k.goal)}</div></div>
     <div class="card"><div class="card-h">LESSON TIMELINE · ${k.lessons.length} LESSONS</div>
       <div class="timeline">${k.lessons.map(l => `<div class="node"><div class="node-dot"></div><div class="node-body"><div><b>${l.date}</b> <span class="muted small">${esc(l.type)}</span> · <b>${esc(l.focus)}</b></div>

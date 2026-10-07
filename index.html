@@ -640,6 +640,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .epa-parent{margin-top:10px;font-size:11px;color:var(--sub);background:var(--bg3);border-radius:10px;padding:8px 10px}.epa-parent b{color:var(--text)}.epa-parent div{margin-top:3px}
 .goal-row{font-size:13px;font-weight:700;padding:7px 0;border-bottom:1px solid var(--border)}.goal-row.done{color:var(--green)}.goal-dream{font-size:16px;font-weight:900;margin:4px 0 10px}.goal-ladder div{font-size:13px;padding:6px 0;border-bottom:1px solid var(--border)}.goal-ladder span{display:block;font-size:9px;letter-spacing:1.5px;color:var(--sub);font-weight:800}
 .epa-plan{background:#1ab3bd14;border:1px solid #1ab3bd55;border-radius:10px;padding:9px 11px;margin:8px 0;font-size:12px;display:flex;flex-direction:column;gap:3px}.epa-plan-h{font-size:9px;letter-spacing:1.5px;font-weight:900;color:#1ab3bd}.epa-emph{display:flex;flex-wrap:wrap;gap:4px}.epa-emph span{font-size:10px;font-weight:800;background:var(--bg3);border-radius:5px;padding:2px 6px}
+.spd-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}.spd-row b{font-size:13px;display:block}.spd-row span{font-size:11px;color:var(--sub)}.spd-pb{font-size:20px;font-weight:900;text-align:right}.spd-pb span{display:block;font-size:11px;color:var(--green);font-weight:800}
 .form-dots{display:flex;gap:6px;margin-bottom:10px}.form-dots i{flex:1;height:4px;border-radius:2px;background:var(--border)}.form-dots i.on{background:#1ab3bd}
 .hurt-chips button.sel.good{border-color:#1ab3bd;background:#1ab3bd22}
 .goal-coach{font-size:12px;color:var(--sub);margin-top:8px}
@@ -1269,6 +1270,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
         <div class="week-labels" id="weekLabels" style="display:flex;margin-top:6px"></div>
       </div>
       <div class="badges-card" id="goalsCard" style="display:none"></div>
+      <div class="badges-card" id="speedCard"></div>
       <div class="badges-card" id="trophyCard"></div>
       <div class="badges-card">
         <div class="badges-title">BADGES</div>
@@ -2359,6 +2361,7 @@ function renderProfile() {
       <div class="goal-ladder">${[['season','THIS SEASON'],['month','THIS MONTH'],['week','THIS WEEK']].filter(([k]) => sh[k]).map(([k,l]) => `<div><span>${l}</span>${esc(sh[k])}</div>`).join('')}</div>
       ${(p.goals||{}).coach ? `<div class="goal-coach"><b>COACH'S STANDARD</b><br>${esc(p.goals.coach)}</div>` : '<div class="goal-coach">Your coach will add the standard it takes.</div>'}` : '')
       + (g.length ? `<div class="badges-title" style="margin-top:${sh?14:0}px">MY SEASON GOALS</div>` : '') + `${g.map(x => `<div class="goal-row ${x.done?'done':''}">${x.done?'✅':'🎯'} ${esc(x.t)}</div>`).join('')}${!sh && (p.goals||{}).coach ? `<div class="goal-coach">💬 Coach: ${esc(p.goals.coach)}</div>` : ''}`; }
+  renderSpeed();
   const rank = rankOf(p);
   document.getElementById('profileRank').textContent = `${rank.name} · ${seasonLabel(seasonOf())}`;
   renderTrophies();
@@ -3662,7 +3665,7 @@ function renderEPA() {
         ${pl.touches ? `<div><b>${pl.touches.toLocaleString()}</b> touches a day at home</div>` : ''}${dn ? `<div>📅 Today: <b>${esc(dn)}</b></div>` : ''}
         ${(pl.emphasis||[]).length ? `<div class="epa-emph">${pl.emphasis.map(x => `<span>${esc(x)}</span>`).join('')}</div>` : ''}${pl.note ? `<div style="color:var(--sub)">${esc(pl.note)}</div>` : ''}</div>`; })()}
     ${f || es.e.note ? `<div class="epa-coach">${f?`<b>THIS WEEK:</b> ${f.ico} ${f.name}`:''}${es.e.note?`<div>${esc(es.e.note)}</div>`:''}</div>` : ''}
-    <div class="epa-strip">${strip}</div>${main}${ready}${sheet}${weekly}${film}`;
+    <div class="epa-strip">${strip}</div>${main}${ready}${sheet}${weekly}${film}<button class="epa-btn ghost" onclick="openSpeed()">⚡ SPEED TEST <span style="opacity:.6">OPTIONAL</span> <b>+${SPEED_XP} XP</b></button>`;
 }
 function esc(s) { return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
@@ -3678,6 +3681,7 @@ function openCheckin() { epaDraft = {kind:'ready', sleep:0, energy:0, legs:0, mo
 function openWeekLog() { epaDraft = {kind:'weekly', best:'', hard:'', goal:'', hurt:null}; paintEpa(); openEpaModal('Week log', 'Three quick ones about your EPA week.'); }
 function paintEpa() {
   if (FORMS[epaDraft.kind]) return paintForm();
+  if (epaDraft.kind === 'speed') return paintSpeed();
   const d = epaDraft, B = document.getElementById('epaBody'); let ok = false, h = '';
   if (d.kind === 'epa') {
     ok = d.effort > 0 && d.feel >= 0;
@@ -3703,6 +3707,7 @@ function toggleHurt(x) { const h = Array.isArray(epaDraft.hurt) ? epaDraft.hurt 
 function saveEpa() {
   const d = epaDraft; if (!d) return;
   if (FORMS[d.kind]) return submitForm();
+  if (d.kind === 'speed') return saveSpeed();
   closeModal('epaModal');
   if (d.kind === 'epa') return commitEPA(d);
   const p = currentPlayer, today = localDate(), xp = d.kind === 'ready' ? CHECKIN_XP : WEEKLOG_XP;
@@ -3817,6 +3822,49 @@ function submitForm() {
   else { const first = !((p.goals||{}).sheet); p.goals = {...(p.goals||{}), sheet:{...v, at:today}}; progXP(p, first ? F.xp : 0, 'goalsheet', [{sheet:v}]); }
   renderHome(); renderProfile();
   showToast(d.kind === 'sheet' ? '🎯 Goals locked in. Your coach will add the standard.' : `+${F.xp} XP · ${F.title.toLowerCase()} saved`, 'success');
+}
+
+// ── SPEED + AGILITY TESTS: log times, track PBs. Lower is better except Yo-Yo level. ──
+const SPEED_TESTS = [
+  {id:'s10', name:'10m sprint', unit:'s', hint:'Standing start, 10 meters (about 11 yards).'},
+  {id:'s20', name:'20m sprint', unit:'s', hint:'Standing start, 20 meters (about 22 yards).'},
+  {id:'s30', name:'30m sprint', unit:'s', hint:'Standing start, 30 meters (about 33 yards).'},
+  {id:'shuttle', name:'5-10-5 shuttle', unit:'s', hint:'Start middle, 5 yds one way, 10 back, 5 to finish. Touch each line.'},
+  {id:'ttest', name:'T-test', unit:'s', hint:'Sprint 10 yds, shuffle 5 left, 10 right, 5 left, backpedal 10.'},
+  {id:'illinois', name:'Illinois agility', unit:'s', hint:'10m x 5m course, 4 cones down the middle to weave.'},
+  {id:'slalom', name:'Dribble slalom', unit:'s', hint:'Ball at feet through 6 cones 2m apart and back.'},
+  {id:'yoyo', name:'Yo-Yo test', unit:'lvl', up:true, hint:'Level reached (e.g. 14.2). Higher is better.'},
+];
+const SPEED_XP = 25, SPEED_PB_XP = 15;
+function speedLog(id) { return jget(`sfc_speed_${id}`, []); }
+function speedPB(id, test) { const t = SPEED_TESTS.find(x => x.id === test), L = speedLog(id).filter(x => x.test === test); if (!L.length) return null; return L.reduce((b, x) => (t.up ? x.val > b.val : x.val < b.val) ? x : b); }
+function renderSpeed() {
+  const p = currentPlayer, el = document.getElementById('speedCard'); if (!el || !p) return;
+  const L = speedLog(p.id), tested = SPEED_TESTS.filter(t => L.some(x => x.test === t.id));
+  el.innerHTML = `<div class="badges-title" style="display:flex;justify-content:space-between"><span>⚡ SPEED + AGILITY</span><span class="road-all" onclick="openSpeed()">+ LOG A TEST</span></div>
+    ${tested.length ? tested.map(t => { const all = L.filter(x => x.test === t.id), pb = speedPB(p.id, t.id), first = all[0], diff = first && pb !== first ? Math.abs(pb.val - first.val) : 0;
+      return `<div class="spd-row"><div><b>${t.name}</b><span>${all.length} test${all.length > 1 ? 's' : ''} · last ${all[all.length-1].date.slice(5).replace('-','/')}</span></div><div class="spd-pb">${pb.val}${t.unit === 's' ? 's' : ''}${diff ? `<span>${t.up ? '+' : '-'}${diff.toFixed(t.unit === 's' ? 2 : 1)}</span>` : ''}</div></div>`; }).join('')
+      : `<div class="sk-desc" style="font-size:12px">Time a 10m sprint or 5-10-5 shuttle with a parent. Beat your time, earn XP.</div>`}`;
+}
+function openSpeed(test) { epaDraft = {kind:'speed', test: test || 's10', val:'', by:'Parent'}; paintEpa(); openEpaModal('Speed + agility test', 'Warm up first: jog, high knees, a few easy strides.'); }
+function paintSpeed() {
+  const d = epaDraft, t = SPEED_TESTS.find(x => x.id === d.test), pb = speedPB(currentPlayer.id, d.test);
+  document.getElementById('epaBody').innerHTML = `<div class="field-lbl">TEST</div><div class="hurt-chips">${SPEED_TESTS.map(x => `<button class="${d.test===x.id?'sel good':''}" onclick="epaDraft.test='${x.id}';paintEpa()">${x.name.toUpperCase()}</button>`).join('')}</div>
+    <div class="sk-desc" style="font-size:12px;margin-bottom:8px">${t.hint}${pb ? ` · <b style="color:var(--green)">Your best: ${pb.val}${t.unit === 's' ? 's' : ''}</b>` : ''}</div>
+    <div class="field-lbl">${t.unit === 's' ? 'TIME (SECONDS, E.G. 2.14)' : 'LEVEL REACHED'}</div><input class="auth-input" type="number" inputmode="decimal" step="0.01" min="0" max="99" value="${esc(d.val)}" style="font-size:24px;font-weight:900;text-align:center" oninput="epaDraft.val=this.value;document.getElementById('epaSave').disabled=!(parseFloat(this.value)>0)">
+    <div class="field-lbl">WHO TIMED IT?</div><div class="hurt-chips">${['Parent','Coach','Me'].map(x => `<button class="${d.by===x?'sel good':''}" onclick="epaDraft.by='${x}';paintEpa()">${x.toUpperCase()}</button>`).join('')}</div>`;
+  const s = document.getElementById('epaSave'); s.disabled = !(parseFloat(d.val) > 0); s.textContent = `SAVE +${SPEED_XP} XP`;
+}
+function saveSpeed() {
+  const d = epaDraft, p = currentPlayer, t = SPEED_TESTS.find(x => x.id === d.test), val = Math.round(parseFloat(d.val) * 100) / 100;
+  if (!(val > 0) || val > 99) return showToast('Enter a real time', 'error');
+  const prev = speedPB(p.id, t.id), pb = !prev || (t.up ? val > prev.val : val < prev.val), L = speedLog(p.id), today = localDate();
+  L.push({date: today, test: t.id, val, by: d.by}); localStorage.setItem(`sfc_speed_${p.id}`, JSON.stringify(L));
+  closeModal('epaModal');
+  progXP(p, SPEED_XP + (pb && prev ? SPEED_PB_XP : 0), 'speed', [{speed: {test: t.id, val, by: d.by, pb: pb && !!prev}}]);
+  renderProfile(); renderHome();
+  if (pb && prev) { confetti(); sfx('pop'); showToast(`⚡ NEW PB! ${t.name} ${val}${t.unit === 's' ? 's' : ''} (+${SPEED_XP + SPEED_PB_XP} XP)`, 'success'); }
+  else showToast(`+${SPEED_XP} XP · ${t.name} saved`, 'success');
 }
 
 // Parent: EPA line on the kid card, from synced sessions
