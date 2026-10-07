@@ -87,6 +87,7 @@ table.tight td{padding:6px 8px;vertical-align:middle}tr.click{cursor:pointer}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.cal-h{font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:800;padding:4px}
 .cal-d{min-height:92px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px;display:flex;flex-direction:column;gap:3px;font-size:11px}.cal-d.dim{opacity:.35}.cal-d.today{border-color:var(--accent)}.cal-d.epa{border-left:3px solid #1ab3bd}.cal-d.off{background:#f59e0b0d}
 .cal-n{font-weight:900;font-size:12px}.cal-epa{color:#1ab3bd;font-weight:800;font-size:10px}.cal-plan{background:#4fc3f726;color:#4fc3f7;border-radius:5px;padding:2px 5px;font-weight:800;font-size:10px;cursor:pointer}.cal-note{color:var(--sub);font-size:10px;line-height:1.25}
+.timeline{border-left:2px solid var(--border);margin-left:6px;padding-left:16px}.node{position:relative;padding:0 0 14px}.node-dot{position:absolute;left:-23px;top:4px;width:12px;height:12px;border-radius:50%;background:#1ab3bd;border:2px solid var(--bg2)}.node-body{display:flex;flex-direction:column;gap:3px}
 .grp-row{font-size:10px;letter-spacing:2px;font-weight:900;color:#1ab3bd;background:#1ab3bd0f;padding:7px 8px}
 textarea{font:inherit;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:9px 11px;outline:none;resize:vertical}
 .kid-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
@@ -118,6 +119,8 @@ textarea{font:inherit;background:var(--bg3);color:var(--text);border:1px solid v
     <div class="nav" data-v="teams">👥 Teams</div>
     <div class="nav" data-v="coaches">🧢 Coaches</div>
     <div class="nav" data-v="seats">🎟 Seats + billing</div>
+    <div class="sep">TRAINER <span class="chip c-teal" style="margin-left:4px">SANDBOX</span></div>
+    <div class="nav" data-v="trainer">🎯 1:1 Training</div>
     <div class="sep">PROGRAMS</div>
     <div class="nav" data-v="epa">🏟 EPA <span class="chip c-teal" style="margin-left:auto">BETA</span></div>
     <div class="side-foot"><div class="mode"><span>DATA</span><button class="mode-btn" data-m="live" onclick="setMode('live')">LIVE</button><button class="mode-btn" data-m="sandbox" onclick="setMode('sandbox')">SANDBOX</button></div><div id="who"></div><div style="margin-top:6px"><a href="#" onclick="refresh();return false">Refresh</a> · <a href="#" onclick="signOut();return false">Sign out</a></div><div style="margin-top:6px"><a href="/">Open app</a></div></div>
@@ -190,7 +193,7 @@ async function boot() {
     $('who').textContent = u.email || '';
     await refresh(true);
     $('login').style.display = 'none'; $('app').style.display = 'block';
-    const h = location.hash.slice(1); paintMode(); go(['overview','kids','families','activity','epa','club','teams','coaches','seats'].includes(h) ? h : 'overview');
+    const h = location.hash.slice(1); paintMode(); go(['overview','kids','families','activity','epa','club','teams','coaches','seats','trainer'].includes(h) ? h : 'overview');
   } catch(e) { if (/JWT|401|expired/i.test(e.message) && await refreshSession()) return boot(); showLogin('Sign in again: ' + e.message); }
 }
 async function refresh(silent) {
@@ -204,7 +207,7 @@ async function refresh(silent) {
 }
 document.querySelectorAll('.nav').forEach(n => n.onclick = () => go(n.dataset.v));
 function go(v) { if (v !== 'coaches' && v !== 'teams' && v !== 'club') coachLens = null; view = v; location.hash = v; document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.v === v)); render(); }
-function render() { D = (dataMode === 'sandbox' && view === 'epa') ? epaMock() : REAL; $('view').innerHTML = ({overview:vOverview, kids:vKids, families:vFamilies, activity:vActivity, epa:vEPA, club:vClub, teams:vTeams, coaches:vCoaches, seats:vSeats})[view](); }
+function render() { D = (dataMode === 'sandbox' && view === 'epa') ? epaMock() : REAL; $('view').innerHTML = ({overview:vOverview, kids:vKids, families:vFamilies, activity:vActivity, epa:vEPA, club:vClub, trainer:vTrainer, teams:vTeams, coaches:vCoaches, seats:vSeats})[view](); }
 
 // ── derived ──
 function liveStreak(p) { return (p.last_log === localDate() || p.last_log === daysAgo(1)) ? (p.streak||0) : 0; }
@@ -706,6 +709,135 @@ function vSeats() {
     <div style="margin-top:14px;font-size:28px;font-weight:900">$${fmt(C.seats * C.price)}<span class="muted small" style="font-weight:700"> / year club contract</span></div>
     <div class="legend" style="margin-top:6px">${fmt(C.seats)} seats × $${C.price}. Family premium upgrades on top.</div></div></div>`;
 }
+
+// ── 1:1 TRAINER SANDBOX: one trainer, 20 private-lesson players. Browser-only fake data. ──
+let TR = null, trTab = 'players', trF = 'all', trSort = 'flag';
+const TR_DRILLS = ['Toe taps 3x60s','Sole rolls + pull-backs','Wall passes 2-touch, both feet','Weak-foot inside cuts','Cruyff + drag back circuit','Juggling ladder','Cone weave at speed','First touch away from pressure','Finishing: 20 left, 20 right','Scanning + receive on half turn'];
+const TR_FOCUS = ['First touch','Weak foot','1v1 attacking','Finishing','Receiving on the half turn','Ball mastery','Defending 1v1','Passing range','Speed of play','Shielding'];
+function trBuild() {
+  const r = rng(777), pick = a => a[Math.floor(r() * a.length)];
+  const NAMES = ['Ava','Leo','Mia','Mateo','Sofia','Noah','Isla','Diego','Zoe','Ethan','Lucia','Kai','Nora','Owen','Elena','Jace','Maya','Eli','Ruby','Nico'];
+  const ARCH = [...Array(6).fill('engaged'), ...Array(4).fill('away'), ...Array(3).fill('breakgrind'), ...Array(4).fill('rebook'), ...Array(3).fill('booked')];
+  const kids = NAMES.map((n, i) => {
+    const a = ARCH[i], age = 8 + Math.floor(r() * 7), id = 'tr' + i;
+    const lastAgo = a === 'engaged' ? 2 + Math.floor(r() * 5) : a === 'away' ? 10 + Math.floor(r() * 4) : a === 'breakgrind' ? 9 + Math.floor(r() * 5) : a === 'rebook' ? 22 + Math.floor(r() * 15) : 6 + Math.floor(r() * 6);
+    const next = a === 'engaged' || a === 'booked' ? 1 + Math.floor(r() * 7) : a === 'breakgrind' ? (r() < .5 ? 8 + Math.floor(r() * 4) : null) : a === 'away' ? (r() < .5 ? 11 + Math.floor(r() * 3) : null) : null;
+    const cadence = a === 'engaged' ? 7 : a === 'rebook' ? 14 : 10, nLessons = 4 + Math.floor(r() * 9), lessons = [];
+    for (let k = 0; k < nLessons; k++) { const ago = lastAgo + k * cadence + Math.floor(r() * 3), f = pick(TR_FOCUS);
+      lessons.push({date: daysAgo(ago), ago, type: r() < .8 ? '1:1 · 60 min' : 'Small group · 75 min', focus: f,
+        plan: [pick(TR_DRILLS), pick(TR_DRILLS), pick(TR_DRILLS)],
+        session: pick(['Sharp today, picked it up fast.','Tired from school, kept it light.','Big jump on weak foot from last time.','Frustrated early, finished strong.','Best touch work yet.']),
+        training: pick(['Hips open too late on receive.','Plants too close on weak foot.','Needs to scan before the ball arrives.','Rushes the second touch.','Good acceleration, decelerates poorly.']),
+        parent: pick(['Great session. 10 min of wall passes on non-school days would help a lot.','Please have them do the toe-tap circuit 4x this week.','Ask about the scanning cue we used, "check your shoulder".','Proud of the effort today.']),
+        home: {drills: [pick(TR_DRILLS), pick(TR_DRILLS)], touches: 500 + Math.floor(r() * 8) * 100, days: 3 + Math.floor(r() * 3)}}); }
+    const prop = a === 'engaged' ? .8 + r() * .18 : a === 'away' ? .05 : a === 'breakgrind' ? .7 + r() * .25 : a === 'rebook' ? .15 + r() * .3 : .45 + r() * .3;
+    const days = [...Array(30)].map((_, d) => { const ago = 29 - d; const awayNow = a === 'away' && ago < 10; return !awayNow && r() < prop ? Math.round((700 + r() * 900) / 50) * 50 : 0; });
+    let streak = 0; for (let d = 29; d >= 0 && days[d]; d--) streak++;
+    const hw = lessons[0].home, done7 = days.slice(23).filter(Boolean).length;
+    return {id, name: `${n} ${String.fromCharCode(65 + Math.floor(r() * 26))}.`, age: 'U' + (age + 1), pos1: pick(['CM','W','ST','CB','FB','CAM','CDM']), pos2: pick(['W','ST','CM','FB','']), arch: a,
+      lessons, next: next == null ? null : daysAgo(-next), nextTime: next == null ? null : pick(['4:00 PM','4:30 PM','5:00 PM','5:30 PM','6:00 PM']), days, streak, done7, hw,
+      adherence: Math.min(100, Math.round(done7 / hw.days * 100)), pkg: a === 'rebook' ? Math.floor(r() * 2) : 1 + Math.floor(r() * 6),
+      parentNote: a === 'away' ? pick(['We are out of town for fall break, back on the 17th.','Traveling for fall break, will book when back.']) : '',
+      goal: pick(['Make the Pre-ECNL team','Use my left foot in games','Score more from outside the box','Win more 1v1s']), linked: daysAgo(30 + Math.floor(r() * 120))};
+  });
+  return {name: localStorage.getItem('sfc_trainer_name') || 'Sandbox Training Co.', coach: 'Coach (you)', kids};
+}
+function tr() { return TR || (TR = trBuild()); }
+function trLast(k) { return k.lessons[0]; }
+function trFlags(k) { const la = trLast(k).ago, act7 = k.days.slice(23).some(Boolean);
+  return {rebook: la >= 21 && !k.next, notbooked: !k.next, inactive: !act7, away: !!k.parentNote, engaged: k.done7 >= 5 && !!k.next, pkglow: k.pkg <= 1}; }
+function trFlagChips(k) { const f = trFlags(k);
+  return `${f.rebook ? `<span class="chip c-red">NO LESSON ${trLast(k).ago}D</span>` : ''}${!f.rebook && f.notbooked ? '<span class="chip c-amber">NOT BOOKED</span>' : ''}${f.away ? '<span class="chip c-blue">AWAY · FALL BREAK</span>' : ''}${f.inactive && !f.away ? '<span class="chip c-red">NO HOME WORK 7D</span>' : ''}${f.pkglow ? `<span class="chip c-amber">${k.pkg} LEFT IN PACKAGE</span>` : ''}${f.engaged ? '<span class="chip c-green">ON FIRE</span>' : ''}`; }
+function vTrainer() {
+  if (dataMode !== 'sandbox') return liveEmpty('1:1 Training');
+  const T = tr(), K = T.kids, wk7 = [...Array(7)].map((_, i) => daysAgo(-i));
+  const booked7 = K.filter(k => k.next && k.next <= daysAgo(-6)).length, rebook = K.filter(k => trFlags(k).rebook).length, notb = K.filter(k => !k.next).length;
+  const adh = Math.round(K.reduce((a, k) => a + k.adherence, 0) / K.length), lessons30 = K.reduce((a, k) => a + k.lessons.filter(l => l.ago < 30).length, 0);
+  const tab = (k, l, n) => `<button class="tab ${trTab===k?'on':''}" onclick="trTab='${k}';render()">${l}${n!=null?` <span>${n}</span>`:''}</button>`;
+  return `<div class="sandbox-banner">🧪 <b>SANDBOX 1:1 TRAINER</b> · 20 fake private-lesson players. Nothing here is saved or touches real kids.</div>
+  <div class="hdr"><div><h2 style="cursor:pointer" onclick="trRename()">${esc(T.name)} <span class="chip c-teal">TRAINER</span></h2><div class="s">Private lessons · players link to you with your trainer code · parents can revoke anytime</div></div>
+    <div style="display:flex;gap:8px"><button class="btn ghost" onclick="trInvite()">🔗 TRAINER CODE</button><button class="btn add-btn" onclick="trInvite()">＋ ADD PLAYER</button></div></div>
+  <div class="kpis kpis-sm">
+    <div class="kpi"><b>${K.length}</b><span>PLAYERS</span></div>
+    <div class="kpi"><b>${lessons30}</b><span>LESSONS · 30 DAYS</span></div>
+    <div class="kpi"><b>${booked7}</b><span>BOOKED NEXT 7 DAYS</span></div>
+    <div class="kpi" style="cursor:pointer" onclick="trTab='players';trF='rebook';render()"><b style="color:${rebook?'var(--red)':'inherit'}">${rebook}</b><span>NO LESSON 3+ WEEKS</span></div>
+    <div class="kpi" style="cursor:pointer" onclick="trTab='players';trF='notbooked';render()"><b style="color:${notb?'var(--amber)':'inherit'}">${notb}</b><span>NOT BOOKED</span></div>
+    <div class="kpi"><b>${adh}%</b><span>HOME PLAN FOLLOW-THROUGH</span></div>
+  </div>
+  <div class="tabs">${tab('players','👥 Players',K.length)}${tab('stack','📊 Stack up')}${tab('schedule','📅 Schedule',K.filter(k=>k.next).length)}${tab('notes','📝 Notes feed')}</div>
+  ${trTab === 'stack' ? trStack() : trTab === 'schedule' ? trSchedule() : trTab === 'notes' ? trNotes() : trPlayers()}`;
+}
+function trPlayers() {
+  const K = tr().kids, F = {all:() => true, rebook:k => trFlags(k).rebook, notbooked:k => trFlags(k).notbooked, booked:k => !!k.next, inactive:k => trFlags(k).inactive, engaged:k => trFlags(k).engaged, away:k => trFlags(k).away};
+  const score = k => { const f = trFlags(k); return (f.rebook ? 100 : 0) + (f.notbooked ? 30 : 0) + (f.inactive ? 20 : 0) - k.done7; };
+  const rows = K.filter(F[trF]).sort((a,b) => trSort === 'flag' ? score(b) - score(a) : trSort === 'last' ? trLast(b).ago - trLast(a).ago : k7t(b) - k7t(a));
+  const seg = (v, l) => `<button class="seg ${trF===v?'on':''}" onclick="trF='${v}';render()">${l} <span style="opacity:.6">${K.filter(F[v]).length}</span></button>`;
+  return `<div class="filters">${seg('all','All')}${seg('rebook','No lesson 3+ wks')}${seg('notbooked','Not booked')}${seg('booked','Booked')}${seg('inactive','No home work 7d')}${seg('away','Away')}${seg('engaged','On fire')}
+    <select style="margin-left:auto" onchange="trSort=this.value;render()"><option value="flag" ${trSort==='flag'?'selected':''}>Sort: needs attention</option><option value="last" ${trSort==='last'?'selected':''}>Sort: longest since lesson</option><option value="touch" ${trSort==='touch'?'selected':''}>Sort: home touches</option></select></div>
+  <div class="card" style="padding:6px 14px"><table class="tight"><tr><th>PLAYER</th><th>AGE</th><th>POS</th><th>LAST LESSON</th><th>NEXT LESSON</th><th>HOME PLAN</th><th class="num">TOUCHES 7D</th><th>14 DAYS</th><th>FLAGS</th></tr>
+  ${rows.map(k => { const l = trLast(k); return `<tr class="click" onclick="trOpen('${k.id}')"><td><div class="kid"><span class="dot" style="background:#1ab3bd">${esc(k.name[0])}</span>${esc(k.name)}</div></td><td class="muted small">${k.age}</td><td><b>${k.pos1}</b><span class="muted">${k.pos2?' / '+k.pos2:''}</span></td>
+    <td class="small">${l.ago}d ago <span class="muted">· ${esc(l.focus)}</span></td><td class="small">${k.next ? `<b>${new Date(k.next+'T12:00').toLocaleDateString(undefined,{weekday:'short',month:'numeric',day:'numeric'})}</b> <span class="muted">${k.nextTime}</span>` : '<span style="color:var(--amber);font-weight:800">Not booked</span>'}</td>
+    <td><div class="meter" style="min-width:70px;display:inline-block;vertical-align:middle"><div style="width:${k.adherence}%"></div></div> <span class="small">${k.done7}/${k.hw.days}</span></td><td class="num">${fmt(k7t(k))}</td>
+    <td><div class="spark" style="width:90px;height:20px">${k.days.slice(16).map(v => `<i style="height:${v ? Math.max(15, Math.min(100, v / 16)) : 4}%" class="${v?'':'z'}"></i>`).join('')}</div></td><td>${trFlagChips(k)}</td></tr>`; }).join('') || '<tr><td colspan="9" class="empty">Nobody here.</td></tr>'}</table></div>`;
+}
+function k7t(k) { return k.days.slice(23).reduce((a, b) => a + b, 0); }
+function trStack() {
+  const K = [...tr().kids].sort((a,b) => k7t(b) - k7t(a)), mx = Math.max(1, ...K.map(k7t));
+  return `<div class="grid2"><div class="card"><div class="card-h">HOME TOUCHES · LAST 7 DAYS <span class="legend">players see a version of this in their Crew tab</span></div>
+    ${K.map((k,i) => `<div class="feed-row" style="cursor:pointer" onclick="trOpen('${k.id}')"><b style="width:24px">${i+1}</b><span style="width:110px">${esc(k.name)}</span><div style="flex:1"><div class="meter" style="height:10px"><div style="width:${k7t(k)/mx*100}%;height:10px"></div></div></div><span class="num small" style="width:70px">${fmt(k7t(k))}</span></div>`).join('')}</div>
+    <div class="card"><div class="card-h">HOME PLAN FOLLOW-THROUGH · THIS WEEK</div>
+    ${[...K].sort((a,b) => b.adherence - a.adherence).map(k => `<div class="feed-row" style="cursor:pointer" onclick="trOpen('${k.id}')"><span style="width:110px">${esc(k.name)}</span><span class="small muted" style="flex:1">${esc(k.hw.drills[0])} · ${fmt(k.hw.touches)}/day · ${k.hw.days}x/wk</span>${pctChip(k.adherence/100)}</div>`).join('')}</div></div>`;
+}
+function trSchedule() {
+  const K = tr().kids, days = [...Array(14)].map((_, i) => daysAgo(-i));
+  return `<div class="card"><div class="card-h">NEXT 14 DAYS <span class="legend">later: synced read-only from the trainer's booking system (e.g. Acuity)</span></div>
+    ${days.map(d => { const ks = K.filter(k => k.next === d).sort((a,b) => a.nextTime < b.nextTime ? -1 : 1); if (!ks.length) return '';
+      return `<div class="week-row"><div class="week-lbl"><b>${new Date(d+'T12:00').toLocaleDateString(undefined,{weekday:'long'}).toUpperCase()}</b><span>${d.slice(5).replace('-','/')}</span></div><div class="week-plans">${ks.map(k => `<div class="plan-card" onclick="trOpen('${k.id}')"><div class="plan-who">${k.nextTime} · 1:1</div><div class="plan-main">${esc(k.name)} <span class="muted small">${k.age} · ${k.pos1}</span></div><div class="small muted">Last: ${esc(trLast(k).focus)} · home plan ${k.done7}/${k.hw.days}</div></div>`).join('')}</div></div>`; }).join('')}
+    <div class="card-h" style="margin-top:16px">NEEDS A LESSON BOOKED</div>${K.filter(k => !k.next).sort((a,b) => trLast(b).ago - trLast(a).ago).map(k => `<div class="feed-row" style="cursor:pointer" onclick="trOpen('${k.id}')"><span style="width:130px"><b>${esc(k.name)}</b></span><span class="small muted" style="flex:1">last lesson ${trLast(k).ago} days ago${k.parentNote ? ' · parent: "' + esc(k.parentNote) + '"' : ''}</span>${trFlagChips(k)}</div>`).join('')}</div>`;
+}
+function trNotes() {
+  const items = tr().kids.flatMap(k => k.lessons.slice(0, 3).map(l => ({k, l}))).sort((a,b) => a.l.ago - b.l.ago).slice(0, 40);
+  return `<div class="card">${items.map(({k,l}) => `<div class="feed-row"><div class="t">${l.date}</div><div style="width:130px;flex:none;cursor:pointer" onclick="trOpen('${k.id}')"><b>${esc(k.name)}</b></div><div style="flex:1" class="small"><b>${esc(l.focus)}</b> · ${esc(l.session)} <span class="muted">· Private: ${esc(l.training)}</span><div style="color:#1ab3bd">To parents: ${esc(l.parent)}</div></div></div>`).join('')}</div>`;
+}
+function trOpen(id) {
+  const k = tr().kids.find(x => x.id === id), dr = $('drawer'), l0 = trLast(k), days14 = k.days.slice(16), mx = Math.max(1, ...days14);
+  dr.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:20px;font-weight:900">${esc(k.name)}</div><div class="muted small">${k.age} · ${k.pos1}${k.pos2?' / '+k.pos2:''} · linked ${k.linked} via trainer code · <span class="chip c-teal">SANDBOX</span></div></div><button class="btn ghost sm" onclick="$('drawer').classList.remove('open')">Close</button></div>
+    <div style="margin:10px 0">${trFlagChips(k)}</div>
+    <div class="kpis kpis-sm"><div class="kpi"><b>${l0.ago}d</b><span>SINCE LESSON</span></div><div class="kpi"><b>${k.next ? k.next.slice(5).replace('-','/') : '-'}</b><span>NEXT LESSON</span></div><div class="kpi"><b>${k.pkg}</b><span>LEFT IN PACKAGE</span></div><div class="kpi"><b>🔥${k.streak}</b><span>APP STREAK</span></div></div>
+    ${k.parentNote ? `<div class="sandbox-banner" style="border-style:solid">👪 Parent: "${esc(k.parentNote)}"</div>` : ''}
+    <div class="card"><div class="card-h">AT-HOME ASSIGNMENT <span class="legend">shows in their app as "Coach homework"</span></div>
+      <div class="small"><b>${fmt(k.hw.touches)} touches/day · ${k.hw.days}x this week</b> · ${k.hw.drills.map(esc).join(' · ')}</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:8px"><div class="meter" style="flex:1;height:8px"><div style="width:${k.adherence}%;height:8px"></div></div><span class="small"><b>${k.done7}/${k.hw.days}</b> days done</span></div>
+      <div class="bars" style="height:50px;margin-top:10px">${days14.map(v => `<div class="bar ${v?'':'zero'}" style="height:${v/mx*100}%;background:#1ab3bd"></div>`).join('')}</div><div class="legend">Home touches, last 14 days (from StreakFC)</div></div>
+    <div class="card"><div class="card-h">LOG TODAY'S SESSION</div>
+      <div class="pf"><label>FOCUS</label><input id="trFocus" placeholder="e.g. First touch away from pressure"></div>
+      <div class="pf"><label>LESSON PLAN</label><input id="trPlan" placeholder="Drills, separated by commas"></div>
+      <div class="pf"><label>SESSION NOTES</label><input id="trSess" placeholder="How it went"></div>
+      <div class="pf"><label>TRAINING NOTES <span class="chip c-red">PRIVATE</span></label><input id="trTrain" placeholder="Technical detail only you see"></div>
+      <div class="pf"><label>NOTE FOR PARENTS</label><input id="trPar" placeholder="What to do at home, what went well"></div>
+      <button class="btn" style="margin-top:10px" onclick="trLog('${k.id}')">SAVE SESSION</button></div>
+    <div class="card"><div class="card-h">PLAYER GOAL</div><div class="small">🎯 ${esc(k.goal)}</div></div>
+    <div class="card"><div class="card-h">LESSON TIMELINE · ${k.lessons.length} LESSONS</div>
+      <div class="timeline">${k.lessons.map(l => `<div class="node"><div class="node-dot"></div><div class="node-body"><div><b>${l.date}</b> <span class="muted small">${esc(l.type)}</span> · <b>${esc(l.focus)}</b></div>
+        <div class="small muted">Plan: ${l.plan.map(esc).join(' · ')}</div><div class="small">📝 ${esc(l.session)}</div><div class="small" style="color:var(--red)">🔒 ${esc(l.training)}</div><div class="small" style="color:#1ab3bd">👪 ${esc(l.parent)}</div>
+        <div class="small muted">🏠 Home: ${fmt(l.home.touches)}/day · ${l.home.days}x · ${l.home.drills.map(esc).join(', ')}</div></div></div>`).join('')}</div></div>`;
+  dr.classList.add('open');
+}
+function trLog(id) {
+  const k = tr().kids.find(x => x.id === id), v = i => $(i).value.trim();
+  if (!v('trFocus')) return toast('Add a focus first');
+  k.lessons.unshift({date: localDate(), ago: 0, type: '1:1 · 60 min', focus: v('trFocus'), plan: v('trPlan') ? v('trPlan').split(',').map(x => x.trim()) : [], session: v('trSess'), training: v('trTrain'), parent: v('trPar'), home: k.hw});
+  toast('Sandbox: session logged here only'); trOpen(id); render();
+}
+function trInvite() {
+  $('drawer').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:20px;font-weight:900">Add a player</div><button class="btn ghost sm" onclick="$('drawer').classList.remove('open')">Close</button></div>
+    <div class="card" style="margin-top:14px"><div class="card-h">YOUR TRAINER CODE</div><div style="font-size:34px;font-weight:900;letter-spacing:6px;color:#1ab3bd">TRN-4K7Q</div>
+    <div class="small muted" style="margin-top:8px">Parent opens StreakFC → their player → Trainers → enters this code. They approve what you can see and can remove you anytime. Their player then shows in your list and you show in their app.</div></div>
+    <div class="card"><div class="card-h">WHAT YOU SEE ONCE LINKED</div><div class="small">Nickname, age group, positions, home touches + streak, check-ins, journals they choose to share. Never contact info.</div></div>`;
+  $('drawer').classList.add('open');
+}
+function trRename() { const n = prompt('Trainer business name for demos', tr().name); if (n) { localStorage.setItem('sfc_trainer_name', n.slice(0, 40)); tr().name = n.slice(0, 40); render(); } }
 
 boot();
 </script>
