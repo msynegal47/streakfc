@@ -1444,6 +1444,7 @@ function hydratePlayer(data) {
   if (data.history) set(`sfc_history_${id}`, data.history);
   if (data.xp_days) mergeDays(`sfc_xpdays_${id}`, data.xp_days);
   if (data.pb_days) set(`sfc_pbdays_${id}`, data.pb_days);
+  if (Array.isArray(data.speed)) mergeSpeed(id, data.speed);
   if (p.seasons && typeof p.seasons === 'object') { const loc = jget(`sfc_seasons_${id}`, {}); Object.entries(p.seasons).forEach(([n,v]) => { if (!loc[n] || (v.xp||0) > (loc[n].xp||0)) loc[n] = v; }); set(`sfc_seasons_${id}`, loc); }
   if (p.pbs) { const loc = JSON.parse(localStorage.getItem(`sfc_pbs_${id}`)||'{}'); const m = {...p.pbs};
     Object.entries(loc).forEach(([k,v]) => { if (!m[k] || v > m[k]) m[k] = v; }); set(`sfc_pbs_${id}`, m); }
@@ -1813,6 +1814,7 @@ async function loadParent() {
     sess.forEach(x => { add(hist, x.player_id, x.date, x.touches||0); add(xpd, x.player_id, x.date, x.xp_earned||0);
       const n = Array.isArray(x.rounds) ? x.rounds.filter(r => r && r.pb).length : 0; if (n) add(pbd, x.player_id, x.date, n); });
     players = rows.map(r => hydratePlayer({player:r, history:hist[r.id]||{}, xp_days:xpd[r.id]||{}, pb_days:pbd[r.id]||{}}));
+    try { const sp = await sb('sfc_sessions?select=player_id,date,rounds,created_at&mode=eq.speed&order=date,created_at'); const by = {}; sp.forEach(x => { const v = ((x.rounds||[])[0]||{}).speed; if (v) (by[x.player_id] = by[x.player_id] || []).push({date:x.date, test:v.test, val:Number(v.val), by:v.by}); }); rows.forEach(r => mergeSpeed(r.id, by[r.id] || [])); } catch(e) {}
     progRows = {}; sess.filter(x => ['epa','checkin','weekly'].includes(x.mode)).forEach(x => { (progRows[x.player_id] = progRows[x.player_id] || []).push(x); });
     localStorage.setItem('sfc_parent_cache', JSON.stringify(players));
   } catch(e) {
@@ -2002,6 +2004,7 @@ function renderParentPortal() {
         <div class="kid-stat"><div class="kid-stat-val">${fmtK(w.xp)}</div><div class="kid-stat-lbl">XP THIS WK</div></div>
       </div>
       ${epaParentLine(p)}
+      ${speedParentLine(p)}
       ${statusLine(p)}
       ${rewardLine(p)}
     `;
@@ -3564,6 +3567,7 @@ function openKidMenu(id) {
       <button onclick="${go(`openLogModal('${id}')`)}">📋 <span>Log a session<small>Trained without the app? Add touches here.</small></span></button>
       <button onclick="${go(`goTrainAs('${id}')`)}">▶ <span>Train as ${p.name}<small>Use this phone for their session.</small></span></button>
       <button onclick="${go(`openRewardModal('${id}')`)}">🎁 <span>Set a reward<small>Something to earn for training days.</small></span></button>
+      <button onclick="${go(`openParentSpeed('${id}')`)}">⚡ <span>Speed + agility<small>Personal bests, improvement, log a test you timed.</small></span></button>
       <button onclick="${go(`openPlanModal('${id}')`)}">⚙️ <span>Plan &amp; level<small>${(LEVELS[levelIdx(p)]||'').replace(/^./,c=>c.toUpperCase())} · sizes their daily session.</small></span></button>
       <button onclick="confirmResetDay('${id}')" style="border-color:#ef444455">↺ <span style="color:var(--red)">Reset today<small>Something broke? Clears today's sessions, XP and touches.</small></span></button>
     </div><button onclick="document.getElementById('kidMenu').classList.remove('open')" class="menu-cancel">Cancel</button></div>`;
@@ -3807,7 +3811,7 @@ function paintForm() {
 function progXP(p, xp, mode, rounds) {
   const today = localDate();
   addDay(`sfc_xpdays_${p.id}`, today, xp); p.xp = (p.xp||0) + xp;
-  localStorage.setItem('sfc_player', JSON.stringify(p)); localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p));
+  if (p === currentPlayer) localStorage.setItem('sfc_player', JSON.stringify(p)); localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p));
   recordSeason(p);
   if (deviceToken()) callOrQueue('sfc_log_session', {p_token:deviceToken(), p_player:p.id, p_state:playerState(p),
     p_session:{date:today, touches:0, mode, full_session:false, xp_earned:xp, bm_skills:[], mv_skills:[], rounds}});
@@ -3837,32 +3841,61 @@ const SPEED_TESTS = [
 ];
 const SPEED_XP = 25, SPEED_PB_XP = 15;
 function speedLog(id) { return jget(`sfc_speed_${id}`, []); }
+// Server is the source of truth; keep any local rows not synced yet
+function mergeSpeed(id, server) {
+  const key = x => `${x.date}|${x.test}|${Number(x.val)}`, have = new Set(server.map(key));
+  const all = [...server.map(x => ({date:x.date, test:x.test, val:Number(x.val), by:x.by})), ...speedLog(id).filter(x => !have.has(key(x)))].sort((a,b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+  localStorage.setItem(`sfc_speed_${id}`, JSON.stringify(all));
+}
+function speedRowsHTML(id) {
+  const L = speedLog(id), tested = SPEED_TESTS.filter(t => L.some(x => x.test === t.id));
+  return tested.map(t => { const all = L.filter(x => x.test === t.id), pb = speedPB(id, t.id), first = all[0], diff = first && pb !== first ? Math.abs(pb.val - first.val) : 0;
+    return `<div class="spd-row"><div><b>${t.name}</b><span>${all.map(x => `${x.date.slice(5).replace('-','/')}: ${x.val}${x.by ? ' (' + esc(x.by) + ')' : ''}`).slice(-4).join(' · ')}</span></div><div class="spd-pb">${pb.val}${t.unit === 's' ? 's' : ''}${diff ? `<span>${t.up ? '+' : '-'}${diff.toFixed(t.unit === 's' ? 2 : 1)}</span>` : ''}</div></div>`; }).join('');
+}
+let speedFor = null;
+function speedParentLine(p) {
+  const L = speedLog(p.id); if (!L.length) return '';
+  const last = L[L.length - 1], t = SPEED_TESTS.find(x => x.id === last.test) || {name:last.test, unit:'s'}, pb = speedPB(p.id, last.test), first = L.find(x => x.test === last.test), diff = pb && first && pb !== first ? Math.abs(pb.val - first.val) : 0;
+  return `<div class="epa-parent" style="cursor:pointer" onclick="openParentSpeed('${p.id}')"><b>⚡ SPEED</b> ${t.name} best <b>${pb.val}${t.unit === 's' ? 's' : ''}</b>${diff ? ` <span style="color:var(--green)">(${t.up ? '+' : '-'}${diff.toFixed(2)} since first test)</span>` : ''} · ${L.length} test${L.length > 1 ? 's' : ''} ›</div>`;
+}
+function openParentSpeed(id) {
+  const p = players.find(x => x.id === id); if (!p) return;
+  let m = document.getElementById('spdModal');
+  if (!m) { m = document.createElement('div'); m.className = 'modal-overlay'; m.id = 'spdModal'; m.onclick = e => { if (e.target === m) m.classList.remove('open'); }; document.body.appendChild(m); }
+  const rows = speedRowsHTML(p.id);
+  m.innerHTML = `<div class="modal-sheet" style="max-height:88vh;overflow-y:auto"><div class="modal-handle"></div><div class="modal-title">⚡ ${esc(p.name)}'s speed + agility</div>
+    <div class="modal-sub">Best time per test and how much they've dropped since the first one. Includes tests their coach entered.</div>
+    ${rows || '<div class="sk-desc">No tests yet. Time a 10m sprint or 5-10-5 shuttle and log it here or from their app.</div>'}
+    <button class="modal-save-btn" onclick="document.getElementById('spdModal').classList.remove('open');openSpeed(null,'${p.id}')">⏱ LOG A TEST YOU TIMED</button></div>`;
+  m.classList.add('open');
+}
 function speedPB(id, test) { const t = SPEED_TESTS.find(x => x.id === test), L = speedLog(id).filter(x => x.test === test); if (!L.length) return null; return L.reduce((b, x) => (t.up ? x.val > b.val : x.val < b.val) ? x : b); }
 function renderSpeed() {
   const p = currentPlayer, el = document.getElementById('speedCard'); if (!el || !p) return;
   const L = speedLog(p.id), tested = SPEED_TESTS.filter(t => L.some(x => x.test === t.id));
   el.innerHTML = `<div class="badges-title" style="display:flex;justify-content:space-between"><span>⚡ SPEED + AGILITY</span><span class="road-all" onclick="openSpeed()">+ LOG A TEST</span></div>
-    ${tested.length ? tested.map(t => { const all = L.filter(x => x.test === t.id), pb = speedPB(p.id, t.id), first = all[0], diff = first && pb !== first ? Math.abs(pb.val - first.val) : 0;
-      return `<div class="spd-row"><div><b>${t.name}</b><span>${all.length} test${all.length > 1 ? 's' : ''} · last ${all[all.length-1].date.slice(5).replace('-','/')}</span></div><div class="spd-pb">${pb.val}${t.unit === 's' ? 's' : ''}${diff ? `<span>${t.up ? '+' : '-'}${diff.toFixed(t.unit === 's' ? 2 : 1)}</span>` : ''}</div></div>`; }).join('')
+    ${tested.length ? speedRowsHTML(p.id)
       : `<div class="sk-desc" style="font-size:12px">Time a 10m sprint or 5-10-5 shuttle with a parent. Beat your time, earn XP.</div>`}`;
 }
-function openSpeed(test) { epaDraft = {kind:'speed', test: test || 's10', val:'', by:'Parent'}; paintEpa(); openEpaModal('Speed + agility test', 'Warm up first: jog, high knees, a few easy strides.'); }
+function openSpeed(test, forId) { speedFor = forId || null; epaDraft = {kind:'speed', test: test || 's10', val:'', by:'Parent'}; paintEpa(); openEpaModal('Speed + agility test', 'Warm up first: jog, high knees, a few easy strides.'); }
 function paintSpeed() {
-  const d = epaDraft, t = SPEED_TESTS.find(x => x.id === d.test), pb = speedPB(currentPlayer.id, d.test);
+  const d = epaDraft, t = SPEED_TESTS.find(x => x.id === d.test), sp = speedPlayer(), pb = speedPB(sp.id, d.test);
   document.getElementById('epaBody').innerHTML = `<div class="field-lbl">TEST</div><div class="hurt-chips">${SPEED_TESTS.map(x => `<button class="${d.test===x.id?'sel good':''}" onclick="epaDraft.test='${x.id}';paintEpa()">${x.name.toUpperCase()}</button>`).join('')}</div>
     <div class="sk-desc" style="font-size:12px;margin-bottom:8px">${t.hint}${pb ? ` · <b style="color:var(--green)">Your best: ${pb.val}${t.unit === 's' ? 's' : ''}</b>` : ''}</div>
     <div class="field-lbl">${t.unit === 's' ? 'TIME (SECONDS, E.G. 2.14)' : 'LEVEL REACHED'}</div><input class="auth-input" type="number" inputmode="decimal" step="0.01" min="0" max="99" value="${esc(d.val)}" style="font-size:24px;font-weight:900;text-align:center" oninput="epaDraft.val=this.value;document.getElementById('epaSave').disabled=!(parseFloat(this.value)>0)">
     <div class="field-lbl">WHO TIMED IT?</div><div class="hurt-chips">${['Parent','Coach','Me'].map(x => `<button class="${d.by===x?'sel good':''}" onclick="epaDraft.by='${x}';paintEpa()">${x.toUpperCase()}</button>`).join('')}</div>`;
   const s = document.getElementById('epaSave'); s.disabled = !(parseFloat(d.val) > 0); s.textContent = `SAVE +${SPEED_XP} XP`;
 }
-function saveSpeed() {
-  const d = epaDraft, p = currentPlayer, t = SPEED_TESTS.find(x => x.id === d.test), val = Math.round(parseFloat(d.val) * 100) / 100;
+function speedPlayer() { return speedFor ? players.find(x => x.id === speedFor) : currentPlayer; }
+async function saveSpeed() {
+  const d = epaDraft, p = speedPlayer(), t = SPEED_TESTS.find(x => x.id === d.test), val = Math.round(parseFloat(d.val) * 100) / 100;
   if (!(val > 0) || val > 99) return showToast('Enter a real time', 'error');
   const prev = speedPB(p.id, t.id), pb = !prev || (t.up ? val > prev.val : val < prev.val), L = speedLog(p.id), today = localDate();
   L.push({date: today, test: t.id, val, by: d.by}); localStorage.setItem(`sfc_speed_${p.id}`, JSON.stringify(L));
   closeModal('epaModal');
+  if (speedFor) { try { await ensureDevice(); } catch(e) {} }
   progXP(p, SPEED_XP + (pb && prev ? SPEED_PB_XP : 0), 'speed', [{speed: {test: t.id, val, by: d.by, pb: pb && !!prev}}]);
-  renderProfile(); renderHome();
+  if (speedFor) { speedFor = null; renderParentPortal(); } else { renderProfile(); renderHome(); }
   if (pb && prev) { confetti(); sfx('pop'); showToast(`⚡ NEW PB! ${t.name} ${val}${t.unit === 's' ? 's' : ''} (+${SPEED_XP + SPEED_PB_XP} XP)`, 'success'); }
   else showToast(`+${SPEED_XP} XP · ${t.name} saved`, 'success');
 }
