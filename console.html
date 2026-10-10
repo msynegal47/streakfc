@@ -390,6 +390,59 @@ async function saveTestDay() {
   testDay = false; toast(D.mock ? `Sandbox: ${n} results added here only` : `${n} results saved`); render();
 }
 
+// ── PDF roundup (opens a print-ready page; Save as PDF from the print dialog) ──
+function openReportPick() {
+  $('drawer').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:20px;font-weight:900">EPA roundup</div><button class="btn ghost sm" onclick="$('drawer').classList.remove('open')">Close</button></div>
+    <p class="muted small" style="margin:10px 0 16px">One-page summary for the period. Opens a print view: choose <b>Save as PDF</b>. ${enrolled().some(isDemo) ? 'Includes DEMO players while "Show demo players" is on.' : ''}</p>
+    <div style="display:flex;gap:10px"><button class="btn" onclick="epaReport(7)">LAST 7 DAYS</button><button class="btn" onclick="epaReport(30)">LAST 30 DAYS</button></div>`;
+  $('drawer').classList.add('open');
+}
+function epaReport(days) {
+  const E = enrolled(), today = localDate(), from = daysAgo(days - 1), inR = s => s.date >= from && s.date <= today;
+  const sched = []; for (let i = days - 1; i >= 0; i--) { const d = daysAgo(i); if (PROGRAMS.epa.days.includes(wdOf(d)) && !epaOff(d)) sched.push(d); }
+  const avg = a => a.length ? a.reduce((x,y) => x+y, 0) / a.length : null, f1 = v => v == null ? '-' : v.toFixed(1);
+  const PROG = new Set(['epa','checkin','weekly','film','goalsheet','speed']);
+  const rows = E.map(p => { const S = p.sess.filter(inR), ep = S.filter(s => s.mode === 'epa'), att = sched.filter(d => ep.some(s => s.date === d)).length;
+    const eff = avg(ep.map(s => (s.rounds||[])[0]?.epa?.effort).filter(Boolean)), rdy = avg(S.filter(s => s.mode === 'checkin').map(s => (s.rounds||[])[0]?.ready?.score).filter(Boolean));
+    const home = S.filter(s => !PROG.has(s.mode)).reduce((a,s) => a + (s.touches||0), 0), jn = S.filter(s => ['weekly','film','goalsheet'].includes(s.mode)).length;
+    const lw = S.find(s => s.mode === 'weekly'), j = (lw && (lw.rounds||[])[0]?.weekly) || {}, sore = (j.hurt||[]).length > 0, follow = j.followup === 'Yes' || /Stressed|talk/.test(j.mental||'');
+    const rA = skillRating(p, 'first'), rB = skillRating(p, 'last');
+    return {p, g: epaOf(p).group || 'younger', att, rate: sched.length ? att / sched.length : 0, eff, rdy, home, jn, sore, follow, rA, rB, dR: rA != null && rB != null ? rB - rA : null}; });
+  const tot = rows.reduce((a,r) => a + r.att, 0), poss = rows.length * sched.length, pct = v => Math.round(v * 100) + '%';
+  const grp = g => { const R = rows.filter(r => r.g === g), t = R.reduce((a,r) => a + r.att, 0); return R.length && sched.length ? pct(t / (R.length * sched.length)) : '-'; };
+  const top = (k, n, fmt) => rows.filter(r => r[k] != null && r[k] > 0).sort((a,b) => b[k] - a[k]).slice(0, n).map(r => `<li><b>${esc(r.p.nickname)}</b> <span>${fmt(r)}</span></li>`).join('') || '<li class="m">Not enough data yet</li>';
+  const watch = rows.filter(r => r.follow || r.sore || (sched.length >= 2 && r.rate < 0.5));
+  const plans = (D.plans||[]).filter(pl => { const end = new Date(pl.week_start + 'T12:00:00'); end.setDate(end.getDate() + 6); return pl.week_start <= today && localDate(end) >= from; });
+  const fmtD = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric'});
+  const demo = E.some(isDemo);
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>EPA roundup ${from} to ${today}</title><style>
+    @page{size:letter;margin:0.45in} *{box-sizing:border-box} body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#111;margin:0;padding:24px;font-size:10px}
+    .bar{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #1ab3bd;padding-bottom:10px;margin-bottom:14px}
+    h1{font-size:22px;margin:0;letter-spacing:.5px} .sub{color:#555;font-size:11px;margin-top:3px} .tag{background:#e6f7f8;color:#0f7f86;font-weight:800;font-size:9px;padding:2px 6px;border-radius:4px;letter-spacing:1px}
+    .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:14px} .k{border:1px solid #ddd;border-radius:8px;padding:8px} .k b{font-size:18px;display:block} .k span{font-size:8.5px;color:#666;font-weight:700;letter-spacing:.6px}
+    .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px} .box{border:1px solid #ddd;border-radius:8px;padding:8px 10px} .box h3{font-size:9.5px;letter-spacing:1px;color:#0f7f86;margin:0 0 6px}
+    ul{margin:0;padding:0;list-style:none} li{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px dotted #e5e5e5} li span{color:#555} .m{color:#999}
+    table{width:100%;border-collapse:collapse} th{font-size:8.5px;letter-spacing:.6px;color:#666;text-align:left;border-bottom:2px solid #111;padding:4px} td{padding:2.5px 4px;border-bottom:1px solid #eee} td.n,th.n{text-align:right}
+    .g{background:#f4f4f4;font-weight:800;font-size:9px;letter-spacing:1px} .up{color:#15803d;font-weight:700} .dn{color:#b91c1c;font-weight:700} .fl{font-size:8.5px;font-weight:800;color:#b45309}
+    .foot{margin-top:12px;color:#888;font-size:9px;display:flex;justify-content:space-between} .noprint{position:fixed;top:12px;right:12px} .noprint button{background:#ff6b1a;color:#fff;border:0;border-radius:8px;padding:10px 16px;font-weight:800;cursor:pointer}
+    @media print{.noprint{display:none} body{padding:0}}</style></head><body>
+    <div class="noprint"><button onclick="print()">Save as PDF</button></div>
+    <div class="bar"><div><h1>MSA EAST · EPA ROUNDUP</h1><div class="sub">${fmtD(from)} to ${fmtD(today)} · ${days === 7 ? 'Weekly' : 'Monthly'} · ${sched.length} EPA sessions · ${rows.length} players</div></div><div><span class="tag">STREAKFC BETA${demo ? ' · INCLUDES SAMPLE DATA' : ''}</span></div></div>
+    <div class="kpis"><div class="k"><b>${poss ? pct(tot / poss) : '-'}</b><span>ATTENDANCE</span></div><div class="k"><b>${grp('younger')} / ${grp('older')}</b><span>YOUNGER / OLDER</span></div>
+      <div class="k"><b>${f1(avg(rows.map(r => r.eff).filter(v => v != null)))}</b><span>AVG EFFORT /10</span></div><div class="k"><b>${f1(avg(rows.map(r => r.rdy).filter(v => v != null)))}</b><span>AVG READINESS /5</span></div>
+      <div class="k"><b>${rows.reduce((a,r) => a + r.jn, 0)}</b><span>JOURNALS + FILM</span></div><div class="k"><b>${fmtK(rows.reduce((a,r) => a + r.home, 0))}</b><span>HOME TOUCHES*</span></div></div>
+    <div class="cols"><div class="box"><h3>⭐ BIGGEST RATING JUMPS · SEASON</h3><ul>${top('dR', 5, r => `${r.rA} → <b class="up">${r.rB}</b> (+${r.dR})`)}</ul></div>
+      <div class="box"><h3>🏟 MOST CONSISTENT</h3><ul>${top('att', 5, r => `${r.att}/${sched.length} sessions`)}</ul></div>
+      <div class="box"><h3>🏠 MOST HOME WORK*</h3><ul>${top('home', 5, r => fmtK(r.home) + ' touches')}</ul></div></div>
+    <div class="cols" style="grid-template-columns:2fr 1fr"><div class="box"><h3>⚠ CHECK IN WITH</h3><ul>${watch.slice(0, 8).map(r => `<li><b>${esc(r.p.nickname)}</b> <span>${[r.follow && 'latest journal: wants to talk / stressed', r.sore && 'latest journal: sore', sched.length >= 2 && r.rate < 0.5 && `${r.att}/${sched.length} sessions`].filter(Boolean).join(' · ')}</span></li>`).join('') || '<li class="m">Nobody flagged. Good stretch.</li>'}</ul></div>
+      <div class="box"><h3>📋 PLANS THIS PERIOD</h3><ul>${plans.slice(0, 5).map(pl => `<li><b>${esc(pl.focus || 'Plan')}</b> <span>${fmtD(pl.week_start)}${pl.touches ? ' · ' + fmtK(pl.touches) + '/day' : ''}</span></li>`).join('') || '<li class="m">No touch plans assigned</li>'}</ul></div></div>
+    <table><tr><th>PLAYER</th><th>POS</th><th class="n">EPA</th><th class="n">EFFORT</th><th class="n">READY</th><th class="n">HOME*</th><th class="n">JOURNALS</th><th class="n">RATING</th><th>NOTES</th></tr>
+    ${['younger','older'].map(g => { const R = rows.filter(r => r.g === g).sort((a,b) => b.att - a.att || (b.rB||0) - (a.rB||0)); return R.length ? `<tr><td colspan="9" class="g">${g.toUpperCase()} · ${R.length}</td></tr>` + R.map(r => `<tr><td><b>${esc(r.p.nickname)}</b> <span class="m">${esc(r.p.age_group||'')}</span></td><td>${esc(r.p.pos1||'-')}${r.p.pos2 ? ' / ' + esc(r.p.pos2) : ''}</td><td class="n">${r.att}/${sched.length}</td><td class="n">${f1(r.eff)}</td><td class="n">${f1(r.rdy)}</td><td class="n">${r.home ? fmtK(r.home) : '-'}</td><td class="n">${r.jn || '-'}</td><td class="n">${r.rB ?? '-'}${r.dR ? ` <span class="${r.dR > 0 ? 'up' : 'dn'}">${r.dR > 0 ? '+' : ''}${r.dR}</span>` : ''}</td><td>${[r.follow && 'FOLLOW-UP', r.sore && 'SORE'].filter(Boolean).map(x => `<span class="fl">${x}</span>`).join(' ')}</td></tr>`).join('') : ''; }).join('')}</table>
+    <div class="foot"><span>* Home touches only for families who share all training. Attendance counts player logs and coach check-ins.</span><span>Generated ${new Date().toLocaleString('en-US', {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'})}</span></div>
+    </body></html>`;
+  const w = window.open('', '_blank'); if (!w) return toast('Allow pop-ups to open the report');
+  w.document.open(); w.document.write(html); w.document.close(); $('drawer').classList.remove('open');
+}
 let epaTab = 'roster', epaF = {g:'all', pos:'', flag:'', q:''}, calMonth = null, attWk = 0;
 function attTick(p, d, i, today) {
   const L = p.sess, kid = L.some(s => s.mode==='epa' && s.date===d && s.source!=='coach'), co = !kid && L.some(s => s.mode==='epa' && s.date===d && s.source==='coach'), can = d <= today && !epaOff(d) && !kid;
@@ -426,7 +479,7 @@ function vEPA() {
   const body = epaTab === 'testing' ? epaTesting() : epaTab === 'plans' ? epaPlans() : epaTab === 'calendar' ? epaCalendar() : epaTab === 'journals' ? epaJournals(['weekly','goalsheet']) : epaTab === 'film' ? epaJournals(['film']) : epaRoster();
   return `${asCoach && ROLE === 'admin' ? `<div class="sandbox-banner" style="border-color:#f9731688;color:#fdba74">👁 <b>COACH PREVIEW</b> · this is exactly what an EPA coach sees. No admin pages, no parent emails, only EPA players.</div>` : ''}${D.mixed ? `<div class="sandbox-banner">Players tagged <b>REAL</b> are live StreakFC players in EPA. The 24 tagged <b>DEMO</b> are sample data so the dashboard looks full. Turn them off bottom left.</div>` : ''}${D.mock ? `<div class="sandbox-banner">🧪 <b>SANDBOX EPA</b> · 24 fake players, 4 weeks of logs. Switch DATA to LIVE for Caysen and Emmitt.</div>` : ''}
   <div class="hdr"><div><h2>EPA <span class="chip c-teal">BETA</span></h2><div class="s">Tue · Wed · Thu · ${PROGRAMS.epa.mins} min · ${E.length} players${nextOff?` · next break: ${nextOff[2]} (${nextOff[0].slice(5).replace('-','/')})`:''}</div></div>
-    <div style="display:flex;gap:8px">${ROLE === 'admin' && !asCoach ? `<button class="btn ghost" onclick="openCoaches()">🧢 COACHES</button>` : ''}<button class="btn add-btn" onclick="openAddPlayer()">＋ ADD PLAYER</button></div></div>
+    <div style="display:flex;gap:8px">${ROLE === 'admin' && !asCoach ? `<button class="btn ghost" onclick="openCoaches()">🧢 COACHES</button>` : ''}<button class="btn ghost" onclick="openReportPick()">📄 REPORT</button><button class="btn add-btn" onclick="openAddPlayer()">＋ ADD PLAYER</button></div></div>
   <div class="kpis kpis-sm">
     <div class="kpi"><b>${wkLogs.length}/${E.length * due.length || 0}</b><span>EPA LOGS THIS WEEK</span></div>
     <div class="kpi"><b>${avg(ready7)}</b><span>AVG READINESS 7D</span></div>
@@ -579,7 +632,7 @@ function openAddPlayer() {
       <button class="btn" onclick="enroll()">ENROLL IN EPA</button>` : '<div class="muted small">Every StreakFC player is already enrolled.</div>'}</div>`}
     <div class="card"><div class="card-h">NEW FAMILY (NOT ON STREAKFC YET)</div>
       <div class="small muted" style="margin-bottom:8px">Send this to the parent. Once they add their player, they show up above to enroll.</div>
-      <textarea id="inviteTxt" rows="5" style="width:100%">Hi! EPA is using StreakFC for at-home training, check-ins and weekly journals. Takes 2 minutes: open streakfc.vercel.app on your phone, tap Parent, sign in with your email and add your player (first name or nickname only). Then tap ⋯ next to your player, Join a program, and enter code ${esc(D.code || REAL.code || '')}.</textarea>
+      <textarea id="inviteTxt" rows="5" style="width:100%">Hi! EPA is using StreakFC for at-home training, check-ins and weekly journals. Takes 2 minutes: open streakfc.app on your phone, tap Parent, sign in with your email and add your player (first name or nickname only). Then tap ⋯ next to your player, Join a program, and enter code ${esc(D.code || REAL.code || '')}.</textarea>
       <button class="btn ghost" style="margin-top:8px" onclick="navigator.clipboard.writeText($('inviteTxt').value).then(()=>toast('Copied'))">COPY INVITE</button></div>`;
   $('drawer').classList.add('open');
 }

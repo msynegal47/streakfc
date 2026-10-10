@@ -3663,7 +3663,8 @@ function renderEPA() {
   el.style.display = 'block';
   const today = localDate(), L = epaLog(p.id), T = L[today] || {}, wk = weekDates(0), f = FOCUS[es.e.focus] || null;
   const strip = wk.map((d,i) => { if (!PROGRAMS.epa.days.includes(wdOf(d))) return ''; const off = epaOff(d), done = L[d] && L[d].epa;
-    return `<div class="epa-d ${done?'on':''} ${d===today?'today':''} ${off?'off':''}"><b>${['MON','TUE','WED','THU','FRI','SAT','SUN'][i]}</b><span>${off?'OFF':done?'✓':d<today?'missed':''}</span></div>`; }).join('');
+    const late = !done && missedEpa(p).includes(d);
+    return `<div class="epa-d ${done?'on':''} ${d===today?'today':''} ${off?'off':''}" ${late?`style="cursor:pointer;border-style:dashed" onclick="openEpaLog('${d}')"`:''}><b>${['MON','TUE','WED','THU','FRI','SAT','SUN'][i]}</b><span>${off?'OFF':done?'✓':late?'+ log':d<today?'missed':''}</span></div>`; }).join('');
   const ready = T.ready ? `<div class="epa-done">✓ Checked in · ready ${T.ready.score}/5</div>`
     : `<button class="epa-btn ghost" onclick="openCheckin()">💬 HOW'S YOUR BODY? <b>+${CHECKIN_XP} XP</b></button>`;
   let main = '';
@@ -3672,6 +3673,7 @@ function renderEPA() {
   else if (es.kind === 'break') main = `<div class="epa-sub">EPA off · ${es.name}. No group training, so home days go heavier on the ball.</div>`;
   else if (es.kind === 'rest') main = `<div class="epa-sub">No EPA today. Next one: ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][PROGRAMS.epa.days.find(d => d > wdOf(today)) ?? PROGRAMS.epa.days[0]]}.</div>`;
   else main = `<div class="epa-sub">EPA is off for the season.</div>`;
+  const miss = missedEpa(p)[0]; if (miss && es.kind !== 'offseason') main += `<button class="epa-btn ghost" onclick="openEpaLog('${miss}')">⏪ FORGOT ${['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'][wdOf(miss)]}? LOG IT <b>+${EPA_XP} XP</b></button><div class="epa-sub">XP counts. Streak only counts on-time logs.</div>`;
   const wkKey = 'wk_' + wk[0], dow = wdOf(today), loggedWk = epaWeek(wk).some(d => L[d] && L[d].epa);
   const weekly = (dow >= 4 || dow === 0) ? (L[wkKey] && L[wkKey].weekly ? `<div class="epa-done">✓ Weekly journal done</div>` : `<button class="epa-btn ghost" onclick="openForm('journal')">📝 WEEKLY JOURNAL <b>+${JOURNAL_XP} XP</b></button>`) : '';
   const sheet = (p.goals||{}).sheet ? '' : `<button class="epa-btn ghost" onclick="openForm('sheet')">🎯 GOAL WORKSHEET <b>+${SHEET_XP} XP</b></button>`;
@@ -3689,10 +3691,13 @@ function esc(s) { return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<
 // Modals
 let epaDraft = null;
 function openEpaModal(title, sub) { document.getElementById('epaTitle').textContent = title; document.getElementById('epaSub').textContent = sub; document.getElementById('epaModal').classList.add('open'); }
-function openEpaLog() {
-  const e = progOf(currentPlayer) || {};
-  epaDraft = {kind:'epa', focus: FOCUS[e.focus] ? e.focus : 'mixed', effort:0, feel:-1, note:''};
-  paintEpa(); openEpaModal("Today's EPA", `${PROGRAMS.epa.mins} min with the group. 20 seconds to log.`);
+// EPA days in the last 2 days that weren't logged. Backfill earns XP but never touches the streak.
+function missedEpa(p) { const L = epaLog(p.id), P = PROGRAMS.epa; return [1,2].map(n => { const x = new Date(); x.setDate(x.getDate() - n); return localDate(x); }).filter(d => d >= P.start && d <= P.end && P.days.includes(wdOf(d)) && !epaOff(d) && !(L[d] && L[d].epa)); }
+function openEpaLog(date) {
+  const e = progOf(currentPlayer) || {}, past = date && date !== localDate();
+  if (past && !missedEpa(currentPlayer).includes(date)) return;
+  epaDraft = {kind:'epa', focus: FOCUS[e.focus] ? e.focus : 'mixed', effort:0, feel:-1, note:'', date: past ? date : null};
+  paintEpa(); openEpaModal(past ? `${['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][wdOf(date)]}'s EPA` : "Today's EPA", past ? 'Forgot to log it? You still get the XP. Streaks only count days you log on time.' : `${PROGRAMS.epa.mins} min with the group. 20 seconds to log.`);
 }
 function openCheckin() { epaDraft = {kind:'ready', sleep:0, energy:0, legs:0, mood:0}; paintEpa(); openEpaModal('Check in', 'Tap one for each. Be honest, it helps your coach.'); }
 function openWeekLog() { epaDraft = {kind:'weekly', best:'', hard:'', goal:'', hurt:null}; paintEpa(); openEpaModal('Week log', 'Three quick ones about your EPA week.'); }
@@ -3741,11 +3746,12 @@ function saveEpa() {
   renderHome(); showToast(`+${xp} XP · ${d.kind === 'ready' ? 'checked in' : 'week log saved'}`, 'success');
 }
 function commitEPA(d) {
-  const p = currentPlayer, today = localDate(); if ((epaLog(p.id)[today]||{}).epa) return;
+  const p = currentPlayer, today = localDate(), day = d.date || today; if ((epaLog(p.id)[day]||{}).epa) return;
+  if (d.date && !missedEpa(p).includes(d.date)) return;
   const f = FOCUS[d.focus], touches = f.touches, xp = EPA_XP, rankBefore = rankOf(p);
-  applyStreak(p, today); addHistory(p.id, today, touches); addDay(`sfc_xpdays_${p.id}`, today, xp);
+  if (!d.date) applyStreak(p, today); addHistory(p.id, day, touches); addDay(`sfc_xpdays_${p.id}`, today, xp);
   p.xp = (p.xp||0) + xp; p.total_touches = (p.total_touches||0) + touches; p.sessions = (p.sessions||0) + 1;
-  setEpaLog(p.id, today, 'epa', {focus:d.focus, effort:d.effort, feel:d.feel, note:d.note.trim()});
+  setEpaLog(p.id, day, 'epa', {focus:d.focus, effort:d.effort, feel:d.feel, note:d.note.trim(), ...(d.date ? {late:true} : {})});
   localStorage.setItem('sfc_player', JSON.stringify(p)); localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p));
   checkBadges();
   const fresh = newUnlocks(p); recordSeason(p);
@@ -3753,7 +3759,7 @@ function commitEPA(d) {
   if (rankAfter.idx > rankBefore.idx) reveals.push({type:'rank', rank:rankAfter, main:rankAfter.mi > rankBefore.mi});
   reveals.push(...seasonUnlocks(p, rankBefore, rankAfter));
   if (deviceToken()) callOrQueue('sfc_log_session', {p_token:deviceToken(), p_player:p.id, p_state:playerState(p),
-    p_session:{date:today, touches, mode:'epa', difficulty:d.focus, full_session:true, xp_earned:xp, bm_skills:[], mv_skills:[], rounds:[{epa:{focus:d.focus, effort:d.effort, feel:d.feel, note:d.note.trim()}}]}});
+    p_session:{date:day, touches, mode:'epa', difficulty:d.focus, full_session:true, xp_earned:xp, bm_skills:[], mv_skills:[], rounds:[{epa:{focus:d.focus, effort:d.effort, feel:d.feel, note:d.note.trim()}}]}});
   fresh.forEach(u => reveals.push({type:'unlock', unlock:u}));
   reveals.push({type:'done', xp, epa:f.name, full:true});
   renderHome(); renderProfile(); renderCrew();
