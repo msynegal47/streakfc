@@ -3414,7 +3414,7 @@ function paintPlan() {
     <label class="ob-check" style="margin-top:4px"><input type="checkbox" ${planDraft.growing?'checked':''} onchange="planDraft.growing=this.checked">
       <span><b style="color:var(--text)">Growing fast lately?</b> Shoe size jumps, outgrowing clothes, sore knees or heels. Adds more recovery days. General guidance, not medical advice.</span></label>
     ${planPlayerHTML()}
-    ${programsOn() ? planEpaHTML() : ''}`;
+    ${programsOn() ? planEpaHTML() : ''}${epaShareHTML()}`;
 }
 const POSITIONS = [['GK','Goalkeeper'],['CB','Center back'],['FB','Fullback'],['CDM','Defensive mid'],['CM','Center mid'],['CAM','Attacking mid'],['W','Winger'],['ST','Striker']];
 function planPlayerHTML() {
@@ -3426,6 +3426,18 @@ function planPlayerHTML() {
     ${planDraft.goals.coach ? `<div class="sk-desc" style="font-size:12px">💬 Coach: ${esc(planDraft.goals.coach)}</div>` : ''}`;
 }
 function programsOn() { return localStorage.getItem('sfc_beta') === '1' || !!(family && family.flags && family.flags.programs); }
+function epaShareHTML() {
+  const e = planDraft.programs.find(x => x.id === 'epa'); if (!e) return '';
+  const sh = e.share || 'all', seg = (v, l) => `<button class="opt-btn ${sh===v?'sel':''}" onclick="planDraft.programs.find(x=>x.id==='epa').share='${v}';planDraft.progTouched=1;paintPlan()">${l}</button>`;
+  return `<div class="field-lbl" style="margin-top:14px">EPA · WHAT THE COACH CAN SEE</div><div class="opt-row">${seg('all','ALL TRAINING')}${seg('program','EPA ONLY')}</div>
+    <div class="sk-desc" style="font-size:12px;margin:-4px 0 8px">${sh === 'all' ? 'Coach sees home sessions and touches too, so plans fit the whole week.' : 'Coach only sees EPA logs, check-ins, journals, game analysis and speed tests.'} Never your email or contact info.</div>
+    <button class="opt-btn" style="border-color:#ef444455;color:var(--red)" onclick="if(confirm('Leave EPA? The coach loses access. Logs stay on your account.')){planDraft.programs=planDraft.programs.filter(x=>x.id!=='epa');planDraft.progTouched=1;paintPlan()}">LEAVE EPA</button>`;
+}
+async function joinProgram(id) {
+  const code = (prompt('Enter the program code from your coach (e.g. EPA-1234):') || '').trim(); if (!code) return;
+  try { await rpc('sfc_join_program', {p_player:id, p_code:code}); showToast('Joined! They will see it next time their app opens.', 'success'); await loadParent(); }
+  catch(e) { showToast(/code_invalid/.test(e.message) ? 'That code did not work. Check with your coach.' : 'Could not join: ' + e.message, 'error'); }
+}
 function planEpaHTML() {
   const e = planDraft.programs.find(x => x.id === 'epa');
   return `<div class="field-lbl" style="margin-top:14px">PROGRAMS <span class="beta-pill">BETA</span></div>
@@ -3441,7 +3453,7 @@ async function savePlan() {
   const p = players.find(x=>x.id===planFor); if (!p) return;
   Object.assign(p, planDraft);
   localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p));
-  const body = {...planDraft, goals:{...planDraft.goals, items:planDraft.goals.items.filter(g => g.t.trim()).map(g => ({t:g.t.trim(), done:!!g.done}))}}; if (!programsOn()) delete body.programs;
+  const body = {...planDraft, goals:{...planDraft.goals, items:planDraft.goals.items.filter(g => g.t.trim()).map(g => ({t:g.t.trim(), done:!!g.done}))}}; if (!programsOn() && !planDraft.progTouched) delete body.programs; delete body.progTouched;
   delete body.goals.coach;  // coach comment is set by the coach only
   body.goals = {...(p.goals||{}), items:body.goals.items}; p.goals = body.goals;
   try { await sb(`sfc_players?id=eq.${p.id}`, {method:'PATCH', prefer:'return=minimal', body:JSON.stringify(body)}); showToast('Plan saved','success'); }
@@ -3567,6 +3579,7 @@ function openKidMenu(id) {
       <button onclick="${go(`openLogModal('${id}')`)}">📋 <span>Log a session<small>Trained without the app? Add touches here.</small></span></button>
       <button onclick="${go(`goTrainAs('${id}')`)}">▶ <span>Train as ${p.name}<small>Use this phone for their session.</small></span></button>
       <button onclick="${go(`openRewardModal('${id}')`)}">🎁 <span>Set a reward<small>Something to earn for training days.</small></span></button>
+      <button onclick="${go(`joinProgram('${id}')`)}">🏟 <span>Join a program<small>${progOf(p) ? 'In EPA · manage in Plan &amp; level' : 'Got a code from a coach? Enter it here.'}</small></span></button>
       <button onclick="${go(`openParentSpeed('${id}')`)}">⚡ <span>Speed + agility<small>Personal bests, improvement, log a test you timed.</small></span></button>
       <button onclick="${go(`openPlanModal('${id}')`)}">⚙️ <span>Plan &amp; level<small>${(LEVELS[levelIdx(p)]||'').replace(/^./,c=>c.toUpperCase())} · sizes their daily session.</small></span></button>
       <button onclick="confirmResetDay('${id}')" style="border-color:#ef444455">↺ <span style="color:var(--red)">Reset today<small>Something broke? Clears today's sessions, XP and touches.</small></span></button>

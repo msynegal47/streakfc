@@ -124,7 +124,7 @@ textarea{font:inherit;background:var(--bg3);color:var(--text);border:1px solid v
     <div class="nav" data-v="trainer">🎯 1:1 Training</div>
     <div class="sep">PROGRAMS</div>
     <div class="nav" data-v="epa">🏟 EPA <span class="chip c-teal" style="margin-left:auto">BETA</span></div>
-    <div class="side-foot"><div class="mode"><span>DATA</span><button class="mode-btn" data-m="live" onclick="setMode('live')">LIVE</button><button class="mode-btn" data-m="sandbox" onclick="setMode('sandbox')">SANDBOX</button></div><div id="who"></div><div style="margin-top:6px"><a href="#" onclick="refresh();return false">Refresh</a> · <a href="#" onclick="signOut();return false">Sign out</a></div><div style="margin-top:6px"><a href="/">Open app</a></div></div>
+    <div class="side-foot"><div id="coachFoot" style="margin-bottom:10px;font-size:12px"></div><div class="mode"><span>DATA</span><button class="mode-btn" data-m="live" onclick="setMode('live')">LIVE</button><button class="mode-btn" data-m="sandbox" onclick="setMode('sandbox')">SANDBOX</button></div><div id="who"></div><div style="margin-top:6px"><a href="#" onclick="refresh();return false">Refresh</a> · <a href="#" onclick="signOut();return false">Sign out</a></div><div style="margin-top:6px"><a href="/">Open app</a></div></div>
   </aside>
   <main class="main" id="view"></main>
 </div>
@@ -142,6 +142,11 @@ const FOCUS = {technical:{name:'Technical',ico:'⚽',touches:1200},mixed:{name:'
 const FEELS = ['😫','😐','🙂','🔥'];
 const MODE = {speed:'Speed test', film:'Game analysis', goalsheet:'Goal worksheet', goal:'Home session', timed:'Timed test', recovery:'Recovery', parent:'Parent log', epa:'EPA session', checkin:'Check-in', weekly:'Weekly journal'};
 
+let ROLE = 'admin', ROLES = null, asCoach = localStorage.getItem('sfc_as_coach') === '1', showDemo = localStorage.getItem('sfc_show_demo') !== '0', MIXED = null;
+{ const m = /invite=([A-Za-z0-9]+)/.exec(location.hash); if (m) { localStorage.setItem('sfc_invite', m[1].toUpperCase()); history.replaceState(null, '', location.pathname); } }
+function coachView() { return ROLE === 'coach' || asCoach; }
+function isDemo(p) { return !!p && String(p.id).startsWith('mk'); }
+function localOnly(p) { return D.mock || isDemo(p); }
 let session = null, REAL = null, D = null, view = 'overview', sortKey = {};
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -171,7 +176,7 @@ async function rpc(fn, args={}) {
 async function sendCode() {
   const email = $('email').value.trim(); if (!email) return;
   $('sendBtn').disabled = true;
-  const r = await fetch(`${SB_URL}/auth/v1/otp`, {method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json'}, body:JSON.stringify({email, create_user:false})});
+  const r = await fetch(`${SB_URL}/auth/v1/otp`, {method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json'}, body:JSON.stringify({email, create_user: !!localStorage.getItem('sfc_invite')})});
   $('sendBtn').disabled = false;
   $('loginStatus').textContent = r.ok ? 'Code sent. Check your email.' : (r.status === 429 ? 'Too many requests, wait a minute.' : 'Could not send. Use the email you use in StreakFC.');
   if (r.ok) { $('codeWrap').style.display = 'block'; $('code').focus(); }
@@ -183,39 +188,59 @@ async function verify() {
   saveSession(d); boot();
 }
 function signOut() { localStorage.removeItem('sfc_session'); location.reload(); }
-function showLogin(msg) { $('app').style.display = 'none'; $('login').style.display = 'block'; if (msg) $('loginStatus').textContent = msg; }
+function showLogin(msg) {
+  if (localStorage.getItem('sfc_invite')) { $('login').querySelector('p').textContent = "You've been invited to coach on StreakFC. Sign in with your email to accept."; } $('app').style.display = 'none'; $('login').style.display = 'block'; if (msg) $('loginStatus').textContent = msg; }
 
 async function boot() {
   try { session = JSON.parse(localStorage.getItem('sfc_session')||'null'); } catch(e) {}
   if (!session) return showLogin();
   try {
-    if (!(await rpc('sfc_is_admin'))) return showLogin('This account is not an admin. Coach access is coming.');
+    ROLES = await rpc('sfc_my_roles');
+    const inv = localStorage.getItem('sfc_invite');
+    if (inv) { const name = prompt('Welcome! Your name as players and parents will see it (e.g. Coach James):', '') || 'Coach';
+      try { await rpc('sfc_accept_invite', {p_code: inv, p_name: name}); toast('You are in. Welcome to the EPA console.'); } catch(e) { alert('That invite link is invalid or expired. Ask Marcus for a new one.'); }
+      localStorage.removeItem('sfc_invite'); ROLES = await rpc('sfc_my_roles'); }
+    if (!ROLES.admin && !(ROLES.coach||[]).length) return showLogin('This account has no console access. Ask for a coach invite link.');
+    ROLE = ROLES.admin ? 'admin' : 'coach'; if (ROLE === 'coach') asCoach = false;
     const u = await fetch(`${SB_URL}/auth/v1/user`, {headers:{'apikey':SB_KEY,'Authorization':`Bearer ${session.access_token}`}}).then(r => r.json()).catch(() => ({}));
     $('who').textContent = u.email || '';
     await refresh(true);
     $('login').style.display = 'none'; $('app').style.display = 'block';
-    const h = location.hash.slice(1); paintMode(); go(['overview','kids','families','activity','epa','club','teams','coaches','seats','trainer'].includes(h) ? h : 'overview');
+    const h = location.hash.slice(1); paintMode(); paintRole(); if (coachView()) return go('epa'); go(['overview','kids','families','activity','epa','club','teams','coaches','seats','trainer'].includes(h) ? h : 'overview');
   } catch(e) { if (/JWT|401|expired/i.test(e.message) && await refreshSession()) return boot(); showLogin('Sign in again: ' + e.message); }
 }
 async function refresh(silent) {
+  MIXED = null;
+  if (ROLE === 'coach') {
+    const c = await rpc('sfc_coach_data', {p_program:'epa', p_days:60});
+    const players = c.players.map(p => ({...p, fam:{}, sess:c.sessions.filter(s => s.player_id === p.id)}));
+    REAL = D = {families:[], fams:{}, players, sessions:c.sessions, notes:c.notes||{}, plans:c.plans||[], code:c.code, byId:Object.fromEntries(players.map(p => [p.id, p]))};
+    if (!silent) { render(); toast('Refreshed'); } return;
+  }
   const raw = await rpc('sfc_admin_data', {p_days:60});
   const fams = Object.fromEntries(raw.families.map(f => [f.id, f]));
   const players = raw.players.map(p => ({...p, fam:fams[p.family_id]||{}, sess:raw.sessions.filter(s => s.player_id === p.id)}));
   let notes = {}, plans = []; try { notes = await rpc('sfc_admin_notes') || {}; } catch(e) {} try { plans = await rpc('sfc_admin_plans') || []; } catch(e) {}
-  REAL = D = {...raw, fams, players, notes, plans, byId:Object.fromEntries(players.map(p => [p.id, p]))};
+  let code = ''; try { code = (await rpc('sfc_coach_data', {p_program:'epa', p_days:1})).code; } catch(e) {}
+  REAL = D = {...raw, fams, players, notes, plans, code, byId:Object.fromEntries(players.map(p => [p.id, p]))};
   $('nKids').textContent = players.length; $('nFams').textContent = raw.families.length;
   if (!silent) { render(); toast('Refreshed'); }
 }
 document.querySelectorAll('.nav').forEach(n => n.onclick = () => go(n.dataset.v));
 function go(v) { if (v !== 'coaches' && v !== 'teams' && v !== 'club') coachLens = null; view = v; location.hash = v; document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.v === v)); render(); }
-function render() { D = (dataMode === 'sandbox' && view === 'epa') ? epaMock() : REAL; $('view').innerHTML = ({overview:vOverview, kids:vKids, families:vFamilies, activity:vActivity, epa:vEPA, club:vClub, trainer:vTrainer, teams:vTeams, coaches:vCoaches, seats:vSeats})[view](); }
+function mixedD() {
+  if (MIXED) return MIXED; const M = epaMock(), real = REAL.players.filter(p => (p.programs||[]).some(e => e.id === 'epa'));
+  const players = [...real, ...M.players];
+  return MIXED = {...REAL, mixed:true, players, sessions:[...REAL.sessions, ...M.sessions].sort((a,b) => a.created_at < b.created_at ? 1 : -1), notes:{...M.notes, ...REAL.notes}, byId:Object.fromEntries(players.map(p => [p.id, p]))};
+}
+function render() { D = coachView() ? (showDemo ? mixedD() : REAL) : (dataMode === 'sandbox' && view === 'epa') ? epaMock() : REAL; $('view').innerHTML = ({overview:vOverview, kids:vKids, families:vFamilies, activity:vActivity, epa:vEPA, club:vClub, trainer:vTrainer, teams:vTeams, coaches:vCoaches, seats:vSeats})[view](); }
 
 // ── derived ──
 function liveStreak(p) { return (p.last_log === localDate() || p.last_log === daysAgo(1)) ? (p.streak||0) : 0; }
 function lastActive(p) { return p.sess.length ? p.sess[0].date : p.last_log; }
 function sumT(p, days) { const lo = daysAgo(days-1); return p.sess.filter(s => s.date >= lo).reduce((a,s) => a + (s.touches||0), 0); }
 function activeDays(p, days) { const lo = daysAgo(days-1); return new Set(p.sess.filter(s => s.date >= lo && s.mode !== 'checkin' && s.mode !== 'weekly').map(s => s.date)).size; }
-function kidCell(p) { return `<div class="kid" onclick="openKid('${p.id}')"><span class="dot" style="background:${esc(p.color||'#4fc3f7')}">${esc((p.nickname||'?')[0])}</span>${esc(p.nickname)}</div>`; }
+function kidCell(p) { return `<div class="kid" onclick="openKid('${p.id}')"><span class="dot" style="background:${esc(p.color||'#4fc3f7')}">${esc((p.nickname||'?')[0])}</span>${esc(p.nickname)}${D && D.mixed && isDemo(p) ? ' <span class="chip c-sub" style="font-size:8px">DEMO</span>' : D && D.mixed ? ' <span class="chip c-teal" style="font-size:8px">REAL</span>' : ''}</div>`; }
 function progChips(p) { return (p.programs||[]).map(e => `<span class="chip c-teal">${esc((e.id||'').toUpperCase())}${e.group?' · '+esc(e.group[0].toUpperCase()):''}</span>`).join('') || '<span class="muted">-</span>'; }
 function detail(s) {
   const r = (s.rounds||[])[0] || {};
@@ -311,7 +336,7 @@ const SPEED_TESTS = [{id:'s10',name:'10m sprint',unit:'s'},{id:'s20',name:'20m s
 let spdTest = 's20', testDay = false;
 function spdRows(p, test) { return p.sess.filter(s => s.mode === 'speed' && ((s.rounds||[])[0]||{}).speed && (!test || s.rounds[0].speed.test === test)).map(s => ({date:s.date, at:s.created_at||'', ...s.rounds[0].speed})).sort((a,b) => (a.date + a.at) < (b.date + b.at) ? -1 : 1); }
 function spdBest(rows, t) { return rows.length ? rows.reduce((b, x) => (t.up ? x.val > b.val : x.val < b.val) ? x : b) : null; }
-function spdFmt(v, t) { return v == null ? '-' : v + (t.unit === 's' ? 's' : ''); }
+function spdFmt(v, t) { return v == null ? '-' : (t.unit === 's' ? Number(v).toFixed(2) + 's' : Number(v).toFixed(1)); }
 function spdCard(p) {
   const tested = SPEED_TESTS.filter(t => spdRows(p, t.id).length);
   return `<div class="card"><div class="card-h">⚡ SPEED + AGILITY</div>${tested.length ? `<table class="tight"><tr><th>TEST</th><th class="num">BEST</th><th class="num">FIRST</th><th class="num">CHANGE</th><th>HISTORY</th></tr>${tested.map(t => { const R = spdRows(p, t.id), b = spdBest(R, t), f = R[0], ch = b.val - f.val;
@@ -337,7 +362,7 @@ async function saveTestDay() {
   if (!ins.length) return toast('Enter at least one result');
   let n = 0;
   for (const i of ins) { const p = D.byId[i.dataset.pid], val = Math.round(parseFloat(i.value) * 100) / 100, row = {player_id:p.id, family_id:p.family_id, date, touches:0, xp:0, mode:'speed', source:'coach', rounds:[{speed:{test:t.id, val, by:'Coach'}}], created_at:new Date().toISOString()};
-    if (!D.mock) { try { await rpc('sfc_admin_log_session', {p_player:p.id, p_session:{date, mode:'speed', rounds:row.rounds}}); } catch(e) { toast('Failed: ' + e.message); continue; } }
+    if (!localOnly(p)) { try { await rpc('sfc_admin_log_session', {p_player:p.id, p_session:{date, mode:'speed', rounds:row.rounds}}); } catch(e) { toast('Failed: ' + e.message); continue; } }
     p.sess.unshift(row); D.sessions.unshift(row); n++; }
   testDay = false; toast(D.mock ? `Sandbox: ${n} results added here only` : `${n} results saved`); render();
 }
@@ -364,9 +389,9 @@ function vEPA() {
   const flagsN = k => E.filter(p => kidFlags(p)[k]).length;
   const tab = (k, l, n) => `<button class="tab ${epaTab===k?'on':''}" onclick="epaTab='${k}';render()">${l}${n!=null?` <span>${n}</span>`:''}</button>`;
   const body = epaTab === 'testing' ? epaTesting() : epaTab === 'plans' ? epaPlans() : epaTab === 'calendar' ? epaCalendar() : epaTab === 'journals' ? epaJournals() : epaRoster();
-  return `${D.mock ? `<div class="sandbox-banner">🧪 <b>SANDBOX EPA</b> · 24 fake players, 4 weeks of logs. Switch DATA to LIVE for Caysen and Emmitt.</div>` : ''}
+  return `${asCoach && ROLE === 'admin' ? `<div class="sandbox-banner" style="border-color:#f9731688;color:#fdba74">👁 <b>COACH PREVIEW</b> · this is exactly what an EPA coach sees. No admin pages, no parent emails, only EPA players.</div>` : ''}${D.mixed ? `<div class="sandbox-banner">Players tagged <b>REAL</b> are live StreakFC players in EPA. The 24 tagged <b>DEMO</b> are sample data so the dashboard looks full. Turn them off bottom left.</div>` : ''}${D.mock ? `<div class="sandbox-banner">🧪 <b>SANDBOX EPA</b> · 24 fake players, 4 weeks of logs. Switch DATA to LIVE for Caysen and Emmitt.</div>` : ''}
   <div class="hdr"><div><h2>EPA <span class="chip c-teal">BETA</span></h2><div class="s">Tue · Wed · Thu · ${PROGRAMS.epa.mins} min · ${E.length} players${nextOff?` · next break: ${nextOff[2]} (${nextOff[0].slice(5).replace('-','/')})`:''}</div></div>
-    <button class="btn add-btn" onclick="openAddPlayer()">＋ ADD PLAYER</button></div>
+    <div style="display:flex;gap:8px">${ROLE === 'admin' && !asCoach ? `<button class="btn ghost" onclick="openCoaches()">🧢 COACHES</button>` : ''}<button class="btn add-btn" onclick="openAddPlayer()">＋ ADD PLAYER</button></div></div>
   <div class="kpis kpis-sm">
     <div class="kpi"><b>${wkLogs.length}/${E.length * due.length || 0}</b><span>EPA LOGS THIS WEEK</span></div>
     <div class="kpi"><b>${avg(ready7)}</b><span>AVG READINESS 7D</span></div>
@@ -468,21 +493,39 @@ function epaCalendar() {
         ${notes.slice(0,1).map(x => `<div class="cal-note">${esc(x.days[String(wd)])}</div>`).join('')}</div>`; }).join('')}</div></div>`;
 }
 // ── add player ──
+async function openCoaches() {
+  let C = {coaches:[], invites:[]}; try { C = await rpc('sfc_admin_coaches'); } catch(e) { return toast('Run the v13 database update first'); }
+  $('drawer').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:20px;font-weight:900">EPA coaches</div><button class="btn ghost sm" onclick="$('drawer').classList.remove('open')">Close</button></div>
+    <div class="card" style="margin-top:14px"><div class="card-h">WHO HAS ACCESS</div>${C.coaches.filter(c => c.program === 'epa').map(c => `<div class="feed-row"><b style="flex:1">${esc(c.name||'Coach')} <span class="chip ${c.role==='owner'?'c-teal':'c-sub'}">${c.role.toUpperCase()}</span></b><span class="small muted">${esc(c.email||'')}</span><button class="btn ghost sm" onclick="removeCoach('${c.user_id}')">Remove</button></div>`).join('') || '<div class="muted small">No coaches yet.</div>'}</div>
+    <div class="card"><div class="card-h">INVITE A COACH</div><div class="small muted" style="margin-bottom:10px">Owner = program owner (e.g. James). Coach = assistant. Both see only EPA players. Links work once and expire in 14 days.</div>
+      <div class="form-row"><button class="btn" onclick="makeInvite('owner')">OWNER INVITE</button><button class="btn ghost" onclick="makeInvite('coach')">ASSISTANT COACH INVITE</button></div>
+      <div id="invOut"></div>
+      ${C.invites.length ? `<div class="card-h" style="margin-top:14px">OPEN INVITES</div>${C.invites.map(i => `<div class="feed-row small"><span class="chip c-sub">${i.role.toUpperCase()}</span><span style="flex:1">${location.origin}/console#invite=${i.code}</span></div>`).join('')}` : ''}</div>`;
+  $('drawer').classList.add('open');
+}
+async function makeInvite(role) {
+  try { const code = await rpc('sfc_admin_create_invite', {p_program:'epa', p_role:role}), link = `${location.origin}/console#invite=${code}`;
+    $('invOut').innerHTML = `<div class="pf"><label>SEND THIS LINK</label><input value="${link}" readonly onclick="this.select()"></div><button class="btn ghost sm" style="margin-top:6px" onclick="navigator.clipboard.writeText('${link}').then(()=>toast('Copied'))">COPY LINK</button>`; }
+  catch(e) { toast('Failed: ' + e.message); }
+}
+async function removeCoach(uid) { if (!confirm('Remove this coach from EPA?')) return; try { await rpc('sfc_admin_remove_coach', {p_user:uid, p_program:'epa'}); toast('Removed'); openCoaches(); } catch(e) { toast('Failed: ' + e.message); } }
 function openAddPlayer() {
   const notIn = D.players.filter(p => !enrolled().includes(p));
   $('drawer').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:20px;font-weight:900">Add a player to EPA</div><button class="btn ghost sm" onclick="$('drawer').classList.remove('open')">Close</button></div>
-    <div class="card" style="margin-top:14px"><div class="card-h">ALREADY ON STREAKFC</div>
+    <div class="card" style="margin-top:14px;border-color:#1ab3bd66"><div class="card-h">EPA JOIN CODE</div><div style="font-size:34px;font-weight:900;letter-spacing:5px;color:#1ab3bd">${esc(D.code || REAL.code || '------')}</div>
+      <div class="small muted" style="margin-top:6px">Parents enter this in StreakFC: ⋯ next to their player → Join a program. They pick what you can see and can leave anytime.</div></div>
+    ${coachView() ? '' : `<div class="card"><div class="card-h">ALREADY ON STREAKFC (ADMIN)</div>
       ${notIn.length ? `<div class="pf"><select id="addKid" style="width:100%">${notIn.map(p => `<option value="${p.id}">${esc(p.nickname)} · ${esc(p.age_group)} · ${esc(p.fam.parent_name||'')}</option>`).join('')}</select></div>
       <div class="pf"><select id="addGroup" style="width:100%"><option value="auto">Group by age (U13+ older)</option><option>younger</option><option>older</option></select></div>
-      <button class="btn" onclick="enroll()">ENROLL IN EPA</button>` : '<div class="muted small">Every StreakFC player is already enrolled.</div>'}</div>
+      <button class="btn" onclick="enroll()">ENROLL IN EPA</button>` : '<div class="muted small">Every StreakFC player is already enrolled.</div>'}</div>`}
     <div class="card"><div class="card-h">NEW FAMILY (NOT ON STREAKFC YET)</div>
       <div class="small muted" style="margin-bottom:8px">Send this to the parent. Once they add their player, they show up above to enroll.</div>
-      <textarea id="inviteTxt" rows="5" style="width:100%">Hi! EPA is using StreakFC for at-home training, check-ins and weekly journals. Takes 2 minutes: open streakfc.vercel.app on your phone, tap Parent, sign in with your email and add your player (first name or nickname only). Then reply with their nickname and I'll add them to EPA.</textarea>
+      <textarea id="inviteTxt" rows="5" style="width:100%">Hi! EPA is using StreakFC for at-home training, check-ins and weekly journals. Takes 2 minutes: open streakfc.vercel.app on your phone, tap Parent, sign in with your email and add your player (first name or nickname only). Then tap ⋯ next to your player, Join a program, and enter code ${esc(D.code || REAL.code || '')}.</textarea>
       <button class="btn ghost" style="margin-top:8px" onclick="navigator.clipboard.writeText($('inviteTxt').value).then(()=>toast('Copied'))">COPY INVITE</button></div>`;
   $('drawer').classList.add('open');
 }
 
-async function saveProgs(p, programs) { if (D.mock) { p.programs = programs; toast('Sandbox: changed here only'); return; } await rpc('sfc_admin_set_programs', {p_player:p.id, p_programs:programs}); p.programs = programs; }
+async function saveProgs(p, programs) { if (localOnly(p)) { p.programs = programs; toast('Sandbox: changed here only'); return; } await rpc('sfc_admin_set_programs', {p_player:p.id, p_programs:programs}); p.programs = programs; }
 async function enroll() {
   const p = D.byId[$('addKid').value]; if (!p) return;
   const cur = enrolled()[0] ? epaOf(enrolled()[0]) : {};
@@ -493,6 +536,7 @@ async function setGroup(id, g) { const p = D.byId[id]; try { await saveProgs(p, 
 async function applyFocus() {
   const focus = $('fFocus').value, note = $('fNote').value.trim();
   if (D.mock) { enrolled().forEach(p => p.programs = p.programs.map(e => e.id === 'epa' ? {...e, focus, note} : e)); toast('Sandbox: changed here only'); return render(); }
+  enrolled().filter(isDemo).forEach(p => p.programs = p.programs.map(e => e.id === 'epa' ? {...e, focus, note} : e));
   try { const n = await rpc('sfc_admin_epa_focus', {p_focus:focus, p_note:note}); enrolled().forEach(p => p.programs = p.programs.map(e => e.id === 'epa' ? {...e, focus, note} : e)); toast(`Focus set for ${n} kid${n===1?'':'s'}`); render(); } catch(e) { toast('Failed: ' + e.message); }
 }
 
@@ -500,14 +544,14 @@ async function applyFocus() {
 const POSITIONS = ['GK','CB','FB','CDM','CM','CAM','W','ST'];
 function posSel(p, k) { return `<select onchange="savePos('${p.id}','${k}',this.value)"><option value="">-</option>${POSITIONS.map(x => `<option ${p[k]===x?'selected':''}>${x}</option>`).join('')}</select>`; }
 async function adminPatch(p, patch, msg) {
-  if (D.mock) { toast('Sandbox: changed here only'); return true; }
+  if (localOnly(p)) { toast('Sandbox: changed here only'); return true; }
   try { await rpc('sfc_admin_update_player', {p_player:p.id, p_patch:patch}); toast(msg||'Saved'); return true; } catch(e) { toast('Failed: ' + e.message); return false; }
 }
 async function savePos(id, k, v) { const p = D.byId[id]; if (await adminPatch(p, {[k]:v})) { p[k] = v; render(); } }
 async function saveGoalComment(id) { const p = D.byId[id], c = $('gComment').value.trim(); if (await adminPatch(p, {goal_comment:c}, 'Comment saved')) { p.goals = {...(p.goals||{}), coach:c}; } }
 async function saveNote(id) {
   const focus = $('nFocus').value.trim(), note = $('nNote').value.trim();
-  if (!D.mock) { try { await rpc('sfc_admin_set_note', {p_player:id, p_focus:focus, p_note:note}); toast('Notes saved'); } catch(e) { return toast('Failed: ' + e.message); } } else toast('Sandbox: changed here only');
+  if (!localOnly(D.byId[id])) { try { await rpc('sfc_admin_set_note', {p_player:id, p_focus:focus, p_note:note}); toast('Notes saved'); } catch(e) { return toast('Failed: ' + e.message); } } else toast('Sandbox: changed here only');
   D.notes = D.notes || {}; D.notes[id] = {focus, note, updated_at:new Date().toISOString()}; render();
 }
 
@@ -569,10 +613,10 @@ function openKid(id) {
   const p = D.byId[id], dr = $('drawer'); if (!p) return;
   const days = [...Array(14)].map((_,i) => daysAgo(13-i)), per = days.map(d => p.sess.filter(s => s.date === d).reduce((a,s) => a + (s.touches||0), 0)), mx = Math.max(1, ...per);
   dr.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div class="kid" style="font-size:20px"><span class="dot" style="width:36px;height:36px;background:${esc(p.color||'#4fc3f7')}">${esc(p.nickname[0])}</span>${esc(p.nickname)}</div><button class="btn ghost sm" onclick="$('drawer').classList.remove('open')">Close</button></div>
-    <div class="muted small" style="margin:6px 0 14px">${esc(p.age_group)} · ${esc(p.skill_level||'')} · ${esc(p.fam.parent_name||'')} family</div>
+    <div class="muted small" style="margin:6px 0 14px">${esc(p.age_group)} · ${esc(p.skill_level||'')} · ${coachView() ? '' : esc(p.fam.parent_name||'') + ' family'}</div>
     <div class="kpis"><div class="kpi"><b>${liveStreak(p)}</b><span>STREAK</span></div><div class="kpi"><b>${p.best_streak||0}</b><span>BEST</span></div><div class="kpi"><b>${fmtK(p.total_touches)}</b><span>LIFETIME</span></div><div class="kpi"><b>${fmt(p.xp)}</b><span>XP</span></div></div>
     <div class="card"><div class="card-h">TOUCHES · LAST 14 DAYS</div><div class="bars" style="height:90px">${per.map((n,i) => `<div class="bar ${n?'':'zero'}" style="height:${n/mx*100}%" title="${days[i]}: ${n}"></div>`).join('')}</div></div>
-    ${D.mock ? '<div class="sandbox-banner">🧪 Sandbox player. Edits stay on this screen.</div>' : ''}
+    ${localOnly(p) ? '<div class="sandbox-banner">🧪 Demo player. Edits stay on this screen.</div>' : ''}
     <div class="card"><div class="card-h">PLAYER PROFILE</div>
       <div class="form-row"><span class="small muted" style="width:90px">Preferred</span>${posSel(p,'pos1')}<span class="small muted">Secondary</span>${posSel(p,'pos2')}</div></div>
     <div class="card"><div class="card-h">GOAL WORKSHEET <span class="legend">kid fills it in the app</span></div>
@@ -597,6 +641,16 @@ $('email').addEventListener('keydown', e => { if (e.key === 'Enter') sendCode();
 // ── CLUB SANDBOX: fake club, teams, coaches, players. Generated in the browser only.
 // Never written to the database, never touches real kids, XP, streaks or rewards.
 let dataMode = localStorage.getItem('sfc_console_mode') || 'live', CLUB = null, clubFilter = {g:'all', age:'all', tier:'all'}, coachLens = null, teamOpen = null;
+function paintRole() {
+  const cv = coachView();
+  document.querySelectorAll('.nav').forEach(n => n.style.display = cv && n.dataset.v !== 'epa' ? 'none' : '');
+  document.querySelectorAll('.sep').forEach(n => n.style.display = cv && !/PROGRAMS/.test(n.textContent) ? 'none' : '');
+  document.querySelector('.mode').style.display = cv ? 'none' : '';
+  document.querySelector('.brand-sub').textContent = cv ? 'CONSOLE · COACH' : 'CONSOLE · ADMIN';
+  $('coachFoot').innerHTML = cv ? `<label style="display:flex;gap:6px;align-items:center;cursor:pointer;margin-bottom:8px"><input type="checkbox" ${showDemo?'checked':''} onchange="showDemo=this.checked;localStorage.setItem('sfc_show_demo',this.checked?'1':'0');render()"> Show demo players</label>${ROLE === 'admin' ? `<a href="#" style="color:var(--accent)" onclick="setAsCoach(false);return false">Exit coach preview</a>` : ''}`
+    : `<a href="#" style="color:#1ab3bd" onclick="setAsCoach(true);return false">👁 Preview as coach</a>`;
+}
+function setAsCoach(on) { asCoach = on; localStorage.setItem('sfc_as_coach', on ? '1' : '0'); paintRole(); go(on ? 'epa' : 'overview'); }
 function setMode(m) { dataMode = m; localStorage.setItem('sfc_console_mode', m); paintMode(); render(); }
 function paintMode() { document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('on', b.dataset.m === dataMode)); }
 function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
