@@ -58,7 +58,7 @@ tr:hover td{background:#0c121c}
 .bar span{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:10px;color:var(--sub);margin-bottom:2px}
 .bar-x{display:flex;gap:4px;margin-top:5px}.bar-x div{flex:1;font-size:9px;color:var(--sub);text-align:center}
 .ticks{display:flex;gap:4px}.tick{width:30px;height:24px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:var(--sub)}
-.tick.on{background:#22c55e26;border-color:var(--green);color:var(--green)}.tick.off{opacity:.35}.tick.today{border-color:var(--accent)}
+.tick.on{background:#22c55e26;border-color:var(--green);color:var(--green)}.tick.coach{background:transparent;border:1px dashed var(--green);color:var(--green)}.tick.clk{cursor:pointer}.tick.clk:hover{border-color:var(--accent)}.tick.off{opacity:.35}.tick.today{border-color:var(--accent)}
 .form-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .feed-row{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid #121a28;font-size:13px}
 .feed-row .t{width:120px;color:var(--sub);font-size:12px;flex:none}
@@ -214,15 +214,17 @@ async function refresh(silent) {
   if (ROLE === 'coach') {
     const c = await rpc('sfc_coach_data', {p_program:'epa', p_days:60});
     const players = c.players.map(p => ({...p, fam:{}, sess:c.sessions.filter(s => s.player_id === p.id)}));
-    REAL = D = {families:[], fams:{}, players, sessions:c.sessions, notes:c.notes||{}, plans:c.plans||[], code:c.code, byId:Object.fromEntries(players.map(p => [p.id, p]))};
+    let presets = []; try { presets = await rpc('sfc_presets', {p_program:'epa'}) || []; } catch(e) {}
+    REAL = D = {families:[], fams:{}, players, sessions:c.sessions, notes:c.notes||{}, plans:c.plans||[], code:c.code, presets, byId:Object.fromEntries(players.map(p => [p.id, p]))};
     if (!silent) { render(); toast('Refreshed'); } return;
   }
   const raw = await rpc('sfc_admin_data', {p_days:60});
   const fams = Object.fromEntries(raw.families.map(f => [f.id, f]));
   const players = raw.players.map(p => ({...p, fam:fams[p.family_id]||{}, sess:raw.sessions.filter(s => s.player_id === p.id)}));
+  let presets = []; try { presets = await rpc('sfc_presets', {p_program:'epa'}) || []; } catch(e) {}
   let notes = {}, plans = []; try { notes = await rpc('sfc_admin_notes') || {}; } catch(e) {} try { plans = await rpc('sfc_admin_plans') || []; } catch(e) {}
   let code = ''; try { code = (await rpc('sfc_coach_data', {p_program:'epa', p_days:1})).code; } catch(e) {}
-  REAL = D = {...raw, fams, players, notes, plans, code, byId:Object.fromEntries(players.map(p => [p.id, p]))};
+  REAL = D = {...raw, fams, players, notes, plans, code, presets, byId:Object.fromEntries(players.map(p => [p.id, p]))};
   $('nKids').textContent = players.length; $('nFams').textContent = raw.families.length;
   if (!silent) { render(); toast('Refreshed'); }
 }
@@ -332,24 +334,45 @@ function vActivity() {
 function enrolled() { return D.players.filter(p => (p.programs||[]).some(e => e.id === 'epa')); }
 function epaOf(p) { return (p.programs||[]).find(e => e.id === 'epa') || {}; }
 // ── speed + agility (console) ──
-const SPEED_TESTS = [{id:'s10',name:'10m sprint',unit:'s'},{id:'s20',name:'20m sprint',unit:'s'},{id:'s30',name:'30m sprint',unit:'s'},{id:'shuttle',name:'5-10-5 shuttle',unit:'s'},{id:'ttest',name:'T-test',unit:'s'},{id:'illinois',name:'Illinois agility',unit:'s'},{id:'slalom',name:'Dribble slalom',unit:'s'},{id:'yoyo',name:'Yo-Yo test',unit:'lvl',up:true}];
-let spdTest = 's20', testDay = false;
+const SPEED_TESTS = [{id:'s10',name:'10m sprint',unit:'s'},{id:'s20',name:'20m sprint',unit:'s'},{id:'s30',name:'30m sprint',unit:'s'},{id:'shuttle',name:'5-10-5 shuttle',unit:'s'},{id:'ttest',name:'T-test',unit:'s'},{id:'illinois',name:'Illinois agility',unit:'s'},{id:'slalom',name:'Dribble slalom',unit:'s'},{id:'yoyo',name:'Yo-Yo test',unit:'lvl',up:true},
+  {id:'wall_r',name:'Right foot wall passes (30s)',unit:'reps',up:true,cat:'skill',bench:[18,26]},{id:'wall_l',name:'Left foot wall passes (30s)',unit:'reps',up:true,cat:'skill',bench:[14,22]},
+  {id:'fig8',name:'Figure-8 dribble (30s laps)',unit:'reps',up:true,cat:'skill',bench:[6,9]},{id:'juggle',name:'Juggling (max in a row)',unit:'reps',up:true,cat:'skill',bench:[40,120],sqrt:true},
+  {id:'shoot_r',name:'Right foot shooting (on target)',unit:'/10',up:true,cat:'skill',bench:[6,7]},{id:'shoot_l',name:'Left foot shooting (on target)',unit:'/10',up:true,cat:'skill',bench:[4,6]},
+  {id:'touch10',name:'First touch control (clean)',unit:'/10',up:true,cat:'skill',bench:[6,7]}];
+const SKILL_TESTS = SPEED_TESTS.filter(t => t.cat === 'skill');
+function ageNum(p) { return parseInt(String(p.age_group||'').replace(/\D/g,'')) || 11; }
+function skillScore(t, val, p) { const b = t.bench[ageNum(p) >= 13 ? 1 : 0], r = Math.max(0, val) / b; return Math.max(20, Math.min(99, Math.round(70 * (t.sqrt ? Math.sqrt(r) : r)))); }
+// pick: 'first' = baseline, 'last' = most recent result per test
+function skillRating(p, pick) { const sc = SKILL_TESTS.map(t => { const R = spdRows(p, t.id); if (!R.length) return null; const x = pick === 'first' ? R[0] : R[R.length - 1]; return skillScore(t, x.val, p); }).filter(v => v != null);
+  return sc.length >= 3 ? Math.round(sc.reduce((a,b) => a + b, 0) / sc.length) : null; }
+let spdTest = 's20', testDay = false, testCat = 'speed';
 function spdRows(p, test) { return p.sess.filter(s => s.mode === 'speed' && ((s.rounds||[])[0]||{}).speed && (!test || s.rounds[0].speed.test === test)).map(s => ({date:s.date, at:s.created_at||'', ...s.rounds[0].speed})).sort((a,b) => (a.date + a.at) < (b.date + b.at) ? -1 : 1); }
 function spdBest(rows, t) { return rows.length ? rows.reduce((b, x) => (t.up ? x.val > b.val : x.val < b.val) ? x : b) : null; }
-function spdFmt(v, t) { return v == null ? '-' : (t.unit === 's' ? Number(v).toFixed(2) + 's' : Number(v).toFixed(1)); }
+function spdFmt(v, t) { return v == null ? '-' : t.unit === 's' ? Number(v).toFixed(2) + 's' : t.unit === '/10' ? Number(v) + '/10' : t.unit === 'reps' ? String(Math.round(v)) : Number(v).toFixed(1); }
 function spdCard(p) {
   const tested = SPEED_TESTS.filter(t => spdRows(p, t.id).length);
-  return `<div class="card"><div class="card-h">⚡ SPEED + AGILITY</div>${tested.length ? `<table class="tight"><tr><th>TEST</th><th class="num">BEST</th><th class="num">FIRST</th><th class="num">CHANGE</th><th>HISTORY</th></tr>${tested.map(t => { const R = spdRows(p, t.id), b = spdBest(R, t), f = R[0], ch = b.val - f.val;
-    return `<tr><td><b>${t.name}</b></td><td class="num"><b>${spdFmt(b.val, t)}</b></td><td class="num muted">${spdFmt(f.val, t)}</td><td class="num">${R.length > 1 && ch ? `<span style="color:var(--green)">${ch > 0 ? '+' : ''}${ch.toFixed(2)}</span>` : '-'}</td><td class="small muted">${R.map(x => `${x.date.slice(5).replace('-','/')}: ${x.val}${x.by ? ' (' + esc(x.by) + ')' : ''}`).join(' · ')}</td></tr>`; }).join('')}</table>` : '<div class="muted small">No tests logged yet. Kids log from Profile or the EPA card, or you enter a test day from the Testing tab.</div>'}</div>`;
+  const ra = skillRating(p, 'first'), rb = skillRating(p, 'last');
+  return `<div class="card"><div class="card-h">⚡ SPEED, AGILITY + SKILLS ${rb != null ? `<span class="chip c-teal" style="font-size:12px">⭐ RATING ${rb}${ra != null && ra !== rb ? ` (${rb > ra ? '+' : ''}${rb - ra})` : ''}</span>` : ''}</div>${tested.length ? `<table class="tight"><tr><th>TEST</th><th class="num">BEST</th><th class="num">FIRST</th><th class="num">CHANGE</th><th>HISTORY</th></tr>${tested.map(t => { const R = spdRows(p, t.id), b = spdBest(R, t), f = R[0], ch = b.val - f.val;
+    return `<tr><td><b>${t.name}</b></td><td class="num"><b>${spdFmt(b.val, t)}</b></td><td class="num muted">${spdFmt(f.val, t)}</td><td class="num">${R.length > 1 && ch ? `<span style="color:${(t.up ? ch > 0 : ch < 0) ? 'var(--green)' : 'var(--red)'}">${ch > 0 ? '+' : ''}${t.unit === 's' ? ch.toFixed(2) : Math.round(ch * 10) / 10}</span>` : '-'}</td><td class="small muted">${R.map(x => `${x.date.slice(5).replace('-','/')}: ${x.val}${x.by ? ' (' + esc(x.by) + ')' : ''}`).join(' · ')}</td></tr>`; }).join('')}</table>` : '<div class="muted small">No tests logged yet. Kids log from Profile or the EPA card, or you enter a test day from the Testing tab.</div>'}</div>`;
+}
+function skillBoard() {
+  const E = enrolled(), rows = E.map(p => ({p, a: skillRating(p, 'first'), b: skillRating(p, 'last'), n: SKILL_TESTS.filter(t => spdRows(p, t.id).length).length})).sort((x,y) => (y.b||0) - (x.b||0));
+  return `<div class="card" style="padding:6px 14px"><div class="legend" style="padding:8px 0">Rating = average of each skill test scored against an age benchmark (70 = on track for their age group). Baseline is each player's first result, current is their latest. Needs 3+ skill tests. StreakFC scale, beta.</div>
+    <table class="tight"><tr><th>PLAYER</th><th>AGE · POS</th><th class="num">BASELINE</th><th class="num">CURRENT</th><th class="num">CHANGE</th><th class="num">TESTS</th></tr>
+    ${rows.map(r => `<tr class="click" onclick="openKid('${r.p.id}')"><td>${kidCell(r.p)}</td><td class="muted small">${esc(r.p.age_group)} · ${esc(r.p.pos1||'')}</td><td class="num">${r.a ?? '-'}</td><td class="num"><b style="font-size:16px">${r.b ?? '-'}</b></td><td class="num">${r.a != null && r.b != null && r.b !== r.a ? `<span style="color:${r.b > r.a ? 'var(--green)' : 'var(--red)'}">${r.b > r.a ? '+' : ''}${r.b - r.a}</span>` : '-'}</td><td class="num muted">${r.n}/${SKILL_TESTS.length}</td></tr>`).join('')}</table></div>`;
 }
 function epaTesting() {
+  const list = testCat === 'skill' ? SKILL_TESTS : SPEED_TESTS.filter(x => !x.cat);
+  if (!list.some(x => x.id === spdTest)) spdTest = testCat === 'skill' ? 'rating' : 's20';
+  const catBar = `<div class="filters"><button class="seg ${testCat==='speed'?'on':''}" onclick="testCat='speed';spdTest='s20';render()">⚡ Speed + agility</button><button class="seg ${testCat==='skill'?'on':''}" onclick="testCat='skill';spdTest='rating';render()">⭐ Skills</button></div>`;
+  if (spdTest === 'rating') return catBar + `<div class="filters"><button class="seg on">⭐ Player rating</button>${list.map(x => `<button class="seg" onclick="spdTest='${x.id}';render()">${x.name}</button>`).join('')}</div>` + skillBoard();
   const t = SPEED_TESTS.find(x => x.id === spdTest), E = enrolled();
   const rows = E.map(p => { const R = spdRows(p, t.id), b = spdBest(R, t); return {p, R, b, f: R[0]}; }), has = rows.filter(r => r.b).sort((a,b) => t.up ? b.b.val - a.b.val : a.b.val - b.b.val), none = rows.filter(r => !r.b);
   const grp = g => has.filter(r => (epaOf(r.p).group||'younger') === g);
   const table = (title, list) => list.length ? `<tr><td colspan="7" class="grp-row">${title}</td></tr>` + list.map((r,i) => { const ch = r.R.length > 1 ? r.b.val - r.f.val : 0;
     return `<tr class="click" onclick="openKid('${r.p.id}')"><td><b>${i+1}</b></td><td>${kidCell(r.p)}</td><td class="muted small">${esc(r.p.age_group)} · ${esc(r.p.pos1||'')}</td><td class="num"><b>${spdFmt(r.b.val, t)}</b></td><td class="num">${ch ? `<span style="color:var(--green)">${ch > 0 ? '+' : ''}${ch.toFixed(2)}</span>` : '-'}</td><td class="num muted">${r.R.length}</td><td class="small muted">${r.R[r.R.length-1].date.slice(5).replace('-','/')}</td></tr>`; }).join('') : '';
-  return `<div class="filters">${SPEED_TESTS.map(x => `<button class="seg ${spdTest===x.id?'on':''}" onclick="spdTest='${x.id}';render()">${x.name}</button>`).join('')}<button class="btn" style="margin-left:auto" onclick="testDay=!testDay;render()">${testDay ? 'CLOSE TEST DAY' : '⏱ ENTER TEST DAY RESULTS'}</button></div>
-  ${testDay ? `<div class="card" style="border-color:#1ab3bd66"><div class="card-h">TEST DAY · ${t.name.toUpperCase()} <span class="legend">enter ${t.unit === 's' ? 'times in seconds' : 'levels'}, leave blank if absent</span></div>
+  return catBar + `<div class="filters">${testCat === 'skill' ? `<button class="seg" onclick="spdTest='rating';render()">⭐ Player rating</button>` : ''}${list.map(x => `<button class="seg ${spdTest===x.id?'on':''}" onclick="spdTest='${x.id}';render()">${x.name}</button>`).join('')}<button class="btn" style="margin-left:auto" onclick="testDay=!testDay;render()">${testDay ? 'CLOSE TEST DAY' : '⏱ ENTER TEST DAY RESULTS'}</button></div>
+  ${testDay ? `<div class="card" style="border-color:#1ab3bd66"><div class="card-h">TEST DAY · ${t.name.toUpperCase()} <span class="legend">enter ${t.unit === 's' ? 'times in seconds' : t.unit === '/10' ? 'how many of 10' : t.unit === 'reps' ? 'the count' : 'levels'}, leave blank if absent</span></div>
     <div class="form-row" style="margin-bottom:10px"><span class="small muted">Date</span><input type="date" id="tdDate" value="${localDate()}"></div>
     <div class="td-grid">${E.map(p => `<label class="td-cell"><span>${esc(p.nickname)}</span><input type="number" step="0.01" min="0" data-pid="${p.id}" placeholder="${spdBest(spdRows(p, t.id), t) ? 'PB ' + spdBest(spdRows(p, t.id), t).val : '-'}"></label>`).join('')}</div>
     <button class="btn" style="margin-top:12px" onclick="saveTestDay()">SAVE RESULTS</button></div>` : ''}
@@ -367,7 +390,19 @@ async function saveTestDay() {
   testDay = false; toast(D.mock ? `Sandbox: ${n} results added here only` : `${n} results saved`); render();
 }
 
-let epaTab = 'roster', epaF = {g:'all', pos:'', flag:'', q:''}, calMonth = null;
+let epaTab = 'roster', epaF = {g:'all', pos:'', flag:'', q:''}, calMonth = null, attWk = 0;
+function attTick(p, d, i, today) {
+  const L = p.sess, kid = L.some(s => s.mode==='epa' && s.date===d && s.source!=='coach'), co = !kid && L.some(s => s.mode==='epa' && s.date===d && s.source==='coach'), can = d <= today && !epaOff(d) && !kid;
+  const tip = kid ? 'Player logged this session (earned XP)' : co ? 'Marked present by coach (no XP). Click to undo' : can ? 'Click to mark present' : '';
+  return `<div class="tick ${kid?'on':''} ${co?'coach':''} ${can?'clk':''} ${epaOff(d)?'off':''} ${d===today?'today':''}" title="${tip}" ${can?`onclick="event.stopPropagation();markAtt('${p.id}','${d}')"`:''}>${co?'✓':['M','T','W','T','F','S','S'][i]}</div>`;
+}
+async function markAtt(pid, d) {
+  const p = D.byId[pid], ex = p.sess.find(s => s.mode==='epa' && s.date===d && s.source==='coach');
+  if (!localOnly(p)) { try { await rpc(ex ? 'sfc_admin_unmark_att' : 'sfc_admin_log_session', ex ? {p_player:pid, p_date:d} : {p_player:pid, p_session:{date:d, mode:'epa'}}); } catch(e) { return toast('Failed: ' + e.message); } }
+  if (ex) { p.sess = p.sess.filter(s => s !== ex); D.sessions = D.sessions.filter(s => s !== ex); }
+  else { const row = {player_id:pid, family_id:p.family_id, date:d, touches:0, xp:0, mode:'epa', source:'coach', rounds:null, created_at:new Date().toISOString()}; p.sess.unshift(row); D.sessions.unshift(row); }
+  toast(ex ? 'Attendance removed' : `${p.nickname} marked present${localOnly(p) ? ' (sandbox)' : ''}`); render();
+}
 const EMPHASIS = ['Ball mastery','Moves','Passing','Juggling','Weak foot','Shooting','Scanning','Speed','Agility','Recovery'];
 function lastJournal(p) { const w = p.sess.find(s => s.mode === 'weekly'); return w ? {row:w, j:((w.rounds||[])[0]||{}).weekly||{}} : null; }
 function kidFlags(p) {
@@ -388,7 +423,7 @@ function vEPA() {
   const avg = a => a.length ? (a.reduce((x,y)=>x+y,0)/a.length).toFixed(1) : '-', nextOff = PROGRAMS.epa.off.find(([a,b]) => b >= today);
   const flagsN = k => E.filter(p => kidFlags(p)[k]).length;
   const tab = (k, l, n) => `<button class="tab ${epaTab===k?'on':''}" onclick="epaTab='${k}';render()">${l}${n!=null?` <span>${n}</span>`:''}</button>`;
-  const body = epaTab === 'testing' ? epaTesting() : epaTab === 'plans' ? epaPlans() : epaTab === 'calendar' ? epaCalendar() : epaTab === 'journals' ? epaJournals() : epaRoster();
+  const body = epaTab === 'testing' ? epaTesting() : epaTab === 'plans' ? epaPlans() : epaTab === 'calendar' ? epaCalendar() : epaTab === 'journals' ? epaJournals(['weekly','goalsheet']) : epaTab === 'film' ? epaJournals(['film']) : epaRoster();
   return `${asCoach && ROLE === 'admin' ? `<div class="sandbox-banner" style="border-color:#f9731688;color:#fdba74">👁 <b>COACH PREVIEW</b> · this is exactly what an EPA coach sees. No admin pages, no parent emails, only EPA players.</div>` : ''}${D.mixed ? `<div class="sandbox-banner">Players tagged <b>REAL</b> are live StreakFC players in EPA. The 24 tagged <b>DEMO</b> are sample data so the dashboard looks full. Turn them off bottom left.</div>` : ''}${D.mock ? `<div class="sandbox-banner">🧪 <b>SANDBOX EPA</b> · 24 fake players, 4 weeks of logs. Switch DATA to LIVE for Caysen and Emmitt.</div>` : ''}
   <div class="hdr"><div><h2>EPA <span class="chip c-teal">BETA</span></h2><div class="s">Tue · Wed · Thu · ${PROGRAMS.epa.mins} min · ${E.length} players${nextOff?` · next break: ${nextOff[2]} (${nextOff[0].slice(5).replace('-','/')})`:''}</div></div>
     <div style="display:flex;gap:8px">${ROLE === 'admin' && !asCoach ? `<button class="btn ghost" onclick="openCoaches()">🧢 COACHES</button>` : ''}<button class="btn add-btn" onclick="openAddPlayer()">＋ ADD PLAYER</button></div></div>
@@ -399,17 +434,18 @@ function vEPA() {
     <div class="kpi" style="cursor:pointer" onclick="epaTab='roster';setEpaF('flag','follow')"><b style="color:${flagsN('follow')?'var(--amber)':'inherit'}">${flagsN('follow')}</b><span>FOLLOW-UPS</span></div>
     <div class="kpi" style="cursor:pointer" onclick="epaTab='roster';setEpaF('flag','sore')"><b style="color:${flagsN('sore')?'var(--red)':'inherit'}">${flagsN('sore')}</b><span>SORE</span></div>
   </div>
-  <div class="tabs">${tab('roster','👥 Roster',E.length)}${tab('plans','🗓 Touch plans',(D.plans||[]).filter(x => x.week_start >= wk[0]).length)}${tab('calendar','📅 Calendar')}${tab('testing','⚡ Testing')}${tab('journals','📝 Journals + film')}</div>
+  <div class="tabs">${tab('roster','👥 Roster',E.length)}${tab('plans','🗓 Touch plans',(D.plans||[]).filter(x => x.week_start >= wk[0]).length)}${tab('calendar','📅 Calendar')}${tab('testing','⏱ Testing')}${tab('journals','📝 Journals')}${tab('film','🎥 Game film')}</div>
   ${body}`;
 }
 function epaRoster() {
-  const E = epaFiltered(), wk = weekDates(0), today = localDate(), lo7 = daysAgo(6), avg = a => a.length ? (a.reduce((x,y)=>x+y,0)/a.length).toFixed(1) : '-';
+  const E = epaFiltered(), wk = weekDates(attWk), today = localDate(), lo7 = daysAgo(6), avg = a => a.length ? (a.reduce((x,y)=>x+y,0)/a.length).toFixed(1) : '-';
   const seg = (k, v, l) => `<button class="seg ${epaF[k]===v?'on':''}" onclick="setEpaF('${k}','${v}')">${l}</button>`;
-  const row = p => { const L = p.sess, ck = L.filter(s => s.mode === 'checkin'), last = L.find(s => s.mode === 'epa'), lj = lastJournal(p), fl = kidFlags(p);
+  const row = p => { const L = p.sess, ck = L.filter(s => s.mode === 'checkin'), last = L.find(s => s.mode === 'epa' && s.source !== 'coach'), lj = lastJournal(p), fl = kidFlags(p);
     const r7 = ck.filter(s => s.date >= lo7).map(s => (s.rounds||[])[0]?.ready?.score).filter(Boolean), lastR = ck[0] && (ck[0].rounds||[])[0]?.ready?.score, le = last && (last.rounds||[])[0]?.epa;
     return `<tr class="click" onclick="openKid('${p.id}')"><td>${kidCell(p)}</td><td class="muted small">${esc(p.age_group)}</td><td><b>${esc(p.pos1||'-')}</b><span class="muted">${p.pos2?' / '+esc(p.pos2):''}</span></td>
       <td><span class="chip ${(epaOf(p).group||'younger')==='older'?'c-blue':'c-teal'}">${(epaOf(p).group||'younger').toUpperCase()}</span></td>
-      <td><div class="ticks">${wk.map((d,i) => PROGRAMS.epa.days.includes(wdOf(d)) ? `<div class="tick ${L.some(s=>s.mode==='epa'&&s.date===d)?'on':''} ${epaOff(d)?'off':''} ${d===today?'today':''}">${['M','T','W','T','F','S','S'][i]}</div>` : '').join('')}</div></td>
+      <td><div class="ticks">${wk.map((d,i) => PROGRAMS.epa.days.includes(wdOf(d)) ? attTick(p, d, i, today) : '').join('')}</div></td>
+      <td class="num small">${(() => { const h = L.filter(s => s.date >= lo7 && !['epa','checkin','weekly','film','goalsheet','speed'].includes(s.mode)).reduce((a,s) => a + (s.touches||0), 0); return h ? fmtK(h) : '<span class="muted">-</span>'; })()}</td>
       <td>${lastR ? `<span class="chip ${lastR>=4?'c-green':lastR>=3?'c-amber':'c-red'}">${lastR}</span><span class="muted small">${avg(r7)}</span>` : '<span class="muted">-</span>'}</td>
       <td class="small">${le ? `${(FOCUS[le.focus]||{}).ico||''} effort <b>${le.effort}</b> ${['😫','😐','🙂','🔥'][le.feel]||''}` : '<span class="muted">-</span>'}</td>
       <td class="small">${lj ? `<b>${lj.j.rate ? lj.j.rate + '/10' : '✓'}</b>` : '<span class="muted">-</span>'} ${fl.follow ? '<span class="chip c-amber">FOLLOW-UP</span>' : ''}${fl.sore ? '<span class="chip c-red">SORE</span>' : ''}${fl.nosheet ? '<span class="chip c-sub">NO GOALS</span>' : ''}${(D.notes||{})[p.id] ? ' 📝' : ''}</td></tr>`; };
@@ -418,12 +454,12 @@ function epaRoster() {
     <select onchange="setEpaF('pos',this.value)"><option value="">All positions</option>${POSITIONS.map(x => `<option ${epaF.pos===x?'selected':''}>${x}</option>`).join('')}</select>
     <select onchange="setEpaF('flag',this.value)"><option value="">No filter</option>${[['follow','Needs follow-up'],['sore','Sore'],['missed','Missed EPA this week'],['nosheet','No goal worksheet']].map(([v,l]) => `<option value="${v}" ${epaF.flag===v?'selected':''}>${l}</option>`).join('')}</select>
     <input placeholder="Search" value="${esc(epaF.q)}" style="width:150px" onchange="setEpaF('q',this.value)">${epaF.flag||epaF.pos||epaF.q||epaF.g!=='all' ? `<a href="#" class="small" style="color:var(--accent)" onclick="epaF={g:'all',pos:'',flag:'',q:''};render();return false">Clear</a>` : ''}<span class="muted small" style="margin-left:auto">${E.length} shown · click a player for their profile</span></div>
-  <div class="card" style="padding:6px 14px"><table class="tight"><tr><th>PLAYER</th><th>AGE</th><th>POS</th><th>GROUP</th><th>THIS WEEK</th><th>READY</th><th>LAST EPA</th><th>JOURNAL + FLAGS</th></tr>
-  ${groups.map(g => { const G = E.filter(p => (epaOf(p).group||'younger') === g); return G.length ? `<tr><td colspan="8" class="grp-row">${g.toUpperCase()} · ${G.length}</td></tr>` + G.map(row).join('') : ''; }).join('') || '<tr><td colspan="8" class="empty">No players match. Clear filters or add a player.</td></tr>'}</table></div>`;
+  <div class="card" style="padding:6px 14px"><table class="tight"><tr><th>PLAYER</th><th>AGE</th><th>POS</th><th>GROUP</th><th title="Solid = player logged it (XP). Dashed ✓ = coach marked present (no XP). Click a past day to mark.">EPA ATTENDANCE <a href="#" class="small" style="color:var(--accent);font-weight:700" onclick="event.stopPropagation();attWk=attWk?0:-1;render();return false">${attWk ? 'this wk ▶' : '◀ last wk'}</a></th><th class="num" title="Home touches last 7 days (if the parent shares all training)">HOME 7D</th><th>READY</th><th>LAST EPA</th><th>JOURNAL + FLAGS</th></tr>
+  ${groups.map(g => { const G = E.filter(p => (epaOf(p).group||'younger') === g); return G.length ? `<tr><td colspan="9" class="grp-row">${g.toUpperCase()} · ${G.length}</td></tr>` + G.map(row).join('') : ''; }).join('') || '<tr><td colspan="9" class="empty">No players match. Clear filters or add a player.</td></tr>'}</table></div>`;
 }
-function epaJournals() {
-  const ids = new Set(enrolled().map(p => p.id)), rows = D.sessions.filter(s => ids.has(s.player_id) && ['weekly','film','goalsheet','speed'].includes(s.mode)).slice(0, 80);
-  return `<div class="card">${rows.map(s => { const p = D.byId[s.player_id]; return `<div class="feed-row"><div class="t">${esc(s.date)}</div><div style="width:150px;flex:none">${kidCell(p)}</div><div style="width:120px;flex:none"><span class="chip ${s.mode==='film'?'c-teal':s.mode==='goalsheet'?'c-green':'c-blue'}">${esc((MODE[s.mode]||s.mode).toUpperCase())}</span></div><div style="flex:1" class="small">${detail(s)}</div></div>`; }).join('') || '<div class="empty">No journals or game analyses yet.</div>'}</div>`;
+function epaJournals(modes) {
+  const ids = new Set(enrolled().map(p => p.id)), rows = D.sessions.filter(s => ids.has(s.player_id) && modes.includes(s.mode)).slice(0, 80);
+  return `<div class="card">${rows.map(s => { const p = D.byId[s.player_id]; return `<div class="feed-row"><div class="t">${esc(s.date)}</div><div style="width:150px;flex:none">${kidCell(p)}</div><div style="width:120px;flex:none"><span class="chip ${s.mode==='film'?'c-teal':s.mode==='goalsheet'?'c-green':'c-blue'}">${esc((MODE[s.mode]||s.mode).toUpperCase())}</span></div><div style="flex:1" class="small">${detail(s)}</div></div>`; }).join('') || `<div class="empty">${modes.includes('film') ? 'No game analyses yet. Players submit them from their EPA card.' : 'No journals yet.'}</div>`}</div>`;
 }
 // ── touch plans ──
 function planWho(t) { t = t || {who:'all'}; return t.who === 'all' ? 'Everyone' : t.who === 'younger' ? 'Younger group' : t.who === 'older' ? 'Older group' : t.who === 'pos' ? 'Positions: ' + (t.pos||[]).join(', ') : `${(t.players||[]).length} player${(t.players||[]).length===1?'':'s'}`; }
@@ -431,7 +467,7 @@ function planApplies(pl, p) { const t = pl.target || {who:'all'}, g = epaOf(p).g
   return t.who === 'all' || t.who === g || (t.who === 'pos' && (t.pos||[]).some(x => x === p.pos1 || x === p.pos2)) || (t.who === 'players' && (t.players||[]).includes(p.id)); }
 function mondays(n) { const m = weekDates(0)[0]; return [...Array(n)].map((_,i) => { const d = new Date(m + 'T12:00:00'); d.setDate(d.getDate() + i * 7); return localDate(d); }); }
 function epaPlans() {
-  const cur = enrolled()[0] ? epaOf(enrolled()[0]) : {}, P = D.plans || [], weeks = mondays(6);
+  const cur = enrolled()[0] ? epaOf(enrolled()[0]) : {}, P = D.plans || [], weeks = mondays(10);
   return `<div class="card"><div class="card-h">THIS WEEK'S FOCUS · SHOWS ON EVERY PLAYER'S EPA CARD</div>
     <div class="form-row"><select id="fFocus"><option value="">Not set</option>${Object.entries(FOCUS).map(([k,f]) => `<option value="${k}" ${cur.focus===k?'selected':''}>${f.ico} ${f.name}</option>`).join('')}</select>
       <input id="fNote" maxlength="100" style="flex:1;min-width:240px" placeholder="Coach note, e.g. Week 7: turning out of pressure" value="${esc(cur.note||'')}"><button class="btn" onclick="applyFocus()">APPLY TO ALL</button></div></div>
@@ -454,7 +490,8 @@ function paintPlan() {
   const d = planDraft, t = d.target, E = enrolled(), n = E.filter(p => planApplies(d, p)).length, DN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const who = (v, l) => `<button class="seg ${t.who===v?'on':''}" onclick="planDraft.target={who:'${v}',pos:[],players:[]};paintPlan()">${l}</button>`;
   $('drawer').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:20px;font-weight:900">${d.id ? 'Edit' : 'New'} touch plan</div><button class="btn ghost sm" onclick="$('drawer').classList.remove('open')">Close</button></div>
-    <div class="pf"><label>WEEK</label><select onchange="planDraft.week_start=this.value">${mondays(6).map((w,i) => `<option value="${w}" ${d.week_start===w?'selected':''}>${i===0?'This week':i===1?'Next week':'Week of'} · ${w.slice(5).replace('-','/')}</option>`).join('')}</select></div>
+    <div class="pf"><label>START FROM A PRESET</label><div style="display:flex;gap:8px"><select style="flex:1" onchange="applyPreset(this.value)"><option value="">Choose a preset...</option>${(D.presets||[]).map(x => `<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select>${(D.presets||[]).length ? `<button class="btn ghost sm" onclick="managePresets()">Manage</button>` : ''}</div></div>
+    <div class="pf"><label>WEEK</label><select onchange="planDraft.week_start=this.value">${mondays(10).map((w,i) => `<option value="${w}" ${d.week_start===w?'selected':''}>${i===0?'This week':i===1?'Next week':'Week of'} · ${w.slice(5).replace('-','/')}</option>`).join('')}</select></div>
     <div class="pf"><label>ASSIGN TO · <span style="color:#1ab3bd">${n} player${n===1?'':'s'}</span></label><div class="filters" style="margin:0">${who('all','Everyone')}${who('younger','Younger')}${who('older','Older')}${who('pos','By position')}${who('players','Pick players')}</div>
       ${t.who === 'pos' ? `<div class="chips">${POSITIONS.map(x => `<button class="seg ${(t.pos||[]).includes(x)?'on':''}" onclick="planToggle('pos','${x}')">${x}</button>`).join('')}</div>` : ''}
       ${t.who === 'players' ? `<div class="chips">${E.map(p => `<button class="seg ${(t.players||[]).includes(p.id)?'on':''}" onclick="planToggle('players','${p.id}')">${esc(p.nickname)}</button>`).join('')}</div>` : ''}</div>
@@ -464,26 +501,48 @@ function paintPlan() {
     <div class="pf"><label>DAY BY DAY <span class="muted">(shows as "Today" on their card)</span></label>
       ${[1,2,3,4,5,6,0].map(k => `<div class="day-line"><span>${DN[k]}${PROGRAMS.epa.days.includes(k)?' <b class="chip c-teal">EPA</b>':''}</span><input maxlength="80" value="${esc((d.days||{})[k]||'')}" placeholder="${PROGRAMS.epa.days.includes(k)?'e.g. Light 300, EPA today':k===0?'e.g. Rest or juggling only':'e.g. 1,200 touches, weak foot ladder'}" oninput="planDraft.days['${k}']=this.value"></div>`).join('')}</div>
     <div class="pf"><label>NOTE TO PLAYERS</label><input maxlength="300" value="${esc(d.note)}" placeholder="Optional" oninput="planDraft.note=this.value"></div>
-    <div style="display:flex;gap:10px;margin-top:14px"><button class="btn" onclick="savePlan()">SAVE PLAN</button>${d.id ? `<button class="btn ghost" onclick="deletePlan('${d.id}')">Delete</button>` : ''}</div>`;
+    ${d.id ? '' : `<div class="pf"><label>REPEAT</label><div class="form-row"><select onchange="planDraft.every=+this.value"><option value="0">Just this week</option>${[2,3,4,5,6].map(n => `<option value="${n}" ${planDraft.every===n?'selected':''}>Every ${n} weeks</option>`).join('')}</select>
+      <select onchange="planDraft.times=+this.value">${[2,3,4,5,6].map(n => `<option value="${n}" ${(planDraft.times||3)===n?'selected':''}>${n} times</option>`).join('')}</select><span class="legend">e.g. Week 1 plan comes back every 5 weeks</span></div></div>`}
+    <div style="display:flex;gap:10px;margin-top:14px"><button class="btn" onclick="savePlan()">SAVE PLAN</button><button class="btn ghost" onclick="savePreset()">💾 SAVE AS PRESET</button>${d.id ? `<button class="btn ghost" onclick="deletePlan('${d.id}')">Delete</button>` : ''}</div>`;
 }
 function planToggle(k, v) { const o = k === 'emphasis' ? planDraft : planDraft.target; o[k] = (o[k]||[]).includes(v) ? o[k].filter(x => x !== v) : [...(o[k]||[]), v]; paintPlan(); }
+const PRESET_KEYS = ['focus','touches','emphasis','days','note','target'];
+function applyPreset(id) { const x = (D.presets||[]).find(p => p.id === id); if (!x) return; Object.assign(planDraft, JSON.parse(JSON.stringify(x.data))); planDraft.target = planDraft.target || {who:'all'}; paintPlan(); toast(`Loaded "${x.name}"`); }
+async function savePreset() {
+  const name = prompt('Preset name (e.g. Week 1: First touch, Winter break challenge):', planDraft.focus || ''); if (!name) return;
+  const data = Object.fromEntries(PRESET_KEYS.map(k => [k, planDraft[k]]));
+  let id = 'pr' + Date.now();
+  if (!D.mock) { try { id = await rpc('sfc_save_preset', {p_program:'epa', p_name:name, p_data:data}); } catch(e) { return toast('Failed: ' + e.message); } }
+  D.presets = [...(D.presets||[]), {id, name, data}]; if (REAL && D !== REAL && !D.mock) REAL.presets = D.presets; toast(`Preset "${name}" saved`); paintPlan();
+}
+function managePresets() {
+  $('drawer').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:20px;font-weight:900">Plan presets</div><button class="btn ghost sm" onclick="paintPlan()">Back</button></div>
+    <div class="card" style="margin-top:14px">${(D.presets||[]).map(x => `<div class="feed-row"><b style="flex:1">${esc(x.name)}</b><span class="small muted">${esc(x.data.focus||'')}${x.data.touches ? ' · ' + fmt(x.data.touches) + '/day' : ''}</span><button class="btn ghost sm" onclick="deletePreset('${x.id}')">Delete</button></div>`).join('')}</div>`;
+}
+async function deletePreset(id) { if (!D.mock && !String(id).startsWith('pr')) { try { await rpc('sfc_delete_preset', {p_id:id}); } catch(e) { return toast('Failed: ' + e.message); } } D.presets = (D.presets||[]).filter(x => x.id !== id); managePresets(); }
 async function savePlan() {
+  if (!planDraft.id && planDraft.every > 0) { const base = planDraft.week_start, n = planDraft.times || 3, ev = planDraft.every; delete planDraft.every; delete planDraft.times;
+    for (let i = 0; i < n; i++) { const d0 = new Date(base + 'T12:00:00'); d0.setDate(d0.getDate() + i * ev * 7); planDraft.week_start = localDate(d0); planDraft.id = undefined; await savePlanOne(i === n - 1); }
+    return; }
+  return savePlanOne(true);
+}
+async function savePlanOne(finish) {
   const d = {...planDraft, touches: planDraft.touches === '' ? null : planDraft.touches, days: Object.fromEntries(Object.entries(planDraft.days||{}).filter(([,v]) => v && v.trim()))};
-  if (!D.mock) { try { d.id = await rpc('sfc_admin_save_plan', {p_plan:d}); } catch(e) { return toast('Failed: ' + e.message); } } else { d.id = d.id || 'mp' + Date.now(); toast('Sandbox: changed here only'); }
-  D.plans = [...(D.plans||[]).filter(x => x.id !== d.id), d].sort((a,b) => a.week_start < b.week_start ? -1 : 1);
-  $('drawer').classList.remove('open'); if (!D.mock) toast('Plan saved. Players see it next time their app opens.'); render();
+  if (!D.mock) { try { d.id = await rpc('sfc_admin_save_plan', {p_plan:d}); } catch(e) { return toast('Failed: ' + e.message); } } else { d.id = d.id || 'mp' + Date.now() + Math.random().toString(36).slice(2,6); toast('Sandbox: changed here only'); }
+  delete d.every; delete d.times; D.plans = [...(D.plans||[]).filter(x => x.id !== d.id), d].sort((a,b) => a.week_start < b.week_start ? -1 : 1);
+  if (!finish) return; $('drawer').classList.remove('open'); if (!D.mock) toast('Plan saved. Players see it next time their app opens.'); render();
 }
 async function deletePlan(id) { if (!confirm('Delete this plan?')) return; if (!D.mock) { try { await rpc('sfc_admin_delete_plan', {p_id:id}); } catch(e) { return toast('Failed: ' + e.message); } }
   D.plans = (D.plans||[]).filter(x => x.id !== id); $('drawer').classList.remove('open'); render(); }
 // ── monthly calendar ──
 function epaCalendar() {
   const now = new Date(); calMonth = calMonth || [now.getFullYear(), now.getMonth()];
-  const [y, m] = calMonth, first = new Date(y, m, 1), start = new Date(first); start.setDate(1 - (first.getDay() + 6) % 7);
+  const [y, m] = calMonth, first = new Date(y, m, 1), start = new Date(first); start.setDate(1 - first.getDay());
   const E = enrolled(), ids = new Set(E.map(p => p.id)), today = localDate(), P = D.plans || [];
   const cells = [...Array(42)].map((_,i) => { const d = new Date(start); d.setDate(start.getDate() + i); return d; });
   return `<div class="card"><div class="card-h"><span><button class="btn ghost sm" onclick="calMonth=[${m===0?y-1:y},${m===0?11:m-1}];render()">‹</button> <b style="color:var(--text);font-size:14px;letter-spacing:1px;margin:0 8px">${first.toLocaleDateString(undefined,{month:'long',year:'numeric'}).toUpperCase()}</b> <button class="btn ghost sm" onclick="calMonth=[${m===11?y+1:y},${m===11?0:m+1}];render()">›</button></span>
     <span class="legend"><span class="chip c-teal">EPA</span><span class="chip c-amber">BREAK</span><span class="chip c-blue">PLAN</span></span></div>
-    <div class="cal">${['MON','TUE','WED','THU','FRI','SAT','SUN'].map(x => `<div class="cal-h">${x}</div>`).join('')}
+    <div class="cal">${['SUN','MON','TUE','WED','THU','FRI','SAT'].map(x => `<div class="cal-h">${x}</div>`).join('')}
     ${cells.map(d => { const ds = localDate(d), wd = d.getDay(), off = epaOff(ds), epa = PROGRAMS.epa.days.includes(wd) && !off && ds >= PROGRAMS.epa.start && ds <= PROGRAMS.epa.end;
       const nLog = D.sessions.filter(s => s.mode === 'epa' && s.date === ds && ids.has(s.player_id)).length, mon = wd === 1 ? P.filter(x => x.week_start === ds) : [];
       const notes = P.filter(x => { const ws = new Date(x.week_start + 'T12:00:00'), dd = new Date(ds + 'T12:00:00'); return dd >= ws && (dd - ws) / 864e5 < 7 && (x.days||{})[String(wd)]; });
@@ -593,7 +652,9 @@ function epaMock() {
     }
     { const base20 = (older ? 3.35 : 3.85) + (r() - .5) * .5, baseSh = (older ? 4.95 : 5.6) + (r() - .5) * .6;
       [24, 10].forEach((ago, j) => { if (r() < .85) { const ds = daysAgo(ago), mk = (test, v, by) => { const row = {player_id:id, family_id:fam.id, date:ds, created_at: ds + 'T16:30:00', mode:'speed', touches:0, xp:0, source:'coach', rounds:[{speed:{test, val: Math.round(v * 100) / 100, by}}]}; p.sess.push(row); sessions.push(row); };
-        mk('s20', base20 - j * (.03 + r() * .1), 'Coach'); mk('shuttle', baseSh - j * (.04 + r() * .14), 'Coach'); } }); }
+        mk('s20', base20 - j * (.03 + r() * .1), 'Coach'); mk('shuttle', baseSh - j * (.04 + r() * .14), 'Coach');
+        const sk = (.75 + r() * .5) * (1 + j * (.04 + r() * .1)), bi = older ? 1 : 0;
+        SKILL_TESTS.forEach(t => { if (r() < .9) mk(t.id, t.unit === '/10' ? Math.min(10, Math.max(1, Math.round(t.bench[bi] * sk))) : Math.max(1, Math.round(t.bench[bi] * sk * (t.sqrt ? sk : 1))), 'Coach'); }); } }); }
     p.sess.sort((a,b) => a.created_at < b.created_at ? 1 : -1);
     const home = p.sess.filter(s => s.mode === 'goal' || s.mode === 'epa'); let st = 0; for (let d = 0; d < 28; d++) { if (home.some(s => s.date === daysAgo(d))) st++; else if (d) break; }
     Object.assign(p, {streak: st, last_log: home[0] ? home[0].date : null, best_streak: st + Math.floor(r() * 6), total_touches: home.reduce((a,s) => a + s.touches, 0) + Math.floor(r() * 30000), xp: p.sess.reduce((a,s) => a + s.xp, 0)});
@@ -605,7 +666,9 @@ function epaMock() {
     {id:'mp1', week_start: mw[0], target:{who:'all'}, focus:'First touch week', touches:1100, emphasis:['Ball mastery','Passing','Scanning'], days:{'1':'1,100 touches, wall passes','2':'Light 300, EPA today','3':'Light 300, EPA today','4':'Light 300, EPA today','5':'1,100 touches, weak foot','6':'Juggling ladder','0':'Rest'}, note:'Check your shoulder before every receive.'},
     {id:'mp2', week_start: mw[1], target:{who:'older'}, focus:'Speed + finishing', touches:900, emphasis:['Speed','Shooting','Recovery'], days:{'1':'Sprints + 900 touches','5':'Finishing 50 reps'}, note:''},
     {id:'mp3', week_start: mw[1], target:{who:'pos', pos:['ST','W']}, focus:'Weak foot finishing', touches:1000, emphasis:['Weak foot','Shooting'], days:{'6':'100 weak-foot finishes'}, note:''}];
-  return EPA_MOCK = {mock:true, plans, families:[fam], fams:{[fam.id]:fam}, players, sessions, notes, byId:Object.fromEntries(players.map(p => [p.id, p]))};
+  const presets = [{id:'pr1', name:'Week A: First touch', data:{focus:'First touch week', touches:1100, emphasis:['Ball mastery','Passing','Scanning'], days:{'1':'1,100 touches, wall passes','5':'Weak foot ladder'}, note:'', target:{who:'all'}}},
+    {id:'pr2', name:'Winter break challenge', data:{focus:'Break challenge: 10K in 10 days', touches:1000, emphasis:['Ball mastery','Juggling','Weak foot'], days:{'1':'1,000 touches','3':'Juggling PB attempt','5':'1,000 touches + weak foot finishing'}, note:'Hit 10,000 touches before we are back. Top 3 get a prize.', target:{who:'all'}}}];
+  return EPA_MOCK = {mock:true, plans, presets, families:[fam], fams:{[fam.id]:fam}, players, sessions, notes, byId:Object.fromEntries(players.map(p => [p.id, p]))};
 }
 
 // ── kid drawer ──

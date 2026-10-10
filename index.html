@@ -3851,7 +3851,15 @@ const SPEED_TESTS = [
   {id:'illinois', name:'Illinois agility', unit:'s', hint:'10m x 5m course, 4 cones down the middle to weave.'},
   {id:'slalom', name:'Dribble slalom', unit:'s', hint:'Ball at feet through 6 cones 2m apart and back.'},
   {id:'yoyo', name:'Yo-Yo test', unit:'lvl', up:true, hint:'Level reached (e.g. 14.2). Higher is better.'},
+  {id:'wall_r', name:'Right foot wall passes', unit:'reps', up:true, cat:'skill', hint:'30 seconds, 2-3 yards from a wall. Right foot only. Count clean returns.'},
+  {id:'wall_l', name:'Left foot wall passes', unit:'reps', up:true, cat:'skill', hint:'30 seconds, 2-3 yards from a wall. Left foot only. Count clean returns.'},
+  {id:'fig8', name:'Figure-8 dribble', unit:'reps', up:true, cat:'skill', hint:'Two cones 3 yards apart. Full figure-8 laps in 30 seconds, ball close.'},
+  {id:'juggle', name:'Juggling', unit:'reps', up:true, cat:'skill', hint:'Most juggles in a row. Best of 3 tries.'},
+  {id:'shoot_r', name:'Right foot shooting', unit:'/10', up:true, cat:'skill', hint:'10 shots from about 12 yards, right foot. Count on target.'},
+  {id:'shoot_l', name:'Left foot shooting', unit:'/10', up:true, cat:'skill', hint:'10 shots from about 12 yards, left foot. Count on target.'},
+  {id:'touch10', name:'First touch control', unit:'/10', up:true, cat:'skill', hint:'10 tosses or passes in. Count clean first touches that stay within a step.'},
 ];
+const spU = t => t.unit === 's' ? 's' : t.unit === '/10' ? '/10' : '';
 const SPEED_XP = 25, SPEED_PB_XP = 15;
 function speedLog(id) { return jget(`sfc_speed_${id}`, []); }
 // Server is the source of truth; keep any local rows not synced yet
@@ -3863,21 +3871,21 @@ function mergeSpeed(id, server) {
 function speedRowsHTML(id) {
   const L = speedLog(id), tested = SPEED_TESTS.filter(t => L.some(x => x.test === t.id));
   return tested.map(t => { const all = L.filter(x => x.test === t.id), pb = speedPB(id, t.id), first = all[0], diff = first && pb !== first ? Math.abs(pb.val - first.val) : 0;
-    return `<div class="spd-row"><div><b>${t.name}</b><span>${all.map(x => `${x.date.slice(5).replace('-','/')}: ${x.val}${x.by ? ' (' + esc(x.by) + ')' : ''}`).slice(-4).join(' · ')}</span></div><div class="spd-pb">${pb.val}${t.unit === 's' ? 's' : ''}${diff ? `<span>${t.up ? '+' : '-'}${diff.toFixed(t.unit === 's' ? 2 : 1)}</span>` : ''}</div></div>`; }).join('');
+    return `<div class="spd-row"><div><b>${t.name}</b><span>${all.map(x => `${x.date.slice(5).replace('-','/')}: ${x.val}${x.by ? ' (' + esc(x.by) + ')' : ''}`).slice(-4).join(' · ')}</span></div><div class="spd-pb">${pb.val}${spU(t)}${diff ? `<span>${t.up ? '+' : '-'}${+diff.toFixed(t.unit === 's' ? 2 : 1)}</span>` : ''}</div></div>`; }).join('');
 }
 let speedFor = null;
 function speedParentLine(p) {
   const L = speedLog(p.id); if (!L.length) return '';
   const last = L[L.length - 1], t = SPEED_TESTS.find(x => x.id === last.test) || {name:last.test, unit:'s'}, pb = speedPB(p.id, last.test), first = L.find(x => x.test === last.test), diff = pb && first && pb !== first ? Math.abs(pb.val - first.val) : 0;
-  return `<div class="epa-parent" style="cursor:pointer" onclick="openParentSpeed('${p.id}')"><b>⚡ SPEED</b> ${t.name} best <b>${pb.val}${t.unit === 's' ? 's' : ''}</b>${diff ? ` <span style="color:var(--green)">(${t.up ? '+' : '-'}${diff.toFixed(2)} since first test)</span>` : ''} · ${L.length} test${L.length > 1 ? 's' : ''} ›</div>`;
+  return `<div class="epa-parent" style="cursor:pointer" onclick="openParentSpeed('${p.id}')"><b>⚡ TESTS</b> ${t.name} best <b>${pb.val}${spU(t)}</b>${diff ? ` <span style="color:var(--green)">(${t.up ? '+' : '-'}${+diff.toFixed(2)} since first test)</span>` : ''} · ${L.length} test${L.length > 1 ? 's' : ''} ›</div>`;
 }
 function openParentSpeed(id) {
   const p = players.find(x => x.id === id); if (!p) return;
   let m = document.getElementById('spdModal');
   if (!m) { m = document.createElement('div'); m.className = 'modal-overlay'; m.id = 'spdModal'; m.onclick = e => { if (e.target === m) m.classList.remove('open'); }; document.body.appendChild(m); }
   const rows = speedRowsHTML(p.id);
-  m.innerHTML = `<div class="modal-sheet" style="max-height:88vh;overflow-y:auto"><div class="modal-handle"></div><div class="modal-title">⚡ ${esc(p.name)}'s speed + agility</div>
-    <div class="modal-sub">Best time per test and how much they've dropped since the first one. Includes tests their coach entered.</div>
+  m.innerHTML = `<div class="modal-sheet" style="max-height:88vh;overflow-y:auto"><div class="modal-handle"></div><div class="modal-title">⚡ ${esc(p.name)}'s speed + skills</div>
+    <div class="modal-sub">Best result per test and how much it's improved since the first one. Includes tests their coach entered.</div>
     ${rows || '<div class="sk-desc">No tests yet. Time a 10m sprint or 5-10-5 shuttle and log it here or from their app.</div>'}
     <button class="modal-save-btn" onclick="document.getElementById('spdModal').classList.remove('open');openSpeed(null,'${p.id}')">⏱ LOG A TEST YOU TIMED</button></div>`;
   m.classList.add('open');
@@ -3886,31 +3894,31 @@ function speedPB(id, test) { const t = SPEED_TESTS.find(x => x.id === test), L =
 function renderSpeed() {
   const p = currentPlayer, el = document.getElementById('speedCard'); if (!el || !p) return;
   const L = speedLog(p.id), tested = SPEED_TESTS.filter(t => L.some(x => x.test === t.id));
-  el.innerHTML = `<div class="badges-title" style="display:flex;justify-content:space-between"><span>⚡ SPEED + AGILITY</span><span class="road-all" onclick="openSpeed()">+ LOG A TEST</span></div>
+  el.innerHTML = `<div class="badges-title" style="display:flex;justify-content:space-between"><span>⚡ SPEED + SKILLS</span><span class="road-all" onclick="openSpeed()">+ LOG A TEST</span></div>
     ${tested.length ? speedRowsHTML(p.id)
-      : `<div class="sk-desc" style="font-size:12px">Time a 10m sprint or 5-10-5 shuttle with a parent. Beat your time, earn XP.</div>`}`;
+      : `<div class="sk-desc" style="font-size:12px">Time a sprint or count wall passes with a parent. Beat your best, earn XP.</div>`}`;
 }
-function openSpeed(test, forId) { speedFor = forId || null; epaDraft = {kind:'speed', test: test || 's10', val:'', by:'Parent'}; paintEpa(); openEpaModal('Speed + agility test', 'Warm up first: jog, high knees, a few easy strides.'); }
+function openSpeed(test, forId) { speedFor = forId || null; epaDraft = {kind:'speed', test: test || 's10', val:'', by:'Parent'}; paintEpa(); openEpaModal('Speed + skills test', 'Warm up first: jog, high knees, a few easy strides.'); }
 function paintSpeed() {
   const d = epaDraft, t = SPEED_TESTS.find(x => x.id === d.test), sp = speedPlayer(), pb = speedPB(sp.id, d.test);
-  document.getElementById('epaBody').innerHTML = `<div class="field-lbl">TEST</div><div class="hurt-chips">${SPEED_TESTS.map(x => `<button class="${d.test===x.id?'sel good':''}" onclick="epaDraft.test='${x.id}';paintEpa()">${x.name.toUpperCase()}</button>`).join('')}</div>
-    <div class="sk-desc" style="font-size:12px;margin-bottom:8px">${t.hint}${pb ? ` · <b style="color:var(--green)">Your best: ${pb.val}${t.unit === 's' ? 's' : ''}</b>` : ''}</div>
-    <div class="field-lbl">${t.unit === 's' ? 'TIME (SECONDS, E.G. 2.14)' : 'LEVEL REACHED'}</div><input class="auth-input" type="number" inputmode="decimal" step="0.01" min="0" max="99" value="${esc(d.val)}" style="font-size:24px;font-weight:900;text-align:center" oninput="epaDraft.val=this.value;document.getElementById('epaSave').disabled=!(parseFloat(this.value)>0)">
-    <div class="field-lbl">WHO TIMED IT?</div><div class="hurt-chips">${['Parent','Coach','Me'].map(x => `<button class="${d.by===x?'sel good':''}" onclick="epaDraft.by='${x}';paintEpa()">${x.toUpperCase()}</button>`).join('')}</div>`;
+  document.getElementById('epaBody').innerHTML = `${[['⚡ SPEED + AGILITY', SPEED_TESTS.filter(x => !x.cat)], ['⭐ SKILLS', SPEED_TESTS.filter(x => x.cat === 'skill')]].map(([lbl, A]) => `<div class="field-lbl">${lbl}</div><div class="hurt-chips">${A.map(x => `<button class="${d.test===x.id?'sel good':''}" onclick="epaDraft.test='${x.id}';paintEpa()">${x.name.toUpperCase()}</button>`).join('')}</div>`).join('')}
+    <div class="sk-desc" style="font-size:12px;margin-bottom:8px">${t.hint}${pb ? ` · <b style="color:var(--green)">Your best: ${pb.val}${spU(t)}</b>` : ''}</div>
+    <div class="field-lbl">${t.unit === 's' ? 'TIME (SECONDS, E.G. 2.14)' : t.unit === 'lvl' ? 'LEVEL REACHED' : t.unit === '/10' ? 'HOW MANY OUT OF 10' : 'HOW MANY'}</div><input class="auth-input" type="number" inputmode="${t.unit === 's' || t.unit === 'lvl' ? 'decimal' : 'numeric'}" step="${t.unit === 's' || t.unit === 'lvl' ? '0.01' : '1'}" min="0" max="${t.unit === '/10' ? 10 : 999}" value="${esc(d.val)}" style="font-size:24px;font-weight:900;text-align:center" oninput="epaDraft.val=this.value;document.getElementById('epaSave').disabled=!(parseFloat(this.value)>0)">
+    <div class="field-lbl">${t.unit === 's' ? 'WHO TIMED IT?' : 'WHO COUNTED?'}</div><div class="hurt-chips">${['Parent','Coach','Me'].map(x => `<button class="${d.by===x?'sel good':''}" onclick="epaDraft.by='${x}';paintEpa()">${x.toUpperCase()}</button>`).join('')}</div>`;
   const s = document.getElementById('epaSave'); s.disabled = !(parseFloat(d.val) > 0); s.textContent = `SAVE +${SPEED_XP} XP`;
 }
 function speedPlayer() { return speedFor ? players.find(x => x.id === speedFor) : currentPlayer; }
 async function saveSpeed() {
   const d = epaDraft, p = speedPlayer(), t = SPEED_TESTS.find(x => x.id === d.test), val = Math.round(parseFloat(d.val) * 100) / 100;
-  if (!(val > 0) || val > 99) return showToast('Enter a real time', 'error');
-  const prev = speedPB(p.id, t.id), pb = !prev || (t.up ? val > prev.val : val < prev.val), L = speedLog(p.id), today = localDate();
+  if (!(val > 0) || val > (t.unit === '/10' ? 10 : t.cat ? 999 : 99)) return showToast('Enter a real result', 'error');
+  const prev = speedPB(p.id, t.id), pb = !prev || (t.up ? val > prev.val : val < prev.val), L = speedLog(p.id), today = localDate(), again = L.some(x => x.test === t.id && x.date === today);
   L.push({date: today, test: t.id, val, by: d.by}); localStorage.setItem(`sfc_speed_${p.id}`, JSON.stringify(L));
   closeModal('epaModal');
   if (speedFor) { try { await ensureDevice(); } catch(e) {} }
-  progXP(p, SPEED_XP + (pb && prev ? SPEED_PB_XP : 0), 'speed', [{speed: {test: t.id, val, by: d.by, pb: pb && !!prev}}]);
+  progXP(p, again ? 0 : SPEED_XP + (pb && prev ? SPEED_PB_XP : 0), 'speed', [{speed: {test: t.id, val, by: d.by, pb: pb && !!prev}}]);
   if (speedFor) { speedFor = null; renderParentPortal(); } else { renderProfile(); renderHome(); }
-  if (pb && prev) { confetti(); sfx('pop'); showToast(`⚡ NEW PB! ${t.name} ${val}${t.unit === 's' ? 's' : ''} (+${SPEED_XP + SPEED_PB_XP} XP)`, 'success'); }
-  else showToast(`+${SPEED_XP} XP · ${t.name} saved`, 'success');
+  if (pb && prev) { confetti(); sfx('pop'); showToast(`⚡ NEW PB! ${t.name} ${val}${spU(t)}${again ? '' : ` (+${SPEED_XP + SPEED_PB_XP} XP)`}`, 'success'); }
+  else showToast(again ? `${t.name} saved (XP already earned today)` : `+${SPEED_XP} XP · ${t.name} saved`, 'success');
 }
 
 // Parent: EPA line on the kid card, from synced sessions
