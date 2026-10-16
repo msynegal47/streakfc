@@ -780,6 +780,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .epa-idp{margin-top:10px;padding:10px 12px;border:1px solid #1ab3bd55;border-radius:12px;background:#1ab3bd12;font-size:13px}
 .idp-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--border)}.idp-row span{display:block;font-size:11px;color:var(--sub);font-weight:600}
 .idp-note{font-size:12px;color:var(--sub);margin-top:6px}
+.idp-focus{margin:8px 0;padding:8px 10px;border-radius:10px;background:#1ab3bd22;font-weight:700;font-size:13px;line-height:1.4}.idp-focus span{display:block;font-size:10px;letter-spacing:1.5px;color:#1ab3bd;font-weight:900;margin-bottom:2px}
+.idp-rate{display:grid;grid-template-columns:1fr auto 34px;align-items:center;gap:8px;padding:4px 0;font-size:12px;font-weight:700}.idp-rate b{color:#1ab3bd;letter-spacing:2px;font-size:13px}.idp-rate i{color:var(--border);font-style:normal}
+.idp-rate em{font-style:normal;font-size:11px;font-weight:900;text-align:right}.idp-rate em.up{color:var(--green)}.idp-rate em.dn{color:var(--red)}
+.idp-drills{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.idp-drills .vid-btn.sm{margin:0}
+.idp-more{margin-top:8px;font-size:12px}.idp-more summary{cursor:pointer;color:#1ab3bd;font-weight:800}.idp-more b{display:block;margin-top:8px;font-size:11px;letter-spacing:.5px}.idp-more p{margin:2px 0 0;color:var(--sub);line-height:1.45}
 .gi-name small{display:block;font-size:11px;color:var(--sub);font-weight:600;margin-top:2px}
 .gi-cnt{font-weight:900;font-size:17px}
 .step{display:flex;align-items:center;gap:8px}
@@ -3043,10 +3048,20 @@ function openVideo(skill) { const u = vidUrl(skill); if (!u) return; const e = e
   m.innerHTML = `<div class="vid-wrap"><div class="vid-top"><b>${esc(SKILLS[skill]?.name || 'Drill')}</b><button onclick="closeVideo()">✕</button></div><iframe src="${e.src}" style="aspect-ratio:${e.tall?'9/16':'16/9'};max-height:78vh" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>`;
   m.classList.add('open'); }
 function closeVideo() { const m = document.getElementById('vidModal'); if (m) { m.classList.remove('open'); m.innerHTML = ''; } }
-function idpOf(p) { return (p && p.idp) || null; }
-function idpDrills(p) { return ((idpOf(p)||{}).areas||[]).map(a => a.drill).filter(k => k && SKILLS[k]); }
-function idpHTML(p) { const d = idpOf(p), A = ((d||{}).areas||[]).filter(a => a.area); if (!A.length) return '';
-  return `<div class="epa-idp"><b>🎯 YOUR IDP · FROM COACH</b>${A.map(a => `<div class="idp-row"><div><b>${esc(a.area)}</b>${a.target?`<span>${esc(a.target)}</span>`:''}</div>${a.drill && SKILLS[a.drill] ? `<button class="vid-btn sm" onclick="openIdpDrill('${a.drill}')">${vidUrl(a.drill)?'▶ ':''}${esc(SKILLS[a.drill].name)}</button>` : ''}</div>`).join('')}${d.note?`<div class="idp-note">💬 ${esc(d.note)}</div>`:''}<div class="idp-note">IDP drills get added to your home sessions automatically.</div></div>`; }
+// IDP in MSA format: 5 categories rated 1-5 with notes, strengths, areas to improve, how, primary focus, linked drills
+const IDP_CATS = [['bm','Ball Mastery'],['v1','1v1 Ability'],['ft','First Touch / Passing'],['fin','Finishing'],['men','Mentals']];
+function idpOf(p) { const d = p && p.idp; return d && (d.ratings || d.focus || (d.drills||[]).length) ? d : null; }
+function idpDrills(p) { return ((idpOf(p)||{}).drills||[]).filter(k => k && SKILLS[k]); }
+function idpHTML(p) { const d = idpOf(p); if (!d) return '';
+  const prev = (d.history||[])[0] || null, R = d.ratings || {};
+  const rows = IDP_CATS.filter(([k]) => R[k] && R[k].lvl).map(([k,l]) => { const v = +R[k].lvl, was = prev && prev.ratings ? +prev.ratings[k] : 0;
+    return `<div class="idp-rate"><span>${l}</span><b>${'●'.repeat(v)}<i>${'●'.repeat(5-v)}</i></b>${was && was !== v ? `<em class="${v>was?'up':'dn'}">${v>was?'▲':'▼'}${Math.abs(v-was)}</em>` : '<em></em>'}</div>`; }).join('');
+  const dr = idpDrills(p);
+  return `<div class="epa-idp"><div style="display:flex;justify-content:space-between"><b>🎯 YOUR IDP</b><span class="idp-note" style="margin:0">${esc(d.coach||'Coach')}${d.date?` · ${esc(d.date)}`:''}</span></div>
+    ${d.focus ? `<div class="idp-focus"><span>NEXT 4-6 WEEKS</span>${esc(d.focus)}</div>` : ''}
+    ${rows}
+    ${dr.length ? `<div class="idp-drills">${dr.map(k => `<button class="vid-btn sm" onclick="openIdpDrill('${k}')">${vidUrl(k)?'▶ ':''}${esc(SKILLS[k].name)}</button>`).join('')}</div><div class="idp-note">These drills get added to your home sessions 🎯</div>` : ''}
+    ${d.strengths || d.improve || d.how ? `<details class="idp-more"><summary>Coach notes</summary>${[['strengths','💪 Strengths'],['improve','📈 Areas to improve'],['how','🛠 How we will improve']].filter(([k]) => d[k]).map(([k,l]) => `<div><b>${l}</b><p>${esc(d[k])}</p></div>`).join('')}${IDP_CATS.filter(([k]) => R[k] && R[k].note).map(([k,l]) => `<div><b>${l}</b><p>${esc(R[k].note)}</p></div>`).join('')}</details>` : ''}</div>`; }
 function openIdpDrill(k) { if (vidUrl(k)) openVideo(k); else showToast(`${SKILLS[k].name}: ${SKILLS[k].desc}`, 'success'); }
 function pickSkills(p, salt='') {
   const rnd = seeded(p.id + localDate() + 'pick' + salt), all = b => Object.keys(SKILLS).filter(k => SKILLS[k].block===b);

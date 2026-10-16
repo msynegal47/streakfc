@@ -49,7 +49,7 @@ language plpgsql security definer set search_path = public as $$
 begin
   if not public.sfc_is_coach(p_program) or not public.sfc_can_manage(p_player) then raise exception 'not_coach'; end if;
   if not exists (select 1 from public.sfc_players where id = p_player and programs @> jsonb_build_array(jsonb_build_object('id', p_program))) then raise exception 'not_in_program'; end if;
-  if jsonb_typeof(p_data) <> 'object' or length(p_data::text) > 3000 then raise exception 'bad_idp'; end if;
+  if jsonb_typeof(p_data) <> 'object' or length(p_data::text) > 8000 then raise exception 'bad_idp'; end if;
   insert into public.sfc_idp(player_id, program, data, updated_at) values (p_player, p_program, p_data, now())
   on conflict (player_id, program) do update set data = excluded.data, updated_at = now();
 end $$;

@@ -465,20 +465,28 @@ async function setMedia(skill, url) {
   const M = {...(D.media||{})}; if (url) M[skill] = {url}; else delete M[skill]; D.media = M; if (REAL && !D.mock) REAL.media = M;
   toast(D.mock ? 'Sandbox: saved here only' : url ? 'Video saved. Players see it next time the app opens.' : 'Video removed'); render();
 }
+const IDP_CATS = [['bm','Ball Mastery'],['v1','1v1 Ability'],['ft','First Touch / Passing'],['fin','Finishing'],['men','Mentals']];
 function idpCard(p) {
   if (!epaOf(p).id) return '';
-  const d = (D.idps||{})[p.id] || {}, A = [0,1,2].map(i => (d.areas||[])[i] || {});
-  return `<div class="card"><div class="card-h">IDP · INDIVIDUAL DEVELOPMENT PLAN <span class="chip c-teal">KID + PARENT SEE THIS</span></div>
-    ${A.map((a,i) => `<div class="form-row" style="margin-bottom:6px"><input id="idpA${i}" list="idpAreas" style="width:150px" maxlength="40" placeholder="Focus ${i+1}" value="${esc(a.area||'')}"><input id="idpT${i}" style="flex:1;min-width:120px" maxlength="80" placeholder="What good looks like" value="${esc(a.target||'')}"><select id="idpD${i}" style="width:150px"><option value="">Link a drill</option>${SKILL_LIST.filter(x => x.block !== 'rec' || true).map(x => `<option value="${x.id}" ${a.drill===x.id?'selected':''}>${(D.media||{})[x.id]?'▶ ':''}${esc(x.name)}</option>`).join('')}</select></div>`).join('')}
-    <datalist id="idpAreas">${EMPHASIS.map(x => `<option value="${x}">`).join('')}</datalist>
-    <textarea id="idpNote" rows="2" style="width:100%" maxlength="300" placeholder="Note to the player (optional)">${esc(d.note||'')}</textarea>
-    <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="legend">${d.at ? 'Updated ' + esc(d.at) + '. ' : ''}Shows on their EPA card. Linked drills get added to their home sessions.</span><button class="btn sm" onclick="saveIdp('${p.id}')">SAVE IDP</button></div></div>`;
+  const d = (D.idps||{})[p.id] || {}, R = d.ratings || {}, prev = (d.history||[])[0], dr = d.drills || [];
+  const ta = (id, ph, v) => `<div class="legend" style="margin-top:8px">${ph}</div><textarea id="${id}" rows="2" style="width:100%;margin-top:3px" maxlength="400" placeholder="${ph}">${esc(v||'')}</textarea>`;
+  return `<div class="card"><div class="card-h">IDP · PLAYER DEVELOPMENT SNAPSHOT <span class="chip c-teal">KID + PARENT SEE THIS</span></div>
+    <div class="form-row" style="margin-bottom:8px"><span class="small muted">Date</span><input id="idpDate" style="width:110px" maxlength="12" value="${esc(d.date || new Date().toLocaleDateString('en-US',{month:'numeric',day:'numeric'}))}"><span class="small muted">Coach</span><input id="idpCoach" style="width:140px" maxlength="30" value="${esc(d.coach || (ROLE==='coach' ? 'Coach' : 'Coach James'))}"></div>
+    <div class="legend" style="margin-bottom:6px">5 Elite for age · 4 Strong · 3 Solid · 2 Developing · 1 Early stage${prev ? ` · last snapshot ${esc(prev.date)}` : ''}</div>
+    ${IDP_CATS.map(([k,l]) => `<div class="form-row" style="margin-bottom:6px"><span style="width:150px;font-weight:700;font-size:13px">${l}</span><select id="idpR_${k}" style="width:64px"><option value="">-</option>${[1,2,3,4,5].map(n => `<option ${+(R[k]||{}).lvl===n?'selected':''}>${n}</option>`).join('')}</select>${prev && prev.ratings && prev.ratings[k] ? `<span class="small muted" style="width:40px">was ${prev.ratings[k]}</span>` : ''}<input id="idpN_${k}" style="flex:1;min-width:140px" maxlength="200" placeholder="Coach notes" value="${esc((R[k]||{}).note||'')}"></div>`).join('')}
+    ${ta('idpStr','Strengths',d.strengths)}${ta('idpImp','Areas to improve',d.improve)}${ta('idpHow','How we will improve',d.how)}
+    <div class="field-lbl" style="margin-top:10px;font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:800">PRIMARY FOCUS · NEXT 4-6 WEEKS (BIG ON THEIR EPA CARD)</div>${ta('idpFoc','e.g. Be aggressive taking players on 1v1',d.focus)}
+    <div class="form-row" style="margin-top:8px"><span class="small muted">Home drills</span>${[0,1,2].map(i => `<select id="idpD${i}" style="flex:1;min-width:120px"><option value="">-</option>${SKILL_LIST.map(x => `<option value="${x.id}" ${dr[i]===x.id?'selected':''}>${(D.media||{})[x.id]?'▶ ':''}${esc(x.name)}</option>`).join('')}</select>`).join('')}</div>
+    <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="legend">New date = new snapshot. The old ratings are kept so everyone sees progress.</span><button class="btn sm" onclick="saveIdp('${p.id}')">SAVE IDP</button></div></div>`;
 }
 async function saveIdp(id) {
-  const p = D.byId[id], data = {areas:[0,1,2].map(i => ({area:$('idpA'+i).value.trim(), target:$('idpT'+i).value.trim(), drill:$('idpD'+i).value})).filter(a => a.area), note:$('idpNote').value.trim(), at:localDate()};
+  const p = D.byId[id], old = (D.idps||{})[id] || {}, v = x => $(x).value.trim();
+  const ratings = Object.fromEntries(IDP_CATS.map(([k]) => [k, {lvl: +$('idpR_'+k).value || null, note: v('idpN_'+k)}]).filter(([,r]) => r.lvl || r.note));
+  const data = {date:v('idpDate'), coach:v('idpCoach'), ratings, strengths:v('idpStr'), improve:v('idpImp'), how:v('idpHow'), focus:v('idpFoc'), drills:[0,1,2].map(i => $('idpD'+i).value).filter(Boolean), history: old.history || [], at:localDate()};
+  if (old.ratings && old.date && old.date !== data.date) data.history = [{date:old.date, ratings:Object.fromEntries(Object.entries(old.ratings).map(([k,r]) => [k, r.lvl]))}, ...data.history].slice(0, 6);
   if (!localOnly(p)) { try { await rpc('sfc_set_idp', {p_player:id, p_program:'epa', p_data:data}); } catch(e) { return toast('Failed: ' + e.message); } }
   D.idps = {...(D.idps||{}), [id]:data}; if (REAL && D !== REAL && !localOnly(p)) REAL.idps = {...(REAL.idps||{}), [id]:data};
-  toast(localOnly(p) ? 'Demo player: saved here only' : 'IDP saved. Shows on their EPA card next time the app opens.'); if ($('drawer').classList.contains('open')) openKid(id); render();
+  toast(localOnly(p) ? 'Demo player: saved here only' : 'IDP saved. Shows on their EPA card next time the app opens.'); openKid(id);
 }
 let epaTab = 'roster', epaF = {g:'all', pos:'', flag:'', q:''}, calMonth = null, attWk = 0;
 function attTick(p, d, i, today) {
