@@ -63,7 +63,8 @@ begin
   if pl.id is null then raise exception 'not_on_this_device'; end if;
   select coalesce(array_agg(e->>'id'), '{}') into progs from jsonb_array_elements(coalesce(pl.programs, '[]'::jsonb)) e;
   return json_build_object(
-    'media', coalesce((select json_object_agg(skill, json_build_object('url', url, 'title', title)) from public.sfc_media where program = any(progs || 'all'::text)), '{}'::json),
+    -- StreakFC library ('all') first, the coach's own version overrides it
+    'media', coalesce((select json_object_agg(skill, json_build_object('url', url, 'title', title, 'by', case when program = 'all' then 'StreakFC' else 'coach' end) order by (program = 'all') desc) from public.sfc_media where program = any(progs || 'all'::text)), '{}'::json),
     'idp', coalesce((select json_object_agg(program, data) from public.sfc_idp where player_id = p_player and program = any(progs)), '{}'::json));
 end $$;
 
