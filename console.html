@@ -215,7 +215,8 @@ async function refresh(silent) {
     const c = await rpc('sfc_coach_data', {p_program:'epa', p_days:60});
     const players = c.players.map(p => ({...p, fam:{}, sess:c.sessions.filter(s => s.player_id === p.id)}));
     let presets = []; try { presets = await rpc('sfc_presets', {p_program:'epa'}) || []; } catch(e) {}
-    REAL = D = {families:[], fams:{}, players, sessions:c.sessions, notes:c.notes||{}, plans:c.plans||[], code:c.code, presets, byId:Object.fromEntries(players.map(p => [p.id, p]))};
+    const {media, idps} = await loadCoachExtras();
+    REAL = D = {families:[], fams:{}, players, sessions:c.sessions, notes:c.notes||{}, plans:c.plans||[], code:c.code, presets, media, idps, byId:Object.fromEntries(players.map(p => [p.id, p]))};
     if (!silent) { render(); toast('Refreshed'); } return;
   }
   const raw = await rpc('sfc_admin_data', {p_days:60});
@@ -224,12 +225,14 @@ async function refresh(silent) {
   let presets = []; try { presets = await rpc('sfc_presets', {p_program:'epa'}) || []; } catch(e) {}
   let notes = {}, plans = []; try { notes = await rpc('sfc_admin_notes') || {}; } catch(e) {} try { plans = await rpc('sfc_admin_plans') || []; } catch(e) {}
   let code = ''; try { code = (await rpc('sfc_coach_data', {p_program:'epa', p_days:1})).code; } catch(e) {}
-  REAL = D = {...raw, fams, players, notes, plans, code, presets, byId:Object.fromEntries(players.map(p => [p.id, p]))};
+  const {media, idps} = await loadCoachExtras();
+  REAL = D = {...raw, fams, players, notes, plans, code, presets, media, idps, byId:Object.fromEntries(players.map(p => [p.id, p]))};
   $('nKids').textContent = players.length; $('nFams').textContent = raw.families.length;
   if (!silent) { render(); toast('Refreshed'); }
 }
 document.querySelectorAll('.nav').forEach(n => n.onclick = () => go(n.dataset.v));
 function go(v) { if (v !== 'coaches' && v !== 'teams' && v !== 'club') coachLens = null; view = v; location.hash = v; document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.v === v)); render(); }
+async function loadCoachExtras() { let media = {}, idps = {}; try { media = await rpc('sfc_media_list', {p_program:'epa'}) || {}; } catch(e) {} try { idps = await rpc('sfc_idps', {p_program:'epa'}) || {}; } catch(e) {} return {media, idps}; }
 function mixedD() {
   if (MIXED) return MIXED; const M = epaMock(), real = REAL.players.filter(p => (p.programs||[]).some(e => e.id === 'epa'));
   const players = [...real, ...M.players];
@@ -443,6 +446,39 @@ function epaReport(days) {
   const w = window.open('', '_blank'); if (!w) return toast('Allow pop-ups to open the report');
   w.document.open(); w.document.write(html); w.document.close(); $('drawer').classList.remove('open');
 }
+const SKILL_LIST = [{"id": "toe_taps", "name": "Toe Taps", "block": "bm"}, {"id": "sole_rolls", "name": "Sole Rolls", "block": "bm"}, {"id": "in_out", "name": "Inside / Outside", "block": "bm"}, {"id": "pull_push", "name": "Pull Push", "block": "bm"}, {"id": "v_pulls", "name": "V Pulls", "block": "bm"}, {"id": "lac_roll", "name": "Lacrosse Roll", "block": "bm"}, {"id": "wall_2t", "name": "Two-Touch Wall Passes", "block": "wall"}, {"id": "wall_1t", "name": "One-Touch Wall Passes", "block": "wall"}, {"id": "wall_back", "name": "Receive Back Foot + Pass", "block": "wall"}, {"id": "wall_outin", "name": "Receive Outside, Play Inside", "block": "wall"}, {"id": "wall_turn", "name": "Pass, Turn, Turn Back", "block": "wall"}, {"id": "l_turns", "name": "L Turns", "block": "mv"}, {"id": "step_overs", "name": "Step Overs", "block": "mv"}, {"id": "scissors", "name": "Scissors", "block": "mv"}, {"id": "drag_back", "name": "Drag Back Turn", "block": "mv"}, {"id": "cruyff", "name": "Cruyff Turn", "block": "mv"}, {"id": "out_cut", "name": "Outside Cut + Burst", "block": "mv"}, {"id": "maradona", "name": "Maradona", "block": "mv"}, {"id": "croqueta", "name": "La Croqueta", "block": "mv"}, {"id": "combo_so_cr", "name": "Combo: Step Over \u2192 Cruyff", "block": "mv"}, {"id": "mob_hips", "name": "Hip Circles", "block": "rec"}, {"id": "mob_swing", "name": "Leg Swings", "block": "rec"}, {"id": "mob_ham", "name": "Hamstring Sweeps", "block": "rec"}, {"id": "mob_calf", "name": "Calf + Ankle", "block": "rec"}, {"id": "mob_squat", "name": "Deep Squat Hold", "block": "rec"}, {"id": "rec_sole", "name": "Easy Sole Rolls", "block": "rec"}, {"id": "rec_juggle", "name": "Easy Juggles", "block": "rec"}];
+const SK_BLOCKS = {bm:'Ball mastery', wall:'Wall / first touch', mv:'Moves / 1v1', rec:'Recovery'};
+let libBlock = 'all';
+function epaLibrary() {
+  const M = D.media || {}, Lst = SKILL_LIST.filter(x => libBlock === 'all' || x.block === libBlock), n = SKILL_LIST.filter(x => M[x.id]).length;
+  return `<div class="card"><div class="card-h">DRILL VIDEOS · ${n}/${SKILL_LIST.length} HAVE ONE</div>
+    <p class="muted small" style="margin:0 0 10px">Paste a link from YouTube (unlisted is fine), Vimeo or Google Drive (set to "anyone with the link"). Players get a <b>▶ WATCH HOW</b> button on that drill, in every session. Coaches on camera only, no players.</p>
+    <div class="filters">${[['all','All'], ...Object.entries(SK_BLOCKS)].map(([k,l]) => `<button class="seg ${libBlock===k?'on':''}" onclick="libBlock='${k}';render()">${l}</button>`).join('')}</div>
+    ${Lst.map(x => `<div class="feed-row"><div style="width:220px;flex:none"><b>${M[x.id] ? '▶ ' : ''}${esc(x.name)}</b><div class="muted small">${SK_BLOCKS[x.block] || x.block}</div></div>
+      <input style="flex:1" placeholder="https://youtu.be/..." value="${esc((M[x.id]||{}).url||'')}" onchange="setMedia('${x.id}', this.value)">
+      ${M[x.id] ? `<a class="small" href="${esc(M[x.id].url)}" target="_blank" rel="noopener" style="color:var(--accent);width:44px;text-align:right">Test</a>` : '<span style="width:44px"></span>'}</div>`).join('')}</div>`;
+}
+async function setMedia(skill, url) {
+  url = (url || '').trim(); if (url && !/^https:\/\//.test(url)) return toast('Link must start with https://');
+  if (!D.mock) { try { await rpc('sfc_set_media', {p_program:'epa', p_skill:skill, p_url:url, p_title:''}); } catch(e) { return toast('Failed: ' + e.message); } }
+  const M = {...(D.media||{})}; if (url) M[skill] = {url}; else delete M[skill]; D.media = M; if (REAL && !D.mock) REAL.media = M;
+  toast(D.mock ? 'Sandbox: saved here only' : url ? 'Video saved. Players see it next time the app opens.' : 'Video removed'); render();
+}
+function idpCard(p) {
+  if (!epaOf(p).id) return '';
+  const d = (D.idps||{})[p.id] || {}, A = [0,1,2].map(i => (d.areas||[])[i] || {});
+  return `<div class="card"><div class="card-h">IDP · INDIVIDUAL DEVELOPMENT PLAN <span class="chip c-teal">KID + PARENT SEE THIS</span></div>
+    ${A.map((a,i) => `<div class="form-row" style="margin-bottom:6px"><input id="idpA${i}" list="idpAreas" style="width:150px" maxlength="40" placeholder="Focus ${i+1}" value="${esc(a.area||'')}"><input id="idpT${i}" style="flex:1;min-width:120px" maxlength="80" placeholder="What good looks like" value="${esc(a.target||'')}"><select id="idpD${i}" style="width:150px"><option value="">Link a drill</option>${SKILL_LIST.filter(x => x.block !== 'rec' || true).map(x => `<option value="${x.id}" ${a.drill===x.id?'selected':''}>${(D.media||{})[x.id]?'▶ ':''}${esc(x.name)}</option>`).join('')}</select></div>`).join('')}
+    <datalist id="idpAreas">${EMPHASIS.map(x => `<option value="${x}">`).join('')}</datalist>
+    <textarea id="idpNote" rows="2" style="width:100%" maxlength="300" placeholder="Note to the player (optional)">${esc(d.note||'')}</textarea>
+    <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="legend">${d.at ? 'Updated ' + esc(d.at) + '. ' : ''}Shows on their EPA card. Linked drills get added to their home sessions.</span><button class="btn sm" onclick="saveIdp('${p.id}')">SAVE IDP</button></div></div>`;
+}
+async function saveIdp(id) {
+  const p = D.byId[id], data = {areas:[0,1,2].map(i => ({area:$('idpA'+i).value.trim(), target:$('idpT'+i).value.trim(), drill:$('idpD'+i).value})).filter(a => a.area), note:$('idpNote').value.trim(), at:localDate()};
+  if (!localOnly(p)) { try { await rpc('sfc_set_idp', {p_player:id, p_program:'epa', p_data:data}); } catch(e) { return toast('Failed: ' + e.message); } }
+  D.idps = {...(D.idps||{}), [id]:data}; if (REAL && D !== REAL && !localOnly(p)) REAL.idps = {...(REAL.idps||{}), [id]:data};
+  toast(localOnly(p) ? 'Demo player: saved here only' : 'IDP saved. Shows on their EPA card next time the app opens.'); if ($('drawer').classList.contains('open')) openKid(id); render();
+}
 let epaTab = 'roster', epaF = {g:'all', pos:'', flag:'', q:''}, calMonth = null, attWk = 0;
 function attTick(p, d, i, today) {
   const L = p.sess, kid = L.some(s => s.mode==='epa' && s.date===d && s.source!=='coach'), co = !kid && L.some(s => s.mode==='epa' && s.date===d && s.source==='coach'), can = d <= today && !epaOff(d) && !kid;
@@ -476,7 +512,7 @@ function vEPA() {
   const avg = a => a.length ? (a.reduce((x,y)=>x+y,0)/a.length).toFixed(1) : '-', nextOff = PROGRAMS.epa.off.find(([a,b]) => b >= today);
   const flagsN = k => E.filter(p => kidFlags(p)[k]).length;
   const tab = (k, l, n) => `<button class="tab ${epaTab===k?'on':''}" onclick="epaTab='${k}';render()">${l}${n!=null?` <span>${n}</span>`:''}</button>`;
-  const body = epaTab === 'testing' ? epaTesting() : epaTab === 'plans' ? epaPlans() : epaTab === 'calendar' ? epaCalendar() : epaTab === 'journals' ? epaJournals(['weekly','goalsheet']) : epaTab === 'film' ? epaJournals(['film']) : epaRoster();
+  const body = epaTab === 'testing' ? epaTesting() : epaTab === 'plans' ? epaPlans() : epaTab === 'calendar' ? epaCalendar() : epaTab === 'journals' ? epaJournals(['weekly','goalsheet']) : epaTab === 'film' ? epaJournals(['film']) : epaTab === 'library' ? epaLibrary() : epaRoster();
   return `${asCoach && ROLE === 'admin' ? `<div class="sandbox-banner" style="border-color:#f9731688;color:#fdba74">👁 <b>COACH PREVIEW</b> · this is exactly what an EPA coach sees. No admin pages, no parent emails, only EPA players.</div>` : ''}${D.mixed ? `<div class="sandbox-banner">Players tagged <b>REAL</b> are live StreakFC players in EPA. The 24 tagged <b>DEMO</b> are sample data so the dashboard looks full. Turn them off bottom left.</div>` : ''}${D.mock ? `<div class="sandbox-banner">🧪 <b>SANDBOX EPA</b> · 24 fake players, 4 weeks of logs. Switch DATA to LIVE for Caysen and Emmitt.</div>` : ''}
   <div class="hdr"><div><h2>EPA <span class="chip c-teal">BETA</span></h2><div class="s">Tue · Wed · Thu · ${PROGRAMS.epa.mins} min · ${E.length} players${nextOff?` · next break: ${nextOff[2]} (${nextOff[0].slice(5).replace('-','/')})`:''}</div></div>
     <div style="display:flex;gap:8px">${ROLE === 'admin' && !asCoach ? `<button class="btn ghost" onclick="openCoaches()">🧢 COACHES</button>` : ''}<button class="btn ghost" onclick="openReportPick()">📄 REPORT</button><button class="btn add-btn" onclick="openAddPlayer()">＋ ADD PLAYER</button></div></div>
@@ -487,7 +523,7 @@ function vEPA() {
     <div class="kpi" style="cursor:pointer" onclick="epaTab='roster';setEpaF('flag','follow')"><b style="color:${flagsN('follow')?'var(--amber)':'inherit'}">${flagsN('follow')}</b><span>FOLLOW-UPS</span></div>
     <div class="kpi" style="cursor:pointer" onclick="epaTab='roster';setEpaF('flag','sore')"><b style="color:${flagsN('sore')?'var(--red)':'inherit'}">${flagsN('sore')}</b><span>SORE</span></div>
   </div>
-  <div class="tabs">${tab('roster','👥 Roster',E.length)}${tab('plans','🗓 Touch plans',(D.plans||[]).filter(x => x.week_start >= wk[0]).length)}${tab('calendar','📅 Calendar')}${tab('testing','⏱ Testing')}${tab('journals','📝 Journals')}${tab('film','🎥 Game film')}</div>
+  <div class="tabs">${tab('roster','👥 Roster',E.length)}${tab('plans','🗓 Touch plans',(D.plans||[]).filter(x => x.week_start >= wk[0]).length)}${tab('calendar','📅 Calendar')}${tab('testing','⏱ Testing')}${tab('journals','📝 Journals')}${tab('film','🎥 Game film')}${tab('library','🎬 Drill library', SKILL_LIST.filter(x => (D.media||{})[x.id]).length)}</div>
   ${body}`;
 }
 function epaRoster() {
@@ -735,6 +771,7 @@ function openKid(id) {
     ${localOnly(p) ? '<div class="sandbox-banner">🧪 Demo player. Edits stay on this screen.</div>' : ''}
     <div class="card"><div class="card-h">PLAYER PROFILE</div>
       <div class="form-row"><span class="small muted" style="width:90px">Preferred</span>${posSel(p,'pos1')}<span class="small muted">Secondary</span>${posSel(p,'pos2')}</div></div>
+    ${idpCard(p)}
     <div class="card"><div class="card-h">GOAL WORKSHEET <span class="legend">kid fills it in the app</span></div>
       ${(p.goals||{}).sheet ? (() => { const g = p.goals.sheet; return `<div style="font-size:16px;font-weight:900;margin-bottom:8px">🎯 ${esc(g.dream)}</div>
         ${[['season','This season'],['month','This month'],['week','This week'],['obstacle','Could get in the way'],['overcome','How I will overcome it'],['takes','What I think it takes']].filter(([k]) => g[k]).map(([k,l]) => `<div class="feed-row"><span class="muted small" style="width:150px;flex:none">${l}</span><span>${esc(g[k])}</span></div>`).join('')}

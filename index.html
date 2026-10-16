@@ -771,6 +771,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .gi .ck{width:24px;height:24px;border-radius:7px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
 .gi.done .ck{background:var(--green);border-color:var(--green)}
 .gi-name{flex:1;font-weight:800;font-size:15px}
+.vid-btn{background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:10px;padding:7px 12px;font-weight:800;font-size:12px;letter-spacing:.5px;margin:4px 0;cursor:pointer;font-family:inherit}
+.vid-btn.sm{padding:4px 9px;margin:0 8px 0 0;font-size:11px;flex:none}
+#vidModal{position:fixed;inset:0;background:#000d;display:none;z-index:9999;align-items:center;justify-content:center;padding:14px}#vidModal.open{display:flex}
+.vid-wrap{width:100%;max-width:520px}.vid-top{display:flex;justify-content:space-between;align-items:center;color:#fff;margin-bottom:10px;font-size:15px}
+.vid-top button{background:#ffffff22;border:0;color:#fff;border-radius:50%;width:34px;height:34px;font-size:16px;cursor:pointer}
+.vid-wrap iframe{width:100%;border:0;border-radius:12px;background:#000;display:block}
+.epa-idp{margin-top:10px;padding:10px 12px;border:1px solid #1ab3bd55;border-radius:12px;background:#1ab3bd12;font-size:13px}
+.idp-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--border)}.idp-row span{display:block;font-size:11px;color:var(--sub);font-weight:600}
+.idp-note{font-size:12px;color:var(--sub);margin-top:6px}
 .gi-name small{display:block;font-size:11px;color:var(--sub);font-weight:600;margin-top:2px}
 .gi-cnt{font-weight:900;font-size:17px}
 .step{display:flex;align-items:center;gap:8px}
@@ -2105,15 +2114,32 @@ function localDate(d=new Date()) {
 }
 function yesterdayStr() { const d=new Date(); d.setDate(d.getDate()-1); return localDate(d); }
 // Streak that has lapsed (no log today or yesterday) displays as 0
+// One free rest day per rolling 7 days: a single missed day doesn't break the streak
+function daysAgoStr(n) { const d=new Date(); d.setDate(d.getDate()-n); return localDate(d); }
+function dayDiff(a, b) { return Math.round((new Date(a+'T12:00:00') - new Date(b+'T12:00:00')) / 864e5); }
+function restAvail(p, missed) { const r = localStorage.getItem(`sfc_rest_${p.id}`); return !r || dayDiff(missed, r) >= 7; }
 function liveStreak(p) {
   const last = localStorage.getItem(`sfc_lastlog_${p.id}`);
   if (!last) return p.streak||0;
-  return (last===localDate() || last===yesterdayStr()) ? (p.streak||0) : 0;
+  if (last===localDate() || last===yesterdayStr()) return p.streak||0;
+  return (last===daysAgoStr(2) && restAvail(p, yesterdayStr())) ? (p.streak||0) : 0;
+}
+// Week streak: weeks in a row (Mon-Sun) with 4+ training days. Rewards consistency, not volume.
+const WEEK_DAYS_GOAL = 4;
+function weekMon(d) { const x = new Date(d+'T12:00:00'); x.setDate(x.getDate() - (x.getDay()+6)%7); return localDate(x); }
+function trainDays(p) { const h = jget(`sfc_history_${p.id}`, {}), L = jget(`sfc_epalog_${p.id}`, {}); const S = new Set(Object.keys(h).filter(d => h[d] > 0)); Object.keys(L).forEach(d => { if (L[d] && L[d].epa) S.add(d); }); return S; }
+function weekInfo(p) {
+  const S = trainDays(p), byWk = {}; S.forEach(d => { const m = weekMon(d); byWk[m] = (byWk[m]||0) + 1; });
+  const cur = weekMon(localDate()), now = byWk[cur] || 0; let n = 0, m = new Date(cur+'T12:00:00');
+  for (;;) { m.setDate(m.getDate()-7); if ((byWk[localDate(m)]||0) >= WEEK_DAYS_GOAL) n++; else break; }
+  return {days: now, streak: n + (now >= WEEK_DAYS_GOAL ? 1 : 0)};
 }
 function applyStreak(p, today) {
   const last = localStorage.getItem(`sfc_lastlog_${p.id}`);
   if (last === today) return;
-  p.streak = (last === yesterdayStr()) ? (p.streak||0)+1 : 1;
+  const rest = last === daysAgoStr(2) && restAvail(p, yesterdayStr());
+  if (rest) { localStorage.setItem(`sfc_rest_${p.id}`, yesterdayStr()); setTimeout(() => showToast('😴 Rest day used. Streak safe. Next free rest day in 7 days.', 'success'), 1200); }
+  p.streak = (last === yesterdayStr() || rest) ? (p.streak||0)+1 : 1;
   localStorage.setItem(`sfc_lastlog_${p.id}`, today);
   const best = parseInt(localStorage.getItem(`sfc_beststreak_${p.id}`)||'0');
   if (p.streak > best) localStorage.setItem(`sfc_beststreak_${p.id}`, String(p.streak));
@@ -2162,7 +2188,7 @@ function renderHome() {
   renderRewardCard();
   renderEPA();
   document.getElementById('homePlayerName').textContent = p.name.toUpperCase();
-  document.getElementById('homeStreakBadge').textContent = `🔥 ${liveStreak(p)} DAY STREAK`;
+  { const w = weekInfo(p); document.getElementById('homeStreakBadge').textContent = `🔥 ${liveStreak(p)} DAY · 📅 ${Math.min(w.days, 7)}/${WEEK_DAYS_GOAL} THIS WEEK${w.streak ? ` · ${w.streak}-WK STREAK` : ''}`; }
   { const t = activeTitle(p), el = document.getElementById('homeTitle'); el.textContent = t; el.style.display = t ? 'inline-block' : 'none'; }
   document.getElementById('homeSubLabel').textContent = getTodayLabel();
 
@@ -2258,8 +2284,11 @@ function renderLogModal() {
 
 async function submitLogForKid() {
   const p = logModalState.player;
-  const touches = Math.min(20000, parseInt(document.getElementById('logModalTouches')?.value)||0);
-  if (touches <= 0) { showToast('Enter total touches','error'); return; }
+  const rawT = Math.min(20000, parseInt(document.getElementById('logModalTouches')?.value)||0);
+  if (rawT <= 0) { showToast('Enter total touches','error'); return; }
+  const touches = capTouches(p, rawT, localDate());
+  if (touches <= 0) { showToast(`${p.name} already hit today's touch cap (${touchCap(p).toLocaleString()})`,'error'); return; }
+  if (touches < rawT) showToast(`Counted ${touches.toLocaleString()} (daily cap ${touchCap(p).toLocaleString()})`,'error');
   const fullSession = touches >= expectedTouches(p);
   const xp = Math.min(600, Math.round(300 * touches * 1.35 / (expectedTouches(p) * 1.35)));
   const today = localDate();
@@ -3001,9 +3030,27 @@ function estRound(p, skill, secs) {
   return Math.max(5, Math.round(reps * tpr(skill)));
 }
 // Pick the day's skills: 3-4 ball mastery, 3-4 moves, 1-2 wall (prefers their level, fills from all)
+// ── Coach videos + IDP (pulled with plans) ──
+function vidUrl(skill) { const m = jget('sfc_media', {})[skill]; return m && m.url; }
+function vidBtn(skill, small) { return vidUrl(skill) ? `<button class="vid-btn${small?' sm':''}" onclick="event.stopPropagation();openVideo('${skill}')">▶${small?'':' WATCH HOW'}</button>` : ''; }
+function embedOf(u) { let m;
+  if ((m = u.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{6,})/))) return {src:'https://www.youtube-nocookie.com/embed/' + m[1] + '?rel=0&playsinline=1&modestbranding=1', tall:/shorts\//.test(u)};
+  if ((m = u.match(/vimeo\.com\/(?:video\/)?(\d+)/))) return {src:'https://player.vimeo.com/video/' + m[1], tall:false};
+  if ((m = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([\w-]+)/))) return {src:'https://drive.google.com/file/d/' + m[1] + '/preview', tall:true};
+  return null; }
+function openVideo(skill) { const u = vidUrl(skill); if (!u) return; const e = embedOf(u); if (!e) { window.open(u, '_blank', 'noopener'); return; }
+  let m = document.getElementById('vidModal'); if (!m) { m = document.createElement('div'); m.id = 'vidModal'; m.onclick = ev => { if (ev.target === m) closeVideo(); }; document.body.appendChild(m); }
+  m.innerHTML = `<div class="vid-wrap"><div class="vid-top"><b>${esc(SKILLS[skill]?.name || 'Drill')}</b><button onclick="closeVideo()">✕</button></div><iframe src="${e.src}" style="aspect-ratio:${e.tall?'9/16':'16/9'};max-height:78vh" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>`;
+  m.classList.add('open'); }
+function closeVideo() { const m = document.getElementById('vidModal'); if (m) { m.classList.remove('open'); m.innerHTML = ''; } }
+function idpOf(p) { return (p && p.idp) || null; }
+function idpDrills(p) { return ((idpOf(p)||{}).areas||[]).map(a => a.drill).filter(k => k && SKILLS[k]); }
+function idpHTML(p) { const d = idpOf(p), A = ((d||{}).areas||[]).filter(a => a.area); if (!A.length) return '';
+  return `<div class="epa-idp"><b>🎯 YOUR IDP · FROM COACH</b>${A.map(a => `<div class="idp-row"><div><b>${esc(a.area)}</b>${a.target?`<span>${esc(a.target)}</span>`:''}</div>${a.drill && SKILLS[a.drill] ? `<button class="vid-btn sm" onclick="openIdpDrill('${a.drill}')">${vidUrl(a.drill)?'▶ ':''}${esc(SKILLS[a.drill].name)}</button>` : ''}</div>`).join('')}${d.note?`<div class="idp-note">💬 ${esc(d.note)}</div>`:''}<div class="idp-note">IDP drills get added to your home sessions automatically.</div></div>`; }
+function openIdpDrill(k) { if (vidUrl(k)) openVideo(k); else showToast(`${SKILLS[k].name}: ${SKILLS[k].desc}`, 'success'); }
 function pickSkills(p, salt='') {
   const rnd = seeded(p.id + localDate() + 'pick' + salt), all = b => Object.keys(SKILLS).filter(k => SKILLS[k].block===b);
-  const take = (b, n) => { const lv = shuffled(poolFor(p,b), rnd), rest = shuffled(all(b).filter(k => !lv.includes(k)), rnd); return lv.concat(rest).slice(0, n); };
+  const idp = idpDrills(p), take = (b, n) => { const lv = shuffled(poolFor(p,b), rnd), rest = shuffled(all(b).filter(k => !lv.includes(k)), rnd), mine = idp.filter(k => SKILLS[k].block === b); return [...mine, ...lv.concat(rest).filter(k => !mine.includes(k))].slice(0, n); };
   return {bm: take('bm', 3 + (rnd() < .5 ? 1 : 0)), mv: take('mv', 3 + (rnd() < .5 ? 1 : 0)), wall: take('wall', 1 + (rnd() < .5 ? 1 : 0))};
 }
 // Timed: a circuit that cycles the day's skills until the estimate reaches the goal
@@ -3062,6 +3109,9 @@ function sessionXP(p, items, mode) {
   if (mode === 'recovery') return 60;
   return Math.max(0, Math.min(600, Math.round(300 * weighted(items) / (expectedTouches(p) * 1.35))));
 }
+// Touch limiter: credit at most 2x a hustle day's goal per day, so nobody can pump 5K to true up a week
+function touchCap(p) { return Math.max(1500, goalFor('hustle', p) * 2); }
+function capTouches(p, touches, date) { const h = jget(`sfc_history_${p.id}`, {}), have = h[date || localDate()] || 0; return Math.max(0, Math.min(touches, touchCap(p) - have)); }
 function todayTouches() {
   if (!currentPlayer) return 0;
   const h = JSON.parse(localStorage.getItem(`sfc_history_${currentPlayer.id}`)||'{}');
@@ -3163,6 +3213,7 @@ function renderReady(restLeft) {
     <div class="sk-name">${sk.name}</div>
     <div class="sk-chips"><span class="sk-chip">${r.secs}s</span>${r.foot?`<span class="sk-chip foot">${r.foot}</span>`:''}${pb?`<span class="sk-chip" style="color:var(--green);border-color:var(--green)">PB ${pb}</span>`:''}</div>
     <div class="sk-desc">${sk.desc}</div>
+    ${vidBtn(r.skill)}
     <div class="sk-desc" style="color:var(--text);font-weight:700">${roundUnitText(sk, r)}</div>
     ${restLeft?`<div class="rest-pill" id="restPill">REST ${restLeft}s</div>`:''}
     <div style="flex:1"></div>
@@ -3319,7 +3370,7 @@ function renderGoalList() {
     <div class="sk-desc"><b style="color:var(--text)">${done.toLocaleString()}</b> / ${S.target.toLocaleString()}</div>
     ${S.items.map((it,i)=>`<div class="gi ${it.done?'done':''}" onclick="goalToggle(${i})">
       <div class="ck">${it.done?'✓':''}</div>
-      <div class="gi-name">${SKILLS[it.skill].name}<small>${it.foot?it.foot.toLowerCase():''}${tpr(it.skill)>1?`${it.foot?' · ':''}${itemTouches(it)} touches`:''}</small></div>
+      ${vidBtn(it.skill, true)}<div class="gi-name">${idpDrills(currentPlayer).includes(it.skill)?'🎯 ':''}${SKILLS[it.skill].name}<small>${it.foot?it.foot.toLowerCase():''}${tpr(it.skill)>1?`${it.foot?' · ':''}${itemTouches(it)} touches`:''}</small></div>
       <div class="gi-cnt">${it.count}</div></div>`).join('')}
     ${done >= S.target ? `<button class="big-btn ghost" onclick="S.items.push(...buildGoalItems(currentPlayer,250,pickSkills(currentPlayer,'+'+S.items.length)).slice(0,2));saveSess();renderGoalList()">+ BONUS ROUND (250 MORE)</button>` : ''}
     <div style="flex:1"></div>
@@ -3342,8 +3393,10 @@ function goalFinishHint() {
 function commitSession() {
   const p = currentPlayer, today = localDate();
   const items = S.mode==='goal' ? S.items.filter(i=>i.done).map(i=>({skill:i.skill, count:i.count})) : S.results.filter(r=>!r.skipped);
-  const touches = S.mode==='recovery' ? 0 : items.reduce((a,b)=>a+itemTouches(b),0);
-  if (S.mode !== 'recovery' && touches <= 0) { showToast('Log at least one round first','error'); return; }
+  const rawTouches = S.mode==='recovery' ? 0 : items.reduce((a,b)=>a+itemTouches(b),0);
+  if (S.mode !== 'recovery' && rawTouches <= 0) { showToast('Log at least one round first','error'); return; }
+  const touches = capTouches(p, rawTouches, today);
+  if (touches < rawTouches) setTimeout(() => showToast(`Daily touch cap hit (${touchCap(p).toLocaleString()}). Extra touches not counted. Rest is training too.`, 'error'), 1500);
   const before = todayTouches(), after = before + touches;
   const milestones = MILESTONES_T.filter(m => before < m && after >= m);
   const juggle = parseInt(document.getElementById('juggleStreak').value)||0;
@@ -3654,6 +3707,8 @@ async function loadPlans() {
   const p = currentPlayer; if (!p || !progOf(p) || !deviceToken() || Date.now() - plansAt < 5 * 60e3) return;
   plansAt = Date.now();
   try { p.plans = await rpc('sfc_player_plans', {p_token:deviceToken(), p_player:p.id}) || []; localStorage.setItem('sfc_player', JSON.stringify(p)); renderEPA(); renderToday(); } catch(e) {}
+  try { const x = await rpc('sfc_player_extras', {p_token:deviceToken(), p_player:p.id}) || {}; localStorage.setItem('sfc_media', JSON.stringify(x.media || {})); p.idp = (x.idp || {}).epa || null;
+    localStorage.setItem('sfc_player', JSON.stringify(p)); localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p)); renderEPA(); } catch(e) {}
 }
 // Home card (only for enrolled kids)
 function renderEPA() {
@@ -3684,6 +3739,7 @@ function renderEPA() {
         ${pl.touches ? `<div><b>${pl.touches.toLocaleString()}</b> touches a day at home</div>` : ''}${dn ? `<div>📅 Today: <b>${esc(dn)}</b></div>` : ''}
         ${(pl.emphasis||[]).length ? `<div class="epa-emph">${pl.emphasis.map(x => `<span>${esc(x)}</span>`).join('')}</div>` : ''}${pl.note ? `<div style="color:var(--sub)">${esc(pl.note)}</div>` : ''}</div>`; })()}
     ${f || es.e.note ? `<div class="epa-coach">${f?`<b>THIS WEEK:</b> ${f.ico} ${f.name}`:''}${es.e.note?`<div>${esc(es.e.note)}</div>`:''}</div>` : ''}
+    ${idpHTML(p)}
     <div class="epa-strip">${strip}</div>${main}${ready}${sheet}${weekly}${film}<button class="epa-btn ghost" onclick="openSpeed()">⚡ SPEED TEST <span style="opacity:.6">OPTIONAL</span> <b>+${SPEED_XP} XP</b></button>`;
 }
 function esc(s) { return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
