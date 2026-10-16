@@ -197,7 +197,8 @@ async function boot() {
   try {
     ROLES = await rpc('sfc_my_roles');
     const inv = localStorage.getItem('sfc_invite');
-    if (inv) { const name = prompt('Welcome! Your name as players and parents will see it (e.g. Coach James):', '') || 'Coach';
+    if (inv && ROLES.admin) { localStorage.removeItem('sfc_invite'); toast('That invite is for a coach. Not used, so it still works for them.'); }
+    else if (inv) { const name = prompt('Welcome! Your name as players and parents will see it (e.g. Coach James):', '') || 'Coach';
       try { await rpc('sfc_accept_invite', {p_code: inv, p_name: name}); toast('You are in. Welcome to the EPA console.'); } catch(e) { alert('That invite link is invalid or expired. Ask Marcus for a new one.'); }
       localStorage.removeItem('sfc_invite'); ROLES = await rpc('sfc_my_roles'); }
     if (!ROLES.admin && !(ROLES.coach||[]).length) return showLogin('This account has no console access. Ask for a coach invite link.');
