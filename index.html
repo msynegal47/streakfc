@@ -244,6 +244,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 }
 .modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
 .modal-title{font-size:16px;font-weight:800;margin-bottom:4px}
+.sheet-x{position:sticky;top:0;float:right;z-index:3;width:36px;height:36px;margin:-4px -4px 0 8px;border-radius:50%;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:15px;font-weight:800;cursor:pointer}
+.today-strip{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:12px 14px;margin-bottom:12px}
+.today-strip .ts-h{font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:900;margin-bottom:8px}
+.ts-row{display:flex;gap:8px}.ts-kid{flex:1;border-radius:12px;padding:8px 10px;background:#ffffff08;border:1px solid var(--border)}
+.ts-kid.on{border-color:var(--green);background:#22c55e14}.ts-kid b{display:block;font-size:13px}.ts-kid span{font-size:11px;color:var(--sub);font-weight:700}
 .modal-sub{font-size:12px;color:var(--sub);margin-bottom:20px}
 
 .pin-set-wrap{display:flex;flex-direction:column;gap:12px}
@@ -986,6 +991,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 </div>
 <div class="modal-overlay" id="roadModal" onclick="if(event.target===this)closeModal('roadModal')">
   <div class="modal-sheet" style="max-height:88vh;overflow-y:auto">
+    <button class="sheet-x" onclick="closeModal('roadModal')" aria-label="Close">✕</button>
     <div class="modal-handle"></div>
     <div class="modal-title">Unlock Road</div>
     <div class="modal-sub">Streak and touch unlocks are forever. Season rewards reset every 8 weeks.</div>
@@ -1856,7 +1862,8 @@ function showOnboard(step) {
       <label class="ob-check"><input type="checkbox" id="obConsent">
         <span>I'm the parent or guardian. StreakFC stores my players' first names or nicknames, age groups, and training logs to track progress. It's never sold or shared, and I can delete it anytime.</span></label>
       <button class="auth-btn" onclick="obSaveFamily()">CONTINUE</button>
-      <div class="auth-status" id="obStatus"></div></div>`;
+      <div class="auth-status" id="obStatus"></div>
+      <button class="opt-btn" style="width:100%;margin-top:12px" onclick="joinFamily()">👥 JOINING A FAMILY? ENTER CODE</button></div>`;
   } else if (step === 'passcode') {
     stepEl.textContent = 'STEP 2 OF 3'; title.textContent = 'PARENT PASSCODE';
     body.innerHTML = `<div class="ob-card">
@@ -1990,11 +1997,36 @@ function showParentPortal() {
   renderParentPortal();
 }
 
+function todayStrip() {
+  const t = localDate(), el = document.createElement('div'); el.className = 'today-strip';
+  const kids = players.map(p => ({p, n: jget(`sfc_history_${p.id}`, {})[t] || 0})), done = kids.filter(k => k.n).length;
+  el.innerHTML = `<div class="ts-h">TODAY · ${done === kids.length ? 'EVERYONE TRAINED 🔥' : `${done} OF ${kids.length} TRAINED`}</div><div class="ts-row">${kids.map(k => `<div class="ts-kid ${k.n?'on':''}"><b>${k.n?'✅':'⏳'} ${esc(k.p.name)}</b><span>${k.n ? fmtK(k.n) + ' touches' : 'Not yet'}</span></div>`).join('')}</div>`;
+  return el;
+}
+async function openAddParent() {
+  let code = '', who = [];
+  try { [code, who] = await Promise.all([rpc('sfc_create_family_invite'), rpc('sfc_family_parents')]); } catch(e) { return showToast('Could not create a code: ' + e.message, 'error'); }
+  let m = document.getElementById('parentModal');
+  if (!m) { m = document.createElement('div'); m.className = 'modal-overlay'; m.id = 'parentModal'; m.onclick = e => { if (e.target === m) m.classList.remove('open'); }; document.body.appendChild(m); }
+  const msg = `Join our StreakFC family: open streakfc.app, tap Parent / Coach, sign in with your email, then enter code ${code}`;
+  m.innerHTML = `<div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">👥 Add a parent</div>
+    <div class="modal-sub">They get their own login and see the same kids. Code works once, for 7 days. They'll also need the parent passcode.</div>
+    <div style="font-size:30px;font-weight:900;letter-spacing:3px;text-align:center;margin:14px 0">${code}</div>
+    <div class="sk-desc" style="font-size:13px">1. Open <b>streakfc.app</b> on their phone<br>2. Tap Parent / Coach, sign in with <b>their</b> email<br>3. Tap <b>"Joining a family? Enter code"</b></div>
+    ${(who||[]).length ? `<div class="field-lbl" style="margin-top:14px">PARENTS ON THIS FAMILY</div>${who.map(w => `<div class="sk-desc" style="font-size:13px">${w.role === 'owner' ? '⭐' : '👤'} ${esc(w.email)}${w.me ? ' (you)' : ''}</div>`).join('')}` : ''}
+    <button class="modal-save-btn" onclick="(navigator.share ? navigator.share({text:${JSON.stringify(msg).replace(/"/g, '&quot;')}}) : navigator.clipboard.writeText(${JSON.stringify(msg).replace(/"/g, '&quot;')}).then(()=>showToast('Copied','success'))).catch(()=>{})">SHARE CODE</button></div>`;
+  m.classList.add('open');
+}
+async function joinFamily() {
+  const code = (prompt('Enter the family code from your partner (e.g. FAM-AB12CD):') || '').trim(); if (!code) return;
+  try { await rpc('sfc_join_family', {p_code: code}); showToast('You are in. Welcome to the crew.', 'success'); await loadParent(); }
+  catch(e) { showToast(/code_invalid/.test(e.message) ? 'That code did not work. Ask for a new one.' : /already_in_family/.test(e.message) ? 'This login already has a family.' : 'Could not join: ' + e.message, 'error'); }
+}
 function renderParentPortal() {
   const body = document.getElementById('portalBody');
   body.innerHTML = '';
   document.getElementById('portalTitle').textContent = family?.parent_name ? `${family.parent_name.toUpperCase()}'S CREW` : 'YOUR CREW';
-  if (players.length) body.appendChild(weekRecapCard());
+  if (players.length) { body.appendChild(todayStrip()); body.appendChild(weekRecapCard()); }
   players.forEach(p => {
     const color = p.color || '#4fc3f7', rank = rankOf(p), w = kidWeek(p);
     const card = document.createElement('div');
@@ -2031,7 +2063,7 @@ function renderParentPortal() {
     <button class="kid-action-btn" style="flex:1;padding:14px" onclick="showPairCode()">📱 ADD KID DEVICE</button>`;
   const actions2 = document.createElement('div');
   actions2.style.cssText = 'display:flex;gap:10px';
-  actions2.innerHTML = `<button class="kid-action-btn" style="flex:1;padding:14px" onclick="openPinModal()">🔐 PINs + JUGGLE MINIMUMS</button>`;
+  actions2.innerHTML = `<button class="kid-action-btn" style="flex:1;padding:14px" onclick="openPinModal()">🔐 PINs + JUGGLE MINIMUMS</button><button class="kid-action-btn" style="flex:1;padding:14px" onclick="openAddParent()">👥 ADD A PARENT</button>`;
   body.appendChild(actions);
   body.appendChild(actions2);
   if (localStorage.getItem('sfc_beta') === '1') body.appendChild(testPanel());
