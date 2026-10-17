@@ -30,6 +30,26 @@ input:focus,select:focus{border-color:var(--accent)}
 .nav{padding:9px 12px;border-radius:9px;font-weight:700;color:var(--sub);display:flex;gap:10px;align-items:center;cursor:pointer;user-select:none}
 .nav:hover{color:var(--text)}.nav.on{background:#f973161f;color:var(--accent)}
 .nav .n{margin-left:auto;font-size:11px;color:var(--sub)}
+/* program co-brand (MSA East). StreakFC stays the product brand, the program gets its colors + crest */
+body.cobrand{--accent:#0caab5;--bg:#03171a;--bg2:#072328;--bg3:#0b2d33;--border:#14434b;--sub:#7fa3a8}
+body.cobrand .side{background:#021214}body.cobrand .btn:not(.ghost){color:#021416}body.cobrand .nav.on{background:#0caab524}
+body.cobrand .cal-d.epa{border-left-color:#0caab5}body.cobrand .chip.c-teal{background:#0caab52e;color:#3fd3dc}
+.cob{display:none;align-items:center;gap:10px;padding:10px;margin:-8px 0 18px;border-radius:12px;background:linear-gradient(135deg,#0caab522,#0caab508);border:1px solid #0caab544}
+body.cobrand .cob{display:flex}.cob img{width:34px;height:auto}.cob b{display:block;font-size:12px;letter-spacing:.5px;line-height:1.15}.cob span{font-size:9px;letter-spacing:1.5px;color:#3fd3dc;font-weight:800}
+.cob-login{display:none;width:220px;margin:0 auto 18px}body.cobrand .cob-login{display:block}
+body.cobrand .side .brand{font-size:15px;opacity:.75}
+.cob select{margin-top:6px;width:100%;font-size:11px;padding:4px 6px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-bottom:16px}
+.pcard{background:var(--bg2);border:1px solid var(--border);border-top:3px solid var(--accent);border-radius:16px;padding:16px;cursor:pointer;transition:transform .12s}.pcard:hover{transform:translateY(-2px);border-color:var(--accent)}
+.pcard .ic{font-size:22px}.pcard h3{font-size:17px;font-weight:900;margin:8px 0 2px}.pcard .k{font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:800}
+.pcard .n{display:flex;gap:16px;margin-top:12px}.pcard .n b{font-size:24px;font-weight:900;display:block}.pcard .n span{font-size:10px;color:var(--sub);letter-spacing:1px;font-weight:800}
+.pcard .code{margin-top:12px;font-size:11px;color:var(--sub)}.pcard .code b{color:var(--accent);letter-spacing:2px;font-size:13px}
+.ppl{display:flex;flex-wrap:wrap;gap:10px}.pp{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:8px 12px}.pp.off{opacity:.45}
+.av{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#021416;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex:none}
+.pp b{font-size:13px;display:block}.pp span{font-size:10px;color:var(--sub);letter-spacing:1px;font-weight:800}
+.layer{display:grid;grid-template-columns:150px 1fr;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}.layer:last-child{border:none}.layer b{font-size:12px}
+.pchk{display:inline-flex;align-items:center;gap:4px;font-size:11px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px 7px;margin:2px;cursor:pointer}.pchk input{margin:0}
+.note-row{border-left:2px solid var(--accent);padding:4px 0 4px 10px;margin:8px 0;font-size:13px}.note-row span{display:block;font-size:10px;color:var(--sub);letter-spacing:1px;font-weight:800}
 .sep{font-size:10px;letter-spacing:2px;color:#41526d;font-weight:800;margin:16px 12px 6px}
 .side-foot{margin-top:auto;font-size:11px;color:var(--sub);padding:0 10px}
 .side-foot a{color:var(--sub)}
@@ -85,6 +105,9 @@ table.tight td{padding:6px 8px;vertical-align:middle}tr.click{cursor:pointer}
 .plan-add{background:none;border:1px dashed var(--border);color:var(--sub);border-radius:10px;padding:14px 16px;font-weight:800}
 .pf{margin-top:14px;display:flex;flex-direction:column;gap:6px}.pf label{font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:800}.day-line{display:flex;gap:8px;align-items:center}.day-line span{width:80px;font-size:12px;font-weight:800}.day-line input{flex:1}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.cal-h{font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:800;padding:4px}
+.cal-sess{font-size:10.5px;font-weight:800;color:var(--text);background:#1ab3bd22;border-radius:5px;padding:2px 5px;margin-top:3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.cal-sess.empty{background:transparent;color:var(--sub);border:1px dashed var(--border)}
+.brief-top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:14px;flex-wrap:wrap}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.br-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}.br-kid{border:1px solid var(--border);border-radius:10px;padding:8px 10px;cursor:pointer;opacity:.55}.br-kid.in{opacity:1}.br-kid.flag{border-color:var(--amber);background:#f59e0b14;opacity:1}.br-kid b{display:block;font-size:13px}.br-kid span{font-size:15px}.br-kid i{font-size:11px;color:var(--sub);font-style:normal}
 .cal-d{min-height:92px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px;display:flex;flex-direction:column;gap:3px;font-size:11px}.cal-d.dim{opacity:.35}.cal-d.today{border-color:var(--accent)}.cal-d.epa{border-left:3px solid #1ab3bd}.cal-d.off{background:#f59e0b0d}
 .cal-n{font-weight:900;font-size:12px}.cal-epa{color:#1ab3bd;font-weight:800;font-size:10px}.cal-plan{background:#4fc3f726;color:#4fc3f7;border-radius:5px;padding:2px 5px;font-weight:800;font-size:10px;cursor:pointer}.cal-note{color:var(--sub);font-size:10px;line-height:1.25}
 .timeline{border-left:2px solid var(--border);margin-left:6px;padding-left:16px}.node{position:relative;padding:0 0 14px}.node-dot{position:absolute;left:-23px;top:4px;width:12px;height:12px;border-radius:50%;background:#1ab3bd;border:2px solid var(--bg2)}.node-body{display:flex;flex-direction:column;gap:3px}
@@ -100,6 +123,7 @@ textarea{font:inherit;background:var(--bg3);color:var(--text);border:1px solid v
 </style></head>
 <body>
 <div id="login">
+  <img class="cob-login" src="/brand/msa-logo-light.png" alt="">
   <h1>STREAK<span style="color:var(--accent)">FC</span> CONSOLE</h1>
   <p>Admin and coach access. Same email you use for StreakFC.</p>
   <input id="email" type="email" placeholder="you@email.com" autocomplete="email">
@@ -110,20 +134,19 @@ textarea{font:inherit;background:var(--bg3);color:var(--text);border:1px solid v
 
 <div id="app">
   <aside class="side">
-    <div class="brand">STREAK<span>FC</span></div><div class="brand-sub">CONSOLE · ADMIN</div>
-    <div class="nav" data-v="overview">📊 Overview</div>
-    <div class="nav" data-v="kids">👟 Kids <span class="n" id="nKids"></span></div>
-    <div class="nav" data-v="families">🏠 Families <span class="n" id="nFams"></span></div>
-    <div class="nav" data-v="activity">⚡ Activity</div>
-    <div class="sep">CLUB <span class="chip c-teal" style="margin-left:4px">SANDBOX</span></div>
-    <div class="nav" data-v="club">🏆 Club</div>
-    <div class="nav" data-v="teams">👥 Teams</div>
-    <div class="nav" data-v="coaches">🧢 Coaches</div>
-    <div class="nav" data-v="seats">🎟 Seats + billing</div>
-    <div class="sep">TRAINER <span class="chip c-teal" style="margin-left:4px">SANDBOX</span></div>
-    <div class="nav" data-v="trainer">🎯 1:1 Training</div>
-    <div class="sep">PROGRAMS</div>
-    <div class="nav" data-v="epa">🏟 EPA <span class="chip c-teal" style="margin-left:auto">BETA</span></div>
+    <div class="brand">STREAK<span>FC</span></div><div class="brand-sub">CONSOLE · ADMIN</div><div id="orgHead"></div>
+    <div class="nav adm" data-v="overview">📊 Overview</div>
+    <div class="nav adm" data-v="kids">👟 Kids <span class="n" id="nKids"></span></div>
+    <div class="nav adm" data-v="families">🏠 Families <span class="n" id="nFams"></span></div>
+    <div class="nav adm" data-v="activity">⚡ Activity</div>
+    <div class="sep adm">CLUB <span class="chip c-teal" style="margin-left:4px">SANDBOX</span></div>
+    <div class="nav adm" data-v="club">🏆 Club</div>
+    <div class="nav adm" data-v="teams">👥 Teams</div>
+    <div class="nav adm" data-v="coaches">🧢 Coaches</div>
+    <div class="nav adm" data-v="seats">🎟 Seats + billing</div>
+    <div class="sep adm">TRAINER <span class="chip c-teal" style="margin-left:4px">SANDBOX</span></div>
+    <div class="nav adm" data-v="trainer">🎯 1:1 Training</div>
+    <div id="orgNav"></div>
     <div class="side-foot"><div id="coachFoot" style="margin-bottom:10px;font-size:12px"></div><div class="mode"><span>DATA</span><button class="mode-btn" data-m="live" onclick="setMode('live')">LIVE</button><button class="mode-btn" data-m="sandbox" onclick="setMode('sandbox')">SANDBOX</button></div><div id="who"></div><div style="margin-top:6px"><a href="#" onclick="refresh();return false">Refresh</a> · <a href="#" onclick="signOut();return false">Sign out</a></div><div style="margin-top:6px"><a href="/">Open app</a></div></div>
   </aside>
   <main class="main" id="view"></main>
@@ -135,12 +158,12 @@ textarea{font:inherit;background:var(--bg3);color:var(--text);border:1px solid v
 const SB_URL = 'https://zrdtwiuekozfteaurrzp.supabase.co';
 const SB_KEY = 'sb_publishable_KFpa8NmzxgtF_r2UX2se_Q_8UoN1hbc';
 // Keep in sync with index.html PROGRAMS / FOCUS
-const PROGRAMS = {epa:{name:'EPA', days:[2,3,4], mins:90, start:'2026-07-28', end:'2027-05-27',
+const PROGRAMS = {epa:{name:'EPA', brand:{org:'McGhee Soccer Academy', short:'MSA East'}, days:[2,3,4], mins:90, start:'2026-07-28', end:'2027-05-27',
   off:[['2026-11-11','2026-11-11','Veterans Day'],['2026-11-25','2026-11-27','Thanksgiving'],['2026-12-21','2027-01-03','Winter Break'],
        ['2027-01-18','2027-01-18','MLK Day'],['2027-02-15','2027-02-15','Presidents Day'],['2027-03-15','2027-03-28','Spring Break']]}};
 const FOCUS = {technical:{name:'Technical',ico:'⚽',touches:1200},mixed:{name:'Mixed',ico:'🔀',touches:700},tactical:{name:'Small-sided / tactical',ico:'🧠',touches:500},speed:{name:'Speed + agility',ico:'⚡',touches:200}};
 const FEELS = ['😫','😐','🙂','🔥'];
-const MODE = {speed:'Speed test', film:'Game analysis', goalsheet:'Goal worksheet', goal:'Home session', timed:'Timed test', recovery:'Recovery', parent:'Parent log', epa:'EPA session', checkin:'Check-in', weekly:'Weekly journal'};
+const MODE = {speed:'Speed test', film:'Game analysis', goalsheet:'Goal worksheet', goal:'Home session', timed:'Timed test', recovery:'Recovery', parent:'Parent log', epa:'EPA session', checkin:'Check-in', weekly:'Weekly journal', game:'Game', pregame:'Pre-game'};
 
 let ROLE = 'admin', ROLES = null, asCoach = localStorage.getItem('sfc_as_coach') === '1', showDemo = localStorage.getItem('sfc_show_demo') !== '0', MIXED = null;
 { const m = /invite=([A-Za-z0-9]+)/.exec(location.hash); if (m) { localStorage.setItem('sfc_invite', m[1].toUpperCase()); history.replaceState(null, '', location.pathname); } }
@@ -189,7 +212,7 @@ async function verify() {
 }
 function signOut() { localStorage.removeItem('sfc_session'); location.reload(); }
 function showLogin(msg) {
-  if (localStorage.getItem('sfc_invite')) { $('login').querySelector('p').textContent = "You've been invited to coach on StreakFC. Sign in with your email to accept."; } $('app').style.display = 'none'; $('login').style.display = 'block'; if (msg) $('loginStatus').textContent = msg; }
+  if (localStorage.getItem('sfc_invite')) { $('login').querySelector('p').textContent = "You've been invited to join a coaching staff on StreakFC. Sign in with your email to accept."; } $('app').style.display = 'none'; $('login').style.display = 'block'; paintBrand(); if (msg) $('loginStatus').textContent = msg; }
 
 async function boot() {
   try { session = JSON.parse(localStorage.getItem('sfc_session')||'null'); } catch(e) {}
@@ -199,25 +222,28 @@ async function boot() {
     const inv = localStorage.getItem('sfc_invite');
     if (inv && ROLES.admin) { localStorage.removeItem('sfc_invite'); toast('That invite is for a coach. Not used, so it still works for them.'); }
     else if (inv) { const name = prompt('Welcome! Your name as players and parents will see it (e.g. Coach James):', '') || 'Coach';
-      try { await rpc('sfc_accept_invite', {p_code: inv, p_name: name}); toast('You are in. Welcome to the EPA console.'); } catch(e) { alert('That invite link is invalid or expired. Ask Marcus for a new one.'); }
+      try { await rpc('sfc_accept_invite', {p_code: inv, p_name: name}); toast('You are in. Welcome to the staff.'); } catch(e) { alert('That invite link is invalid or expired. Ask Marcus for a new one.'); }
       localStorage.removeItem('sfc_invite'); ROLES = await rpc('sfc_my_roles'); }
-    if (!ROLES.admin && !(ROLES.coach||[]).length) return showLogin('This account has no console access. Ask for a coach invite link.');
+    if (!ROLES.admin && !(ROLES.coach||[]).length) return showLogin('This account has no console access. Ask your academy for a staff invite link.');
+    pickOrg(localStorage.getItem('sfc_org'));
     ROLE = ROLES.admin ? 'admin' : 'coach'; if (ROLE === 'coach') asCoach = false;
     const u = await fetch(`${SB_URL}/auth/v1/user`, {headers:{'apikey':SB_KEY,'Authorization':`Bearer ${session.access_token}`}}).then(r => r.json()).catch(() => ({}));
     $('who').textContent = u.email || '';
     await refresh(true);
     $('login').style.display = 'none'; $('app').style.display = 'block';
-    const h = location.hash.slice(1); paintMode(); paintRole(); if (coachView()) return go('epa'); go(['overview','kids','families','activity','epa','club','teams','coaches','seats','trainer'].includes(h) ? h : 'overview');
+    const h = location.hash.slice(1); paintMode(); paintRole(); if (coachView()) return go(['org','staff','epa'].includes(h) || h.startsWith('prog:') ? h : 'org'); go(['overview','kids','families','activity','epa','club','teams','coaches','seats','trainer','org','staff'].includes(h) || h.startsWith('prog:') ? h : 'overview');
   } catch(e) { if (/JWT|401|expired/i.test(e.message) && await refreshSession()) return boot(); showLogin('Sign in again: ' + e.message); }
 }
 async function refresh(silent) {
   MIXED = null;
+  PDATA = {}; ORGD = {};
+  if (ROLE === 'coach' && !hasProg('epa')) { REAL = D = {families:[], fams:{}, players:[], sessions:[], notes:{}, plans:[], presets:[], media:{}, idps:{}, days:{}, byId:{}}; if (!silent) { render(); toast('Refreshed'); } return; }
   if (ROLE === 'coach') {
     const c = await rpc('sfc_coach_data', {p_program:'epa', p_days:60});
     const players = c.players.map(p => ({...p, fam:{}, sess:c.sessions.filter(s => s.player_id === p.id)}));
     let presets = []; try { presets = await rpc('sfc_presets', {p_program:'epa'}) || []; } catch(e) {}
-    const {media, idps} = await loadCoachExtras();
-    REAL = D = {families:[], fams:{}, players, sessions:c.sessions, notes:c.notes||{}, plans:c.plans||[], code:c.code, presets, media, idps, byId:Object.fromEntries(players.map(p => [p.id, p]))};
+    const {media, idps, days} = await loadCoachExtras();
+    REAL = D = {families:[], fams:{}, players, sessions:c.sessions, notes:c.notes||{}, plans:c.plans||[], code:c.code, presets, media, idps, days, byId:Object.fromEntries(players.map(p => [p.id, p]))};
     if (!silent) { render(); toast('Refreshed'); } return;
   }
   const raw = await rpc('sfc_admin_data', {p_days:60});
@@ -226,20 +252,216 @@ async function refresh(silent) {
   let presets = []; try { presets = await rpc('sfc_presets', {p_program:'epa'}) || []; } catch(e) {}
   let notes = {}, plans = []; try { notes = await rpc('sfc_admin_notes') || {}; } catch(e) {} try { plans = await rpc('sfc_admin_plans') || []; } catch(e) {}
   let code = ''; try { code = (await rpc('sfc_coach_data', {p_program:'epa', p_days:1})).code; } catch(e) {}
-  const {media, idps} = await loadCoachExtras();
-  REAL = D = {...raw, fams, players, notes, plans, code, presets, media, idps, byId:Object.fromEntries(players.map(p => [p.id, p]))};
+  const {media, idps, days} = await loadCoachExtras();
+  REAL = D = {...raw, fams, players, notes, plans, code, presets, media, idps, days, byId:Object.fromEntries(players.map(p => [p.id, p]))};
   $('nKids').textContent = players.length; $('nFams').textContent = raw.families.length;
   if (!silent) { render(); toast('Refreshed'); }
 }
 document.querySelectorAll('.nav').forEach(n => n.onclick = () => go(n.dataset.v));
-function go(v) { if (v !== 'coaches' && v !== 'teams' && v !== 'club') coachLens = null; view = v; location.hash = v; document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.v === v)); render(); }
-async function loadCoachExtras() { let media = {}, idps = {}; try { media = await rpc('sfc_media_list', {p_program:'epa'}) || {}; } catch(e) {} try { idps = await rpc('sfc_idps', {p_program:'epa'}) || {}; } catch(e) {} return {media, idps}; }
+function paintBrand() { const b = (ORG && ORG.brand) || {}, on = !!localStorage.getItem('sfc_invite') && $('app').style.display !== 'block' || (!!b.accent && (coachView() || isOrgView())); document.body.classList.toggle('cobrand', on); if (on && b.accent) document.body.style.setProperty('--accent', b.accent); else document.body.style.removeProperty('--accent'); }
+function isOrgView() { return ['org','staff','epa'].includes(view) || String(view).startsWith('prog:'); }
+function go(v) { if (v !== 'coaches' && v !== 'teams' && v !== 'club') coachLens = null; view = v; location.hash = v; document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.v === v)); paintBrand(); render(); }
+function daysAhead(n) { const d = new Date(); d.setDate(d.getDate()+n); return localDate(d); }
+async function loadCoachExtras() { let media = {}, idps = {}, days = {}; try { days = await rpc('sfc_epa_days_list', {p_program:'epa', p_from:daysAgo(45), p_to:daysAhead(90)}) || {}; } catch(e) {} try { media = await rpc('sfc_media_list', {p_program:'epa'}) || {}; } catch(e) {} try { idps = await rpc('sfc_idps', {p_program:'epa'}) || {}; } catch(e) {} return {media, idps, days}; }
 function mixedD() {
   if (MIXED) return MIXED; const M = epaMock(), real = REAL.players.filter(p => (p.programs||[]).some(e => e.id === 'epa'));
   const players = [...real, ...M.players];
   return MIXED = {...REAL, mixed:true, players, sessions:[...REAL.sessions, ...M.sessions].sort((a,b) => a.created_at < b.created_at ? 1 : -1), notes:{...M.notes, ...REAL.notes}, byId:Object.fromEntries(players.map(p => [p.id, p]))};
 }
-function render() { D = coachView() ? (showDemo ? mixedD() : REAL) : (dataMode === 'sandbox' && view === 'epa') ? epaMock() : REAL; $('view').innerHTML = ({overview:vOverview, kids:vKids, families:vFamilies, activity:vActivity, epa:vEPA, club:vClub, trainer:vTrainer, teams:vTeams, coaches:vCoaches, seats:vSeats})[view](); }
+function render() { if (String(view).startsWith('prog:') && !PDATA[view.slice(5)]) { PDATA[view.slice(5)] = {players:[], sessions:[], byId:{}, loading:true}; loadProg(view.slice(5)); }
+  if (['org','staff'].includes(view) && ORG && !ORGD[ORG.id]) { ORGD[ORG.id] = null; loadOrg(); }
+  if (String(view).startsWith('prog:')) { D = PDATA[view.slice(5)] || {players:[], sessions:[], byId:{}, loading:true}; $('view').innerHTML = vProgram(view.slice(5)); return; }
+  D = coachView() ? (showDemo && hasProg('epa') ? mixedD() : REAL) : (dataMode === 'sandbox' && view === 'epa') ? epaMock() : REAL; $('view').innerHTML = ({overview:vOverview, kids:vKids, families:vFamilies, activity:vActivity, epa:vEPA, club:vClub, trainer:vTrainer, teams:vTeams, coaches:vCoaches, seats:vSeats, org:vOrg, staff:vStaff})[view](); }
+
+// ── ORGS: academy / club / trainer → programs → players. Staff roles: owner, co_owner, manager (Admin), coach.
+let ORG = null, ORGD = {}, PDATA = {};
+const ROLE_L = {owner:'Owner', co_owner:'Co-owner', manager:'Admin', coach:'Coach', platform:'StreakFC admin'};
+const ROLE_R = {owner:4, co_owner:3, manager:2, coach:1, platform:9};
+const KIND = {cohort:['🏟','Development program'], group:['👥','Group training'], clinic:['🎯','Clinic / drop-in'], private:['🧑‍🏫','Private 1:1'], team:['🛡','Team']};
+const ORG_KIND = {academy:'Academy', club:'Club', trainer:'Trainer'};
+function hasProg(id) { return ROLE === 'admin' || (ROLES && (ROLES.coach||[]).some(c => c.program === id)); }
+function orgSandbox() { return dataMode === 'sandbox' && ROLE === 'admin'; }
+function canManage() { return ORG && ROLE_R[myOrgRole()] >= 2; }
+function myOrgRole() { return !ORG ? '' : (asCoach && ROLE === 'admin') || orgSandbox() ? 'owner' : ORG.role; }
+function progName(id) { const p = ((ORG||{}).programs||[]).find(x => x.id === id); return p ? p.name : id; }
+function pickOrg(id) { const L = (ROLES && ROLES.orgs) || []; ORG = L.find(o => o.id === id) || L[0] || null; if (ORG) localStorage.setItem('sfc_org', ORG.id); }
+function switchOrg(id) { pickOrg(id); ORGD = {}; PDATA = {}; paintOrg(); go('org'); }
+function paintOrg() {
+  const L = (ROLES && ROLES.orgs) || [];
+  if (!ORG) { $('orgHead').innerHTML = ''; $('orgNav').innerHTML = ''; return; }
+  const b = ORG.brand || {};
+  $('orgHead').innerHTML = `<div class="cob" style="display:flex">${b.logo ? `<img src="${esc(b.logo)}" alt="">` : `<div class="av">${esc((ORG.short||ORG.name)[0])}</div>`}<div style="min-width:0;flex:1"><b>${esc(ORG.name.toUpperCase())}</b><span>${esc(ROLE_L[myOrgRole()]||'')} · ${esc(ORG_KIND[ORG.kind]||'')}</span>
+    ${L.length > 1 ? `<select onchange="switchOrg(this.value)">${L.map(o => `<option value="${o.id}" ${o.id===ORG.id?'selected':''}>${esc(o.name)}</option>`).join('')}</select>` : ''}</div></div>`;
+  $('orgNav').innerHTML = `<div class="sep">${esc((ORG.short||ORG.name).toUpperCase())}</div>
+    <div class="nav" data-v="org" onclick="go('org')">🏠 Home</div>
+    ${(ORG.programs||[]).map(p => `<div class="nav" data-v="${p.id === 'epa' ? 'epa' : 'prog:' + p.id}" onclick="go('${p.id === 'epa' ? 'epa' : 'prog:' + p.id}')">${(KIND[p.kind]||['•'])[0]} ${esc(p.name.replace(/^MSA East /,''))}</div>`).join('')}
+    <div class="nav" data-v="staff" onclick="go('staff')">🧢 Staff</div>`;
+  document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.v === view));
+}
+async function loadOrg() {
+  const id = ORG.id;
+  if (orgSandbox()) { ORGD[id] = orgMock(); return; }
+  try { ORGD[id] = await rpc('sfc_org_staff', {p_org:id}); } catch(e) { ORGD[id] = {error:e.message, staff:[], invites:[], programs:[]}; }
+  if (['org','staff'].includes(view)) render();
+}
+async function loadProg(id) {
+  if (orgSandbox()) { PDATA[id] = progMock(id); return; }
+  try {
+    const c = await rpc('sfc_coach_data', {p_program:id, p_days:60});
+    let idps = {}, roster = []; try { idps = await rpc('sfc_idps', {p_program:id}) || {}; } catch(e) {} try { roster = await rpc('sfc_roster_list', {p_program:id}) || []; } catch(e) {}
+    const players = c.players.map(p => ({...p, fam:{}, sess:c.sessions.filter(s => s.player_id === p.id)}));
+    PDATA[id] = {players, sessions:c.sessions, notes:{}, code:c.code, idps, roster, media:{}, byId:Object.fromEntries(players.map(p => [p.id, p]))};
+  } catch(e) { PDATA[id] = {players:[], sessions:[], byId:{}, roster:[], idps:{}, error:e.message}; }
+  if (view === 'prog:' + id) render();
+}
+// sandbox: the full picture for demos. Never written anywhere.
+function orgMock() {
+  const P = (ORG.programs||[]), n = {epa:24, 'msa-group':31, 'msa-clinic':18, 'msa-private':12};
+  const st = [['James','owner',[]], ['Office','manager',[]], ['Marco','coach',['epa','msa-clinic']], ['Robbie','coach',['epa','msa-group']], ['Justin','coach',['epa','msa-private']], ['Victor','coach',['epa']], ['Former coach','coach',['msa-private']]];
+  return {manage:true, mock:true, staff:st.map(([nm,r,pr],i) => ({user_id:'mk-s'+i, name:nm === 'James' ? 'Coach James' : nm, role:r, programs:pr, active:i < 6, email:nm.toLowerCase().replace(/\s/g,'') + '@example.com', me:i === 0})),
+    invites:[{code:'DEMO1234', role:'coach', programs:['msa-group'], label:'New assistant', created_at:new Date().toISOString()}],
+    programs:P.map(p => ({...p, active:true, players:n[p.id] || 6, roster:{'msa-private':4,'msa-clinic':3}[p.id] || 0}))};
+}
+function progMock(id) {
+  const M = epaMock(), take = {'msa-group':16, 'msa-clinic':10, 'msa-private':8}[id] || 8, off = {'msa-group':2, 'msa-clinic':7, 'msa-private':12}[id] || 0;
+  const players = M.players.slice(off, off + take).map(p => ({...p, programs:[{id, share:'all'}]}));
+  const k = players[0], idps = k ? {[k.id]:{date:'10/14', coach: id === 'msa-private' ? 'Justin' : 'Coach James', ratings:{bm:{lvl:3}, v1:{lvl:3}, ft:{lvl:2,note:'Weak foot receiving'}, fin:{lvl:4}, men:{lvl:4}}, focus:'Receive across your body with the weak foot', drills:['wall_2t']}} : {};
+  const roster = [['Rowan','U10',[['10/08','Justin','Lesson 1. Good engine, rushes the first touch. Homework: wall passes 2 touch.'],['10/15','Justin','Better. Start scanning before receiving.']]], ['Ava','U12',[['10/12','Coach James','Booked 4-pack. Wants finishing.']]], ['Quinn','U9',[]], ['Mia','U11',[['10/16','Marco','Came to Friday clinic. Strong left foot.']]]]
+    .slice(0, id === 'msa-private' ? 4 : id === 'msa-clinic' ? 3 : 0).map(([nm,a,ns],i) => ({id:'mk-r'+i, nickname:nm, age_group:a, claim_code:'P-DEMO' + i, player_id:null, notes:ns.map(([d,by,t]) => ({date:'2026-' + d.replace('/','-'), by, text:t}))}));
+  if (k) roster.push({id:'mk-rk', nickname:k.nickname, age_group:k.age_group, claim_code:'P-DEMOK', player_id:k.id, notes:[{date:daysAgo(3), by: id === 'msa-private' ? 'Justin' : 'Marco', text:'Worked on weak-foot receiving. Locked in today.'}]});
+  return {mock:true, players, sessions:players.flatMap(p => p.sess), notes:{}, code: (((ORG.programs||[]).find(p => p.id === id))||{}).code || 'MSA-DEMO', idps, roster, media:M.media||{}, byId:Object.fromEntries(players.map(p => [p.id, p]))};
+}
+function staffChip(s) { return `<div class="pp ${s.active ? '' : 'off'}"><div class="av">${esc((s.name||'?').replace(/^Coach /,'')[0])}</div><div><b>${esc(s.name||'Coach')}</b><span>${esc(ROLE_L[s.role]||s.role)}${s.active ? '' : ' · INACTIVE'}</span></div></div>`; }
+function vOrg() {
+  if (!ORG) return '<div class="card">No academy yet.</div>';
+  const S = ORGD[ORG.id]; if (!S) return '<div class="muted">Loading…</div>';
+  const b = ORG.brand || {}, act = S.staff.filter(s => s.active), mine = myOrgRole(), m = ROLE_R[mine] >= 2;
+  const me = S.staff.find(s => s.me) || {}, myProgs = m ? 'every program' : (me.programs||[]).map(progName).join(', ') || 'no programs yet';
+  return `<div class="hdr"><div style="display:flex;gap:16px;align-items:center">${b.logo ? `<img src="${esc(b.logo)}" style="width:52px">` : ''}<div><h2>${esc(ORG.name)}</h2><div class="s">${esc(ORG_KIND[ORG.kind]||'')} · ${S.programs.length} program${S.programs.length === 1 ? '' : 's'} · ${act.length} staff · you're <b style="color:var(--accent)">${esc(ROLE_L[mine])}</b>, you see ${esc(myProgs)}</div></div></div>
+    ${m ? `<button class="btn" onclick="go('staff')">🧢 STAFF + INVITES</button>` : ''}</div>
+    ${S.mock ? `<div class="sandbox-banner">🧪 <b>SANDBOX</b> · sample staff and counts.</div>` : ''}
+    <div class="card-h" style="margin-bottom:8px">PROGRAMS</div>
+    <div class="pgrid">${S.programs.map(p => { const [ic,kl] = KIND[p.kind] || ['•','Program'], v = p.id === 'epa' ? 'epa' : 'prog:' + p.id;
+      const coaches = act.filter(s => ROLE_R[s.role] < 2 && (s.programs||[]).includes(p.id)).map(s => s.name.replace(/^Coach /,''));
+      return `<div class="pcard" onclick="go('${v}')"><div class="ic">${ic}</div><h3>${esc(p.name)}</h3><div class="k">${esc(kl.toUpperCase())}</div>
+        <div class="n"><div><b>${p.players}</b><span>ON STREAKFC</span></div>${p.roster ? `<div><b>${p.roster}</b><span>NOT YET</span></div>` : ''}</div>
+        <div class="code">Join code <b>${esc(p.code||'-')}</b></div><div class="legend" style="margin-top:6px">${coaches.length ? 'Coaches: ' + esc(coaches.join(', ')) : 'Owner + admins'}</div></div>`; }).join('')}</div>
+    <div class="grid2"><div class="card"><div class="card-h">STAFF ${m ? `<a href="#" class="small" style="color:var(--accent)" onclick="go('staff');return false">Manage</a>` : ''}</div><div class="ppl">${S.staff.map(staffChip).join('')}</div></div>
+    <div class="card"><div class="card-h">WHO SEES WHAT</div>
+      <div class="layer"><b>Owner · Co-owner</b><span class="muted">Everything in the academy. Staff, roles, programs.</span></div>
+      <div class="layer"><b>Admin</b><span class="muted">Every program and roster. Invites coaches. Can't change owners.</span></div>
+      <div class="layer"><b>Coach</b><span class="muted">Only the programs they're assigned to.</span></div>
+      <div class="layer"><b>Parents</b><span class="muted">Own the account, pick what's shared, can leave anytime. Staff never see their contact info.</span></div>
+      <div class="layer"><b>Records</b><span class="muted">IDPs, plans and lesson notes belong to the academy. A coach who leaves goes inactive, their notes stay.</span></div></div></div>`;
+}
+function vStaff() {
+  if (!ORG) return '';
+  const S = ORGD[ORG.id]; if (!S) return '<div class="muted">Loading…</div>';
+  const mine = myOrgRole(), mr = ROLE_R[mine], m = mr >= 2, P = S.programs;
+  const roleOpts = (cur, max) => Object.keys(ROLE_R).filter(r => r !== 'platform' && (ROLE_R[r] <= max || r === cur)).map(r => `<option value="${r}" ${r===cur?'selected':''}>${ROLE_L[r]}</option>`).join('');
+  const canEdit = s => m && !s.me && (mine === 'owner' || mine === 'platform' || ROLE_R[s.role] < mr);
+  const row = s => { const e = canEdit(s), all = ROLE_R[s.role] >= 2;
+    return `<tr style="${s.active ? '' : 'opacity:.5'}"><td><div style="display:flex;gap:10px;align-items:center"><div class="av">${esc((s.name||'?').replace(/^Coach /,'')[0])}</div><div><b>${esc(s.name||'Coach')}</b>${s.me ? ' <span class="chip c-sub">YOU</span>' : ''}${m && s.email ? `<div class="legend">${esc(s.email)}</div>` : ''}</div></div></td>
+      <td>${e ? `<select id="sr_${s.user_id}" onchange="staffRoleChange('${s.user_id}')">${roleOpts(s.role, mine === 'owner' || mine === 'platform' ? 4 : mr - 1)}</select>` : `<span class="chip c-teal">${esc(ROLE_L[s.role])}</span>`}</td>
+      <td id="sp_${s.user_id}">${all ? '<span class="muted small">All programs</span>' : P.map(p => e ? `<label class="pchk"><input type="checkbox" data-p="${p.id}" ${(s.programs||[]).includes(p.id)?'checked':''}>${esc(p.name.replace(/^MSA East /,''))}</label>` : (s.programs||[]).includes(p.id) ? `<span class="chip c-sub">${esc(p.name.replace(/^MSA East /,''))}</span> ` : '').join('')}</td>
+      <td>${e ? `<label class="pchk"><input type="checkbox" id="sa_${s.user_id}" ${s.active?'checked':''}> Active</label>` : s.active ? '<span class="chip c-green">Active</span>' : '<span class="chip c-sub">Inactive</span>'}</td>
+      <td class="num">${e ? `<button class="btn sm" onclick="saveStaff('${s.user_id}')">Save</button>` : ''}</td></tr>`; };
+  return `<div class="hdr"><div><h2>Staff</h2><div class="s">${esc(ORG.name)} · ${S.staff.filter(s => s.active).length} active</div></div></div>
+    ${S.mock ? `<div class="sandbox-banner">🧪 <b>SANDBOX</b> · sample staff. Saves stay on this screen.</div>` : ''}
+    <div class="card" style="padding:6px 14px"><table class="tight"><tr><th>NAME</th><th>ROLE</th><th>PROGRAMS</th><th>STATUS</th><th></th></tr>${S.staff.map(row).join('')}</table>
+      <div class="legend" style="padding:8px 0">Owner, Co-owner and Admin see every program. Coaches see only what's checked. Inactive = no access, their IDPs and notes stay with ${esc(ORG.short||ORG.name)}.</div></div>
+    ${m ? `<div class="grid2"><div class="card"><div class="card-h">INVITE STAFF</div>
+      <div class="pf"><label>NAME (FOR YOUR LIST)</label><input id="invLabel" maxlength="40" placeholder="e.g. Marco"></div>
+      <div class="pf"><label>ROLE</label><select id="invRole" onchange="$('invProgWrap').style.display = ROLE_R[this.value] >= 2 ? 'none' : ''">${roleOpts('coach', mine === 'owner' || mine === 'platform' ? 4 : mr)}</select></div>
+      <div class="pf" id="invProgWrap"><label>PROGRAMS THEY COACH</label><div>${P.map(p => `<label class="pchk"><input type="checkbox" class="invP" value="${p.id}">${esc(p.name.replace(/^MSA East /,''))}</label>`).join('')}</div></div>
+      <button class="btn" style="margin-top:14px" onclick="orgInvite()">CREATE INVITE LINK</button><div id="invOut2"></div></div>
+      <div class="card"><div class="card-h">PENDING INVITES <span class="legend">expire in 14 days</span></div>
+      ${S.invites.length ? S.invites.map(i => `<div class="feed-row"><b style="flex:1">${esc(i.label||'Invite')}<div class="legend">${esc(ROLE_L[i.role])}${(i.programs||[]).length && ROLE_R[i.role] < 2 ? ' · ' + i.programs.map(progName).map(esc).join(', ') : ''}</div></b>
+        <a class="small" href="#" style="color:var(--accent);margin-right:10px" onclick="navigator.clipboard.writeText(inviteLink('${i.code}')).then(()=>toast('Link copied'));return false">Copy link</a><a class="small muted" href="#" onclick="cancelInvite('${i.code}');return false">Cancel</a></div>`).join('') : '<div class="muted small">None.</div>'}</div></div>` : ''}`;
+}
+function inviteLink(c) { return `${location.origin}/console#invite=${c}`; }
+function staffRoleChange(u) { const r = $('sr_' + u).value; if (ROLE_R[r] >= 2) $('sp_' + u).innerHTML = '<span class="muted small">All programs</span>'; }
+async function saveStaff(u) {
+  const S = ORGD[ORG.id], s = S.staff.find(x => x.user_id === u), role = $('sr_' + u).value, active = $('sa_' + u).checked;
+  const programs = [...document.querySelectorAll(`#sp_${u} input[data-p]:checked`)].map(i => i.dataset.p);
+  if (!S.mock) { try { await rpc('sfc_org_set_staff', {p_org:ORG.id, p_user:u, p_role:role, p_programs:programs, p_active:active}); } catch(e) { return toast({role_too_high:"You can't change someone at or above your role", last_owner:'Every academy needs an owner'}[e.message] || 'Failed: ' + e.message); } }
+  Object.assign(s, {role, programs: ROLE_R[role] >= 2 ? [] : programs, active}); toast(active ? 'Saved' : 'Saved. They no longer have access.'); render();
+}
+async function orgInvite() {
+  const role = $('invRole').value, label = $('invLabel').value.trim(), programs = ROLE_R[role] >= 2 ? [] : [...document.querySelectorAll('.invP:checked')].map(i => i.value);
+  if (ROLE_R[role] < 2 && !programs.length) return toast('Pick at least one program');
+  let code = 'DEMO' + Math.floor(Math.random()*9000+1000);
+  if (!ORGD[ORG.id].mock) { try { code = await rpc('sfc_org_invite', {p_org:ORG.id, p_role:role, p_programs:programs, p_label:label}); } catch(e) { return toast('Failed: ' + e.message); } }
+  ORGD[ORG.id].invites.unshift({code, role, programs, label, created_at:new Date().toISOString()});
+  const msg = `${label ? label + ', ' : ''}here's your ${ORG.short||ORG.name} coach access on StreakFC. Tap, sign in with your email, done: ${inviteLink(code)}`;
+  $('invOut2').innerHTML = `<div class="pf"><label>TEXT THIS</label><textarea id="invMsg" rows="3" style="width:100%">${esc(msg)}</textarea></div><button class="btn ghost sm" style="margin-top:6px" onclick="navigator.clipboard.writeText($('invMsg').value).then(()=>toast('Copied'))">COPY</button>`;
+}
+async function cancelInvite(c) { if (!ORGD[ORG.id].mock) { try { await rpc('sfc_org_cancel_invite', {p_code:c}); } catch(e) { return toast('Failed: ' + e.message); } } ORGD[ORG.id].invites = ORGD[ORG.id].invites.filter(i => i.code !== c); render(); }
+function vProgram(id) {
+  const P = ((ORG||{}).programs||[]).find(x => x.id === id) || {name:id, kind:'group'}, [ic,kl] = KIND[P.kind] || ['•','Program'];
+  if (D.loading) return '<div class="muted">Loading…</div>';
+  if (D.error) return `<div class="card">Couldn't load: ${esc(D.error)}</div>`;
+  const R = D.roster || [], waiting = R.filter(r => !r.player_id), notesOf = pid => ((R.find(r => r.player_id === pid)||{}).notes||[]);
+  const desc = {cohort:'Fixed roster, set days.', group:'Group sessions. Families join with the code.', clinic:'Drop-in. Add walk-ins as "not on StreakFC yet" and hand them the code.', private:'1:1 clients. Booked through your site? Add them here, log lesson notes, hand the parent the code to connect.', team:'Club team.'}[P.kind] || '';
+  return `<div class="hdr"><div><h2>${ic} ${esc(P.name)}</h2><div class="s">${esc(kl)} · ${D.players.length} on StreakFC${waiting.length ? ` · ${waiting.length} not yet` : ''}</div><div class="legend" style="margin-top:4px;max-width:560px">${esc(desc)}</div></div>
+    <div style="display:flex;gap:8px;align-items:center"><div class="kpi" style="padding:8px 14px;white-space:nowrap"><span class="legend">JOIN CODE</span> <b style="color:var(--accent);letter-spacing:3px;font-size:18px">${esc(D.code||'-')}</b></div><button class="btn add-btn" style="white-space:nowrap" onclick="openAddRoster('${id}')">＋ ADD PLAYER</button></div></div>
+    ${D.mock ? `<div class="sandbox-banner">🧪 <b>SANDBOX</b> · sample players and notes.</div>` : ''}
+    <div class="card" style="padding:6px 14px"><div class="card-h" style="margin:10px 0 4px">ON STREAKFC <span class="legend">click for profile, IDP, lesson notes</span></div>
+      ${D.players.length ? `<table class="tight"><tr><th>PLAYER</th><th>AGE</th><th class="num">STREAK</th><th class="num">HOME 7D</th><th>LAST ACTIVE</th><th>IDP</th><th>NOTES</th></tr>
+      ${D.players.map(p => { const i = (D.idps||{})[p.id], n = notesOf(p.id); return `<tr class="click" onclick="openKid('${p.id}')"><td>${kidCell(p)}</td><td class="muted small">${esc(p.age_group||'')}</td><td class="num">${liveStreak(p)}🔥</td><td class="num">${fmtK(sumT(p,7))}</td><td class="small muted">${esc(lastActive(p)||'-')}</td><td>${i ? `<span class="chip c-teal">${esc(i.date||'set')}</span>` : '<span class="muted small">-</span>'}</td><td class="small">${n.length ? `📝 ${n.length} · <span class="muted">${esc(n[n.length-1].by||'')}</span>` : '<span class="muted">-</span>'}</td></tr>`; }).join('')}</table>`
+      : '<div class="muted small" style="padding:8px 0 12px">No one yet. Give families the join code.</div>'}</div>
+    <div class="card" style="padding:6px 14px"><div class="card-h" style="margin:10px 0 4px">NOT ON STREAKFC YET <span class="legend">nickname + age group only. Parent connects with the code</span></div>
+      ${waiting.length ? `<table class="tight"><tr><th>PLAYER</th><th>AGE</th><th>LESSON NOTES</th><th>PARENT CODE</th><th></th></tr>${waiting.map(r => `<tr class="click" onclick="openRoster('${id}','${r.id}')"><td><b>${esc(r.nickname)}</b></td><td class="muted small">${esc(r.age_group||'')}</td><td class="small">${r.notes.length ? `📝 ${r.notes.length} · <span class="muted">${esc(r.notes[r.notes.length-1].text.slice(0,50))}…</span>` : '<span class="muted">-</span>'}</td><td><span class="chip c-sub" style="letter-spacing:1.5px">${esc(r.claim_code)}</span></td><td class="num"><span class="small" style="color:var(--accent)">Open</span></td></tr>`).join('')}</table>`
+      : '<div class="muted small" style="padding:8px 0 12px">Booked a lesson outside StreakFC? ＋ ADD PLAYER, log notes now, connect later.</div>'}</div>`;
+}
+function openAddRoster(id) {
+  $('drawer').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:20px;font-weight:900">Add a player · ${esc(progName(id))}</div><button class="btn ghost sm" onclick="$('drawer').classList.remove('open')">Close</button></div>
+    <div class="card" style="margin-top:14px"><div class="card-h">ALREADY ON STREAKFC</div><div style="font-size:30px;font-weight:900;letter-spacing:5px;color:var(--accent)">${esc(D.code||'-')}</div><div class="small muted" style="margin-top:6px">Parent enters this in StreakFC → Join a program. They choose what you see.</div></div>
+    <div class="card"><div class="card-h">NOT ON STREAKFC YET</div><div class="small muted">Booked through your site or showed up to a clinic. Nickname and age group only, no contact info. You can log lesson notes right away.</div>
+      <div class="pf"><label>NICKNAME OR FIRST NAME</label><input id="rNick" maxlength="20"></div><div class="pf"><label>AGE GROUP</label><input id="rAge" maxlength="8" placeholder="U11"></div>
+      <button class="btn" style="margin-top:14px" onclick="addRoster('${id}')">ADD</button></div>`;
+  $('drawer').classList.add('open');
+}
+async function addRoster(id) {
+  const nick = $('rNick').value.trim(), age = $('rAge').value.trim(); if (!nick) return toast('Nickname needed');
+  let r = {id:'mk-r' + Date.now(), nickname:nick, age_group:age, notes:[], claim_code:'P-' + Math.random().toString(36).slice(2,8).toUpperCase(), player_id:null};
+  if (!D.mock) { try { r = await rpc('sfc_roster_add', {p_program:id, p_nickname:nick, p_age:age}); } catch(e) { return toast('Failed: ' + e.message); } }
+  D.roster = [...(D.roster||[]), r]; render(); openRoster(id, r.id);
+}
+function openRoster(id, rid) {
+  const r = (D.roster||[]).find(x => x.id === rid); if (!r) return;
+  const msg = `${r.nickname}'s training notes from ${ORG ? ORG.short || ORG.name : 'us'} live in StreakFC. Download it at ${location.origin}, add your player, then tap Join a program and enter ${r.claim_code}.`;
+  $('drawer').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:20px;font-weight:900">${esc(r.nickname)} <span class="muted small">${esc(r.age_group||'')}</span></div><button class="btn ghost sm" onclick="$('drawer').classList.remove('open')">Close</button></div>
+    <div class="muted small" style="margin:6px 0 14px">${esc(progName(id))} · not on StreakFC yet</div>
+    ${notesBlock(r.notes, `rosterNote('${id}','${rid}')`)}
+    <div class="card"><div class="card-h">CONNECT THE PARENT</div><div style="font-size:26px;font-weight:900;letter-spacing:4px;color:var(--accent)">${esc(r.claim_code)}</div>
+      <div class="pf"><label>TEXT THE PARENT</label><textarea id="rMsg" rows="3" style="width:100%">${esc(msg)}</textarea></div><button class="btn ghost sm" style="margin-top:6px" onclick="navigator.clipboard.writeText($('rMsg').value).then(()=>toast('Copied'))">COPY</button>
+      <div class="legend" style="margin-top:8px">When they join, the notes move onto their profile automatically.</div></div>
+    <a href="#" class="small muted" onclick="removeRoster('${id}','${rid}');return false">Remove from list</a>`;
+  $('drawer').classList.add('open');
+}
+function notesBlock(notes, onAdd) {
+  return `<div class="card" id="notesCard"><div class="card-h">LESSON NOTES <span class="legend">staff only · stays with ${esc(ORG ? ORG.short || ORG.name : 'the academy')}</span></div>
+    ${(notes||[]).slice().reverse().map(n => `<div class="note-row"><span>${esc(String(n.date||'').slice(5).replace('-','/'))} · ${esc(n.by||'Coach')}</span>${esc(n.text)}</div>`).join('') || '<div class="muted small">No notes yet.</div>'}
+    <textarea id="newNote" rows="2" style="width:100%;margin-top:10px" maxlength="1000" placeholder="What you worked on, what's next"></textarea><button class="btn sm" style="margin-top:6px" onclick="${onAdd}">ADD NOTE</button></div>`;
+}
+function myStaffName() { const S = ORG && ORGD[ORG.id], me = S && S.staff.find(s => s.me); return me ? me.name : 'Coach'; }
+async function rosterNote(id, rid) {
+  const t = $('newNote').value.trim(); if (!t) return; const r = D.roster.find(x => x.id === rid);
+  if (!D.mock) { try { await rpc('sfc_roster_note', {p_id:rid, p_text:t}); } catch(e) { return toast('Failed: ' + e.message); } }
+  r.notes = [...r.notes, {date:localDate(), by:myStaffName(), text:t}]; render(); openRoster(id, rid); toast('Note saved');
+}
+async function removeRoster(id, rid) { if (!confirm('Remove from the list? Their notes go too.')) return; if (!D.mock) { try { await rpc('sfc_roster_remove', {p_id:rid}); } catch(e) { return toast('Failed: ' + e.message); } } D.roster = D.roster.filter(x => x.id !== rid); $('drawer').classList.remove('open'); render(); }
+function progNotesCard(p) {
+  const id = CURP(); if (id === 'epa' || !(p.programs||[]).some(e => e.id === id)) return '';
+  return notesBlock(((D.roster||[]).find(r => r.player_id === p.id)||{}).notes, `playerNote('${p.id}')`);
+}
+async function playerNote(pid) {
+  const t = $('newNote').value.trim(), id = CURP(); if (!t) return;
+  if (!D.mock) { try { await rpc('sfc_roster_note_player', {p_program:id, p_player:pid, p_text:t}); } catch(e) { return toast('Failed: ' + e.message); } }
+  let r = (D.roster||[]).find(x => x.player_id === pid); if (!r) { r = {id:'loc' + pid, player_id:pid, notes:[]}; D.roster = [...(D.roster||[]), r]; }
+  r.notes = [...r.notes, {date:localDate(), by:myStaffName(), text:t}]; render(); openKid(pid); toast('Note saved');
+}
 
 // ── derived ──
 function liveStreak(p) { return (p.last_log === localDate() || p.last_log === daysAgo(1)) ? (p.streak||0) : 0; }
@@ -466,8 +688,9 @@ async function setMedia(skill, url) {
   toast(D.mock ? 'Sandbox: saved here only' : url ? 'Video saved. Players see it next time the app opens.' : 'Video removed'); render();
 }
 const IDP_CATS = [['bm','Ball Mastery'],['v1','1v1 Ability'],['ft','First Touch / Passing'],['fin','Finishing'],['men','Mentals']];
+function CURP() { return String(view).startsWith('prog:') ? view.slice(5) : 'epa'; }
 function idpCard(p) {
-  if (!epaOf(p).id) return '';
+  if (!(p.programs||[]).some(e => e.id === CURP())) return '';
   const d = (D.idps||{})[p.id] || {}, R = d.ratings || {}, prev = (d.history||[])[0], dr = d.drills || [];
   const ta = (id, ph, v) => `<div class="legend" style="margin-top:8px">${ph}</div><textarea id="${id}" rows="2" style="width:100%;margin-top:3px" maxlength="400" placeholder="${ph}">${esc(v||'')}</textarea>`;
   return `<div class="card"><div class="card-h">IDP · PLAYER DEVELOPMENT SNAPSHOT <span class="chip c-teal">KID + PARENT SEE THIS</span></div>
@@ -475,7 +698,7 @@ function idpCard(p) {
     <div class="legend" style="margin-bottom:6px">5 Elite for age · 4 Strong · 3 Solid · 2 Developing · 1 Early stage${prev ? ` · last snapshot ${esc(prev.date)}` : ''}</div>
     ${IDP_CATS.map(([k,l]) => `<div class="form-row" style="margin-bottom:6px"><span style="width:150px;font-weight:700;font-size:13px">${l}</span><select id="idpR_${k}" style="width:64px"><option value="">-</option>${[1,2,3,4,5].map(n => `<option ${+(R[k]||{}).lvl===n?'selected':''}>${n}</option>`).join('')}</select>${prev && prev.ratings && prev.ratings[k] ? `<span class="small muted" style="width:40px">was ${prev.ratings[k]}</span>` : ''}<input id="idpN_${k}" style="flex:1;min-width:140px" maxlength="200" placeholder="Coach notes" value="${esc((R[k]||{}).note||'')}"></div>`).join('')}
     ${ta('idpStr','Strengths',d.strengths)}${ta('idpImp','Areas to improve',d.improve)}${ta('idpHow','How we will improve',d.how)}
-    <div class="field-lbl" style="margin-top:10px;font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:800">PRIMARY FOCUS · NEXT 4-6 WEEKS (BIG ON THEIR EPA CARD)</div>${ta('idpFoc','e.g. Be aggressive taking players on 1v1',d.focus)}
+    <div class="field-lbl" style="margin-top:10px;font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:800">PRIMARY FOCUS · NEXT 4-6 WEEKS (BIG ON THEIR APP)</div>${ta('idpFoc','e.g. Be aggressive taking players on 1v1',d.focus)}
     <div class="form-row" style="margin-top:8px"><span class="small muted">Home drills</span>${[0,1,2].map(i => `<select id="idpD${i}" style="flex:1;min-width:120px"><option value="">-</option>${SKILL_LIST.map(x => `<option value="${x.id}" ${dr[i]===x.id?'selected':''}>${(D.media||{})[x.id]?'▶ ':''}${esc(x.name)}</option>`).join('')}</select>`).join('')}</div>
     <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="legend">New date = new snapshot. The old ratings are kept so everyone sees progress.</span><button class="btn sm" onclick="saveIdp('${p.id}')">SAVE IDP</button></div></div>`;
 }
@@ -484,11 +707,11 @@ async function saveIdp(id) {
   const ratings = Object.fromEntries(IDP_CATS.map(([k]) => [k, {lvl: +$('idpR_'+k).value || null, note: v('idpN_'+k)}]).filter(([,r]) => r.lvl || r.note));
   const data = {date:v('idpDate'), coach:v('idpCoach'), ratings, strengths:v('idpStr'), improve:v('idpImp'), how:v('idpHow'), focus:v('idpFoc'), drills:[0,1,2].map(i => $('idpD'+i).value).filter(Boolean), history: old.history || [], at:localDate()};
   if (old.ratings && old.date && old.date !== data.date) data.history = [{date:old.date, ratings:Object.fromEntries(Object.entries(old.ratings).map(([k,r]) => [k, r.lvl]))}, ...data.history].slice(0, 6);
-  if (!localOnly(p)) { try { await rpc('sfc_set_idp', {p_player:id, p_program:'epa', p_data:data}); } catch(e) { return toast('Failed: ' + e.message); } }
+  if (!localOnly(p)) { try { await rpc('sfc_set_idp', {p_player:id, p_program:CURP(), p_data:data}); } catch(e) { return toast('Failed: ' + e.message); } }
   D.idps = {...(D.idps||{}), [id]:data}; if (REAL && D !== REAL && !localOnly(p)) REAL.idps = {...(REAL.idps||{}), [id]:data};
-  toast(localOnly(p) ? 'Demo player: saved here only' : 'IDP saved. Shows on their EPA card next time the app opens.'); openKid(id);
+  toast(localOnly(p) ? 'Demo player: saved here only' : 'IDP saved. The player sees it next time the app opens.'); openKid(id);
 }
-let epaTab = 'roster', epaF = {g:'all', pos:'', flag:'', q:''}, calMonth = null, attWk = 0;
+let epaTab = 'today', epaF = {g:'all', pos:'', flag:'', q:''}, calMonth = null, attWk = 0;
 function attTick(p, d, i, today) {
   const L = p.sess, kid = L.some(s => s.mode==='epa' && s.date===d && s.source!=='coach'), co = !kid && L.some(s => s.mode==='epa' && s.date===d && s.source==='coach'), can = d <= today && !epaOff(d) && !kid;
   const tip = kid ? 'Player logged this session (earned XP)' : co ? 'Marked present by coach (no XP). Click to undo' : can ? 'Click to mark present' : '';
@@ -521,9 +744,9 @@ function vEPA() {
   const avg = a => a.length ? (a.reduce((x,y)=>x+y,0)/a.length).toFixed(1) : '-', nextOff = PROGRAMS.epa.off.find(([a,b]) => b >= today);
   const flagsN = k => E.filter(p => kidFlags(p)[k]).length;
   const tab = (k, l, n) => `<button class="tab ${epaTab===k?'on':''}" onclick="epaTab='${k}';render()">${l}${n!=null?` <span>${n}</span>`:''}</button>`;
-  const body = epaTab === 'testing' ? epaTesting() : epaTab === 'plans' ? epaPlans() : epaTab === 'calendar' ? epaCalendar() : epaTab === 'journals' ? epaJournals(['weekly','goalsheet']) : epaTab === 'film' ? epaJournals(['film']) : epaTab === 'library' ? epaLibrary() : epaRoster();
+  const body = epaTab === 'today' ? epaToday() : epaTab === 'games' ? epaGames() : epaTab === 'testing' ? epaTesting() : epaTab === 'plans' ? epaPlans() : epaTab === 'calendar' ? epaCalendar() : epaTab === 'journals' ? epaJournals(['weekly','goalsheet']) : epaTab === 'film' ? epaJournals(['film']) : epaTab === 'library' ? epaLibrary() : epaRoster();
   return `${asCoach && ROLE === 'admin' ? `<div class="sandbox-banner" style="border-color:#f9731688;color:#fdba74">👁 <b>COACH PREVIEW</b> · this is exactly what an EPA coach sees. No admin pages, no parent emails, only EPA players.</div>` : ''}${D.mixed ? `<div class="sandbox-banner">Players tagged <b>REAL</b> are live StreakFC players in EPA. The 24 tagged <b>DEMO</b> are sample data so the dashboard looks full. Turn them off bottom left.</div>` : ''}${D.mock ? `<div class="sandbox-banner">🧪 <b>SANDBOX EPA</b> · 24 fake players, 4 weeks of logs. Switch DATA to LIVE for Caysen and Emmitt.</div>` : ''}
-  <div class="hdr"><div><h2>EPA <span class="chip c-teal">BETA</span></h2><div class="s">Tue · Wed · Thu · ${PROGRAMS.epa.mins} min · ${E.length} players${nextOff?` · next break: ${nextOff[2]} (${nextOff[0].slice(5).replace('-','/')})`:''}</div></div>
+  <div class="hdr"><div><h2>${esc(PROGRAMS.epa.brand.short)} · EPA <span class="chip c-teal">BETA</span></h2><div class="s">Tue · Wed · Thu · ${PROGRAMS.epa.mins} min · ${E.length} players${nextOff?` · next break: ${nextOff[2]} (${nextOff[0].slice(5).replace('-','/')})`:''}</div></div>
     <div style="display:flex;gap:8px">${ROLE === 'admin' && !asCoach ? `<button class="btn ghost" onclick="openCoaches()">🧢 COACHES</button>` : ''}<button class="btn ghost" onclick="openReportPick()">📄 REPORT</button><button class="btn add-btn" onclick="openAddPlayer()">＋ ADD PLAYER</button></div></div>
   <div class="kpis kpis-sm">
     <div class="kpi"><b>${wkLogs.length}/${E.length * due.length || 0}</b><span>EPA LOGS THIS WEEK</span></div>
@@ -532,7 +755,7 @@ function vEPA() {
     <div class="kpi" style="cursor:pointer" onclick="epaTab='roster';setEpaF('flag','follow')"><b style="color:${flagsN('follow')?'var(--amber)':'inherit'}">${flagsN('follow')}</b><span>FOLLOW-UPS</span></div>
     <div class="kpi" style="cursor:pointer" onclick="epaTab='roster';setEpaF('flag','sore')"><b style="color:${flagsN('sore')?'var(--red)':'inherit'}">${flagsN('sore')}</b><span>SORE</span></div>
   </div>
-  <div class="tabs">${tab('roster','👥 Roster',E.length)}${tab('plans','🗓 Touch plans',(D.plans||[]).filter(x => x.week_start >= wk[0]).length)}${tab('calendar','📅 Calendar')}${tab('testing','⏱ Testing')}${tab('journals','📝 Journals')}${tab('film','🎥 Game film')}${tab('library','🎬 Drill library', SKILL_LIST.filter(x => (D.media||{})[x.id]).length)}</div>
+  <div class="tabs">${tab('today','☀️ Today')}${tab('roster','👥 Roster',E.length)}${tab('plans','🗓 Touch plans',(D.plans||[]).filter(x => x.week_start >= wk[0]).length)}${tab('calendar','📅 Calendar')}${tab('testing','⏱ Testing')}${tab('journals','📝 Journals')}${tab('film','🎥 Game film')}${tab('games','⚽ Games', D.sessions.filter(x => x.mode === 'game' && x.date >= lo7 && E.some(p => p.id === x.player_id)).length)}${tab('library','🎬 Drill library', SKILL_LIST.filter(x => (D.media||{})[x.id]).length)}</div>
   ${body}`;
 }
 function epaRoster() {
@@ -644,11 +867,79 @@ function epaCalendar() {
     ${cells.map(d => { const ds = localDate(d), wd = d.getDay(), off = epaOff(ds), epa = PROGRAMS.epa.days.includes(wd) && !off && ds >= PROGRAMS.epa.start && ds <= PROGRAMS.epa.end;
       const nLog = D.sessions.filter(s => s.mode === 'epa' && s.date === ds && ids.has(s.player_id)).length, mon = wd === 1 ? P.filter(x => x.week_start === ds) : [];
       const notes = P.filter(x => { const ws = new Date(x.week_start + 'T12:00:00'), dd = new Date(ds + 'T12:00:00'); return dd >= ws && (dd - ws) / 864e5 < 7 && (x.days||{})[String(wd)]; });
-      return `<div class="cal-d ${d.getMonth()!==m?'dim':''} ${ds===today?'today':''} ${epa?'epa':''} ${off?'off':''}"><div class="cal-n">${d.getDate()}</div>
+      const dp = (D.days||{})[ds];
+      return `<div class="cal-d ${d.getMonth()!==m?'dim':''} ${ds===today?'today':''} ${epa?'epa':''} ${off?'off':''}" ${epa ? `style="cursor:pointer" onclick="if(event.target.closest('.cal-plan'))return;openDayPlan('${ds}')" title="Plan this session"` : ''}><div class="cal-n">${d.getDate()}</div>
+        ${dp ? `<div class="cal-sess">${FOCUS[dp.theme] ? FOCUS[dp.theme].ico + ' ' : ''}${esc(dp.title || 'Planned')}</div>` : epa && ds >= today ? '<div class="cal-sess empty">+ plan</div>' : ''}
         ${off && (ds === off[0] || wd === 1) ? `<span class="chip c-amber">${esc(off[2])}</span>` : ''}${epa ? `<div class="cal-epa">EPA${ds <= today ? ` · ${nLog}/${E.length}` : ''}</div>` : ''}
         ${mon.map(x => `<div class="cal-plan" onclick="openPlan('${x.id}')">${esc(x.focus || 'Plan')}${x.touches ? ' · ' + fmtK(x.touches) : ''}</div>`).join('')}
         ${notes.slice(0,1).map(x => `<div class="cal-note">${esc(x.days[String(wd)])}</div>`).join('')}</div>`; }).join('')}</div></div>`;
 }
+// ── Today brief: who's coming, energy, body, flags ──
+const ENERGY_I = ['','😴','😕','😐','🙂','🔥'], BODY_I = {Fresh:'💪', Good:'👍', Tight:'😬', Sore:'🤕', Hurt:'🚑'};
+function isEpaDay(ds) { return PROGRAMS.epa.days.includes(wdOf(ds)) && !epaOff(ds) && ds >= PROGRAMS.epa.start && ds <= PROGRAMS.epa.end; }
+function nextEpaDay(from, step) { let d = new Date(from + 'T12:00:00'); for (let i = 0; i < 60; i++) { const ds = localDate(d); if (isEpaDay(ds)) return ds; d.setDate(d.getDate() + step); } return from; }
+function fmtDay(ds) { return new Date(ds + 'T12:00:00').toLocaleDateString('en-US', {weekday:'short', month:'numeric', day:'numeric'}); }
+function epaToday() {
+  const today = localDate(), live = isEpaDay(today), ds = live ? today : nextEpaDay(today, -1), nxt = nextEpaDay(live ? daysAhead(1) : today, 1), E = enrolled();
+  const rows = E.map(p => { const ck = p.sess.find(s => s.mode === 'checkin' && s.date === ds), r = ck ? ((ck.rounds||[])[0]||{}).ready || {} : null, ep = p.sess.find(s => s.mode === 'epa' && s.date === ds);
+    const lastGame = p.sess.find(s => s.mode === 'game' && s.date >= daysAgo(3) && s.date <= ds), g = lastGame ? ((lastGame.rounds||[])[0]||{}).game || {} : null;
+    const hurt = [...((r && r.hurt) || []), ...((g && g.hurt) || [])], body = r ? (r.body || (r.legs >= 4 ? 'Good' : r.legs <= 2 ? 'Sore' : 'Tight')) : null, energy = r ? r.energy : null;
+    const flags = []; if (energy && energy <= 2) flags.push('Low energy'); if (body === 'Sore' || body === 'Hurt') flags.push(body + (hurt.length ? ': ' + [...new Set(hurt)].join(', ') : '')); if (g && (g.body === 'Sore' || g.body === 'Hurt')) flags.push('After game: ' + g.body.toLowerCase());
+    return {p, r, ep, energy, body, flags, g}; });
+  const inN = rows.filter(x => x.r || x.ep).length, F = rows.filter(x => x.flags.length), plan = (D.days||{})[ds], np = (D.days||{})[nxt];
+  const grp = g => rows.filter(x => (epaOf(x.p).group||'younger') === g);
+  const tile = x => `<div class="br-kid ${x.flags.length?'flag':''} ${x.r||x.ep?'in':''}" onclick="openKid('${x.p.id}')"><b>${esc(x.p.nickname)}</b><span>${x.r || x.ep ? `${x.energy ? ENERGY_I[x.energy] : ''} ${x.body ? (BODY_I[x.body]||'') : ''} ${x.ep ? '✅' : '🚌'}` : '<i>not checked in</i>'}</span></div>`;
+  const planHTML = (P, d, label) => P ? `<div class="card"><div class="card-h">${label} · ${fmtDay(d).toUpperCase()} <a href="#" class="small" style="color:var(--accent)" onclick="openDayPlan('${d}');return false">Edit</a></div>
+      <div style="font-size:18px;font-weight:900;margin-bottom:6px">${FOCUS[P.theme] ? FOCUS[P.theme].ico + ' ' : ''}${esc(P.title || (FOCUS[P.theme]||{}).name || 'Session')}</div>
+      ${(P.blocks||[]).filter(b => b.what).map(b => `<div class="feed-row"><div class="t" style="width:54px">${esc(b.t||'')}</div><b style="flex:1">${esc(b.what)}${b.note ? `<div class="muted small" style="font-weight:500">${esc(b.note)}</div>` : ''}</b>${b.coach ? `<span class="chip c-sub">${esc(b.coach)}</span>` : ''}${b.drill && (D.media||{})[b.drill] ? `<a class="small" style="color:var(--accent);margin-left:6px" target="_blank" rel="noopener" href="${esc(D.media[b.drill].url)}">▶</a>` : ''}</div>`).join('') || '<div class="muted small">No blocks yet.</div>'}</div>`
+    : `<div class="card"><div class="card-h">${label} · ${fmtDay(d).toUpperCase()}</div><div class="muted small" style="margin-bottom:10px">No plan yet. Plan it so every coach walks in knowing the game plan.</div><button class="btn sm" onclick="openDayPlan('${d}')">PLAN THIS SESSION</button></div>`;
+  return `<div class="brief-top"><div><div class="muted small" style="letter-spacing:1.5px;font-weight:800">${live ? 'TODAY' : 'LAST SESSION'} · ${fmtDay(ds).toUpperCase()}</div><div style="font-size:26px;font-weight:900">${inN}<span class="muted" style="font-size:16px">/${E.length} checked in</span> · <span style="color:${F.length?'var(--amber)':'var(--green)'}">${F.length} flag${F.length===1?'':'s'}</span></div></div>
+      <div class="legend">🚌 checked in on the way · ✅ logged session · ${ENERGY_I.slice(1).join('')} energy · 💪👍😬🤕🚑 body</div></div>
+    ${F.length ? `<div class="card" style="border-color:#f59e0b66"><div class="card-h" style="color:var(--amber)">⚠ GO EASY / CHECK IN WITH</div>${F.map(x => `<div class="feed-row click" onclick="openKid('${x.p.id}')"><b style="width:150px">${esc(x.p.nickname)}</b><span style="flex:1">${x.flags.map(f => `<span class="chip c-amber">${esc(f)}</span>`).join(' ')}</span><span class="muted small">${(epaOf(x.p).group||'').toUpperCase()}</span></div>`).join('')}</div>` : ''}
+    <div class="grid2">${planHTML(plan, ds, live ? "TODAY'S PLAN" : 'LAST PLAN')}${planHTML(np, nxt, 'NEXT SESSION')}</div>
+    ${['younger','older'].map(g => { const G = grp(g); return G.length ? `<div class="card"><div class="card-h">${g.toUpperCase()} · ${G.filter(x => x.r || x.ep).length}/${G.length} IN</div><div class="br-grid">${G.sort((a,b) => (b.flags.length - a.flags.length) || ((b.r||b.ep?1:0) - (a.r||a.ep?1:0))).map(tile).join('')}</div></div>` : ''; }).join('')}`;
+}
+// ── EPA session planner ──
+let dayDraft = null;
+function openDayPlan(ds) {
+  const ex = (D.days||{})[ds]; dayDraft = {ds, ...(ex ? JSON.parse(JSON.stringify(ex)) : {theme:'', title:'', family:'', blocks:[{t:'0:00', what:'Warm-up + rondos', coach:'', drill:'', note:''}, {t:'0:15', what:'', coach:'', drill:'', note:''}, {t:'0:45', what:'', coach:'', drill:'', note:''}, {t:'1:10', what:'Small-sided game', coach:'', drill:'', note:''}]})};
+  paintDayPlan(); $('drawer').classList.add('open');
+}
+function paintDayPlan() {
+  const d = dayDraft, names = [...new Set(Object.values(D.days||{}).flatMap(x => (x.blocks||[]).map(b => b.coach)).filter(Boolean).concat(['James','Marco','Robbie','Justin','Victor']))];
+  $('drawer').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:20px;font-weight:900">Plan · ${fmtDay(d.ds)}</div><button class="btn ghost sm" onclick="$('drawer').classList.remove('open')">Close</button></div>
+    <div class="pf"><label>THEME</label><select onchange="dayDraft.theme=this.value"><option value="">Not set</option>${Object.entries(FOCUS).map(([k,f]) => `<option value="${k}" ${d.theme===k?'selected':''}>${f.ico} ${f.name}</option>`).join('')}</select></div>
+    <div class="pf"><label>SESSION TITLE · COACHES + FAMILIES SEE THIS</label><input maxlength="60" value="${esc(d.title)}" placeholder="e.g. 1v1 attacking: beat your defender" oninput="dayDraft.title=this.value"></div>
+    <div class="pf"><label>FOR PLAYERS + PARENTS (ONE LINE, OPTIONAL)</label><input maxlength="120" value="${esc(d.family)}" placeholder="e.g. Bring shin guards + water. Big 1v1 day." oninput="dayDraft.family=this.value"></div>
+    <div class="pf"><label>BLOCKS · COACHES ONLY</label>${d.blocks.map((b,i) => `<div class="form-row" style="margin-bottom:6px;flex-wrap:nowrap"><input style="width:56px" maxlength="6" value="${esc(b.t)}" oninput="dayDraft.blocks[${i}].t=this.value"><input style="flex:2;min-width:120px" maxlength="60" placeholder="Activity" value="${esc(b.what)}" oninput="dayDraft.blocks[${i}].what=this.value"><input list="coachNames" style="width:96px" maxlength="20" placeholder="Coach" value="${esc(b.coach)}" oninput="dayDraft.blocks[${i}].coach=this.value"><select style="width:120px" onchange="dayDraft.blocks[${i}].drill=this.value"><option value="">Drill video</option>${SKILL_LIST.map(x => `<option value="${x.id}" ${b.drill===x.id?'selected':''}>${(D.media||{})[x.id]?'▶ ':''}${esc(x.name)}</option>`).join('')}</select><button class="btn ghost sm" onclick="dayDraft.blocks.splice(${i},1);paintDayPlan()">✕</button></div>
+      <input style="width:100%;margin:-2px 0 8px" maxlength="120" placeholder="Coaching points (optional)" value="${esc(b.note)}" oninput="dayDraft.blocks[${i}].note=this.value">`).join('')}
+      <datalist id="coachNames">${names.map(n => `<option value="${esc(n)}">`).join('')}</datalist>
+      <button class="btn ghost sm" onclick="dayDraft.blocks.push({t:'',what:'',coach:'',drill:'',note:''});paintDayPlan()">+ ADD BLOCK</button></div>
+    <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap"><button class="btn" onclick="saveDayPlan()">SAVE</button><button class="btn ghost" onclick="copyDayPlan(7)">SAVE + COPY TO NEXT WEEK</button>${(D.days||{})[d.ds] ? `<button class="btn ghost" onclick="deleteDayPlan()">Delete</button>` : ''}</div>`;
+}
+async function putDay(ds, data) {
+  if (!D.mock) { try { await rpc('sfc_epa_day_save', {p_program:'epa', p_day:ds, p_data:data}); } catch(e) { toast('Failed: ' + e.message); return false; } }
+  D.days = {...(D.days||{})}; if (data) D.days[ds] = data; else delete D.days[ds]; if (REAL && D !== REAL && !D.mock) REAL.days = D.days; return true;
+}
+function dayData() { const d = dayDraft; return {theme:d.theme, title:d.title.trim(), family:d.family.trim(), blocks:d.blocks.filter(b => b.what && b.what.trim())}; }
+async function saveDayPlan() { if (await putDay(dayDraft.ds, dayData())) { toast(D.mock ? 'Sandbox: saved here only' : 'Session saved. Coaches see it now, families see the title.'); $('drawer').classList.remove('open'); render(); } }
+async function copyDayPlan(n) { const data = dayData(), nd = new Date(dayDraft.ds + 'T12:00:00'); nd.setDate(nd.getDate() + n); const ds2 = localDate(nd);
+  if (await putDay(dayDraft.ds, data) && await putDay(ds2, data)) { toast(`Saved + copied to ${fmtDay(ds2)}`); dayDraft = {ds:ds2, ...JSON.parse(JSON.stringify(data))}; if (!dayDraft.blocks.length) dayDraft.blocks = [{t:'',what:'',coach:'',drill:'',note:''}]; paintDayPlan(); render(); } }
+async function deleteDayPlan() { if (await putDay(dayDraft.ds, null)) { $('drawer').classList.remove('open'); render(); } }
+// ── Games: how players rate their games, body after, film ──
+function epaGames() {
+  const ids = new Set(enrolled().map(p => p.id)), G = D.sessions.filter(s => s.mode === 'game' && ids.has(s.player_id)).slice(0, 80);
+  if (!G.length) return '<div class="card"><div class="empty">No games logged yet. Players log games from the app on game day (+XP, counts for their streak).</div></div>';
+  const rated = G.map(s => +((s.rounds||[])[0]?.game?.rate)).filter(Boolean), avg = rated.length ? (rated.reduce((a,b) => a+b, 0) / rated.length).toFixed(1) : '-';
+  return `<div class="kpis kpis-sm"><div class="kpi"><b>${G.length}</b><span>GAMES LOGGED</span></div><div class="kpi"><b>${avg}</b><span>AVG SELF-RATING /10</span></div><div class="kpi"><b>${G.filter(s => /Sore|Hurt/.test((s.rounds||[])[0]?.game?.body||'')).length}</b><span>SORE / HURT AFTER</span></div><div class="kpi"><b>${G.filter(s => { const g = (s.rounds||[])[0]?.game||{}; return g.link || g.coachFilm; }).length}</b><span>WITH FILM</span></div></div>
+    <div class="card">${G.map(s => { const p = D.byId[s.player_id], g = (s.rounds||[])[0]?.game || {}, film = g.coachFilm || g.link;
+      return `<div class="feed-row" style="align-items:flex-start"><div class="t">${esc(s.date)}</div><div style="width:150px;flex:none">${kidCell(p)}</div>
+        <div style="flex:1"><div><b style="font-size:16px">${g.rate ? g.rate + '/10' : '-'}</b> <span class="muted small">effort ${g.effort || '-'}/5 · ${esc(g.result || '')}${g.opp ? ' vs ' + esc(g.opp) : ''} · ${esc(g.mins || '')} min${g.pos ? ' · ' + esc(g.pos) : ''}</span> ${/Sore|Hurt/.test(g.body||'') ? `<span class="chip c-amber">${esc(g.body)}${(g.hurt||[]).length ? ': ' + esc(g.hurt.join(', ')) : ''}</span>` : ''}</div>
+          ${g.well ? `<div class="small">👍 ${esc(g.well)}</div>` : ''}${g.work ? `<div class="small">🛠 ${esc(g.work)}</div>` : ''}</div>
+        <div style="width:110px;text-align:right">${film ? `<a class="small" style="color:var(--accent)" target="_blank" rel="noopener" href="${esc(film)}">▶ Film</a>` : ''}${s.id && !localOnly(p) ? `<div><a href="#" class="small muted" onclick="addGameFilm(${s.id});return false">${film ? 'Change' : '+ Add film'}</a></div>` : ''}</div></div>`; }).join('')}</div>`;
+}
+async function addGameFilm(id) { const url = (prompt('Paste the game film link (YouTube, Vimeo, Veo, Hudl, Drive):') || '').trim(); if (!url) return; if (!/^https:\/\//.test(url)) return toast('Link must start with https://');
+  try { await rpc('sfc_coach_game_film', {p_id:id, p_url:url}); const s = D.sessions.find(x => x.id === id); if (s) { s.rounds = s.rounds || [{game:{}}]; s.rounds[0].game = {...(s.rounds[0].game||{}), coachFilm:url}; } toast('Film attached. The player sees it too.'); render(); } catch(e) { toast('Failed: ' + e.message); } }
 // ── add player ──
 async function openCoaches() {
   let C = {coaches:[], invites:[]}; try { C = await rpc('sfc_admin_coaches'); } catch(e) { return toast('Run the v13 database update first'); }
@@ -734,7 +1025,12 @@ function epaMock() {
     for (let d = 27; d >= 0; d--) {
       const ds = daysAgo(d), wd = wdOf(ds), wk = Math.floor(d / 7);
       const add = x => { const row = {player_id:id, family_id:fam.id, date:ds, created_at: ds + 'T' + String(15 + Math.floor(r() * 5)).padStart(2,'0') + ':' + String(Math.floor(r() * 60)).padStart(2,'0') + ':00', ...x}; p.sess.push(row); sessions.push(row); };
-      if (r() < (older ? .7 : .55)) add({mode:'checkin', touches:0, xp:20, rounds:[{ready:(() => { const v = () => Math.max(1, Math.min(5, Math.round(mood + (r() - .5) * 2.2))), q = {sleep:v(), energy:v(), legs:v(), mood:v()}; q.score = Math.round((q.sleep + q.energy + q.legs + q.mood) / 4 * 10) / 10; return q; })()}]});
+      if (PROGRAMS.epa.days.includes(wd) && !epaOff(ds) && r() < att * .92) { const en = Math.max(1, Math.min(5, Math.round(mood + (r() - .5) * 2.4))), bi = r() < (older ? .14 : .07) ? (r() < .7 ? 'Sore' : 'Hurt') : r() < .12 ? 'Tight' : r() < .5 ? 'Good' : 'Fresh', bs = {Fresh:5, Good:4, Tight:3, Sore:2, Hurt:1}[bi];
+        add({mode:'checkin', touches:0, xp:20, rounds:[{ready:{energy:en, body:bi, hurt: bs <= 2 ? [pick(['hamstring','ankle','knee','groin','quad'])] : [], legs:bs, score: Math.round((en + bs) / 2 * 10) / 10, arrive:1}}]}); }
+      if (wd === 6 && r() < (older ? .75 : .6)) { const rate = Math.max(3, Math.min(10, Math.round(mood * 1.8 + (r() - .5) * 3))), bd = r() < .14 ? pick(['Sore','Hurt']) : pick(['Fresh','Tired','Tired']);
+        add({mode:'game', touches: pick([450,600,750]), xp:60, rounds:[{game:{date:ds, opp: pick(['Desert FC','Valley United','Mesa SC','Canyon Stars','Red Rock FC','Sun City']), result: pick(['Won','Won','Tied','Lost']), mins: pick(['30-45','45-60','60+','15-30']), pos: pick(['Defense','Midfield','Attack']),
+          rate, effort: 3 + Math.floor(r() * 3), well: pick(['Won most of my 1v1s','Scanned before receiving','Good passes forward','Talked a lot on defense','Scored with my left']), work: pick(['First touch under pressure','Weak foot passing','Tracking back','Shooting earlier','Body shape receiving']),
+          body: bd, hurt: /Sore|Hurt/.test(bd) ? [pick(['ankle','hamstring','knee'])] : [], ...(older && r() < .5 ? {link:'https://example.com/game-film'} : {})}}]}); }
       if (PROGRAMS.epa.days.includes(wd) && !epaOff(ds) && r() < att) { const fo = FOCUSES[wk % 4];
         add({mode:'epa', touches: FOCUS[fo].touches, xp:150, rounds:[{epa:{focus:fo, effort: 5 + Math.floor(r() * 5), feel: Math.min(3, Math.max(0, Math.round(mood - 2 + (r() - .5)))), note: r() < .6 ? pick(NOTES_E) : '', coach: pick(coaches)}}]}); }
       else if (r() < eng) add({mode:'goal', touches: Math.round((older ? 1300 : 900) * (.6 + r() * .8) / 50) * 50, xp: 200 + Math.floor(r() * 150), rounds:[]});
@@ -766,7 +1062,12 @@ function epaMock() {
     {id:'mp3', week_start: mw[1], target:{who:'pos', pos:['ST','W']}, focus:'Weak foot finishing', touches:1000, emphasis:['Weak foot','Shooting'], days:{'6':'100 weak-foot finishes'}, note:''}];
   const presets = [{id:'pr1', name:'Week A: First touch', data:{focus:'First touch week', touches:1100, emphasis:['Ball mastery','Passing','Scanning'], days:{'1':'1,100 touches, wall passes','5':'Weak foot ladder'}, note:'', target:{who:'all'}}},
     {id:'pr2', name:'Winter break challenge', data:{focus:'Break challenge: 10K in 10 days', touches:1000, emphasis:['Ball mastery','Juggling','Weak foot'], days:{'1':'1,000 touches','3':'Juggling PB attempt','5':'1,000 touches + weak foot finishing'}, note:'Hit 10,000 touches before we are back. Top 3 get a prize.', target:{who:'all'}}}];
-  return EPA_MOCK = {mock:true, plans, presets, families:[fam], fams:{[fam.id]:fam}, players, sessions, notes, byId:Object.fromEntries(players.map(p => [p.id, p]))};
+  const days = {}, TH = [['technical','First touch out of pressure','Bring water. Lots of reps today.'],['mixed','1v1 attacking: beat your defender','Big 1v1 day. Be brave.'],['technical','Passing on the half turn',''],['speed','Speed + finishing','Sprint work, full effort.'],['mixed','Defending shape + transitions','']], CO = ['James','Marco','Robbie','Justin','Victor'];
+  for (let k = -14; k <= 21; k++) { const dd = new Date(); dd.setDate(dd.getDate() + k); const ds = localDate(dd); if (!PROGRAMS.epa.days.includes(dd.getDay()) || epaOff(ds)) continue; if (k > 14 && r() < .5) continue;
+    const [theme, title, family] = TH[(Math.abs(k) + dd.getDay()) % TH.length];
+    days[ds] = {theme, title, family, blocks:[{t:'0:00', what:'Dynamic warm-up + rondos', coach:'Marco', drill:'', note:'Two-touch max in the rondo'}, {t:'0:15', what: title.split(':')[0] + ' technical block', coach:'James', drill: pick(['wall_2t','v_pulls','in_out','lac_roll']), note:'Scan before every receive'},
+      {t:'0:45', what:'Opposed reps in groups of 4', coach: pick(['Robbie','Justin']), drill:'', note:''}, {t:'1:10', what:'Small-sided game, older vs younger split', coach:'Victor', drill:'', note:'Reward the brave 1v1'}]}; }
+  return EPA_MOCK = {mock:true, plans, presets, days, families:[fam], fams:{[fam.id]:fam}, players, sessions, notes, byId:Object.fromEntries(players.map(p => [p.id, p]))};
 }
 
 // ── kid drawer ──
@@ -780,7 +1081,7 @@ function openKid(id) {
     ${localOnly(p) ? '<div class="sandbox-banner">🧪 Demo player. Edits stay on this screen.</div>' : ''}
     <div class="card"><div class="card-h">PLAYER PROFILE</div>
       <div class="form-row"><span class="small muted" style="width:90px">Preferred</span>${posSel(p,'pos1')}<span class="small muted">Secondary</span>${posSel(p,'pos2')}</div></div>
-    ${idpCard(p)}
+    ${idpCard(p)}${progNotesCard(p)}
     <div class="card"><div class="card-h">GOAL WORKSHEET <span class="legend">kid fills it in the app</span></div>
       ${(p.goals||{}).sheet ? (() => { const g = p.goals.sheet; return `<div style="font-size:16px;font-weight:900;margin-bottom:8px">🎯 ${esc(g.dream)}</div>
         ${[['season','This season'],['month','This month'],['week','This week'],['obstacle','Could get in the way'],['overcome','How I will overcome it'],['takes','What I think it takes']].filter(([k]) => g[k]).map(([k,l]) => `<div class="feed-row"><span class="muted small" style="width:150px;flex:none">${l}</span><span>${esc(g[k])}</span></div>`).join('')}
@@ -805,15 +1106,14 @@ $('email').addEventListener('keydown', e => { if (e.key === 'Enter') sendCode();
 let dataMode = localStorage.getItem('sfc_console_mode') || 'live', CLUB = null, clubFilter = {g:'all', age:'all', tier:'all'}, coachLens = null, teamOpen = null;
 function paintRole() {
   const cv = coachView();
-  document.querySelectorAll('.nav').forEach(n => n.style.display = cv && n.dataset.v !== 'epa' ? 'none' : '');
-  document.querySelectorAll('.sep').forEach(n => n.style.display = cv && !/PROGRAMS/.test(n.textContent) ? 'none' : '');
+  document.querySelectorAll('.adm').forEach(n => n.style.display = cv ? 'none' : ''); paintOrg();
   document.querySelector('.mode').style.display = cv ? 'none' : '';
   document.querySelector('.brand-sub').textContent = cv ? 'CONSOLE · COACH' : 'CONSOLE · ADMIN';
-  $('coachFoot').innerHTML = cv ? `<label style="display:flex;gap:6px;align-items:center;cursor:pointer;margin-bottom:8px"><input type="checkbox" ${showDemo?'checked':''} onchange="showDemo=this.checked;localStorage.setItem('sfc_show_demo',this.checked?'1':'0');render()"> Show demo players</label>${ROLE === 'admin' ? `<a href="#" style="color:var(--accent)" onclick="setAsCoach(false);return false">Exit coach preview</a>` : ''}`
+  $('coachFoot').innerHTML = cv ? `<label style="display:flex;gap:6px;align-items:center;cursor:pointer;margin-bottom:8px"><input type="checkbox" ${showDemo?'checked':''} onchange="showDemo=this.checked;localStorage.setItem('sfc_show_demo',this.checked?'1':'0');render()"> Show demo players</label>${ROLE === 'admin' ? `<a href="#" style="color:var(--accent)" onclick="setAsCoach(false);return false">Exit coach preview</a>` : ''}`.replace('<label', hasProg('epa') ? '<label' : '<label style="display:none"')
     : `<a href="#" style="color:#1ab3bd" onclick="setAsCoach(true);return false">👁 Preview as coach</a>`;
 }
-function setAsCoach(on) { asCoach = on; localStorage.setItem('sfc_as_coach', on ? '1' : '0'); paintRole(); go(on ? 'epa' : 'overview'); }
-function setMode(m) { dataMode = m; localStorage.setItem('sfc_console_mode', m); paintMode(); render(); }
+function setAsCoach(on) { asCoach = on; localStorage.setItem('sfc_as_coach', on ? '1' : '0'); paintRole(); go(on ? 'org' : 'overview'); }
+function setMode(m) { ORGD = {}; PDATA = {}; dataMode = m; localStorage.setItem('sfc_console_mode', m); paintMode(); render(); }
 function paintMode() { document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('on', b.dataset.m === dataMode)); }
 function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const FN_B = ['Leo','Mateo','Liam','Noah','Diego','Ethan','Lucas','Gabe','Kai','Owen','Jace','Eli','Adrian','Nico','Marco','Isaac','Ryan','Theo','Jonah','Caleb','Andres','Miles','Zane','Luca','Rafa','Dylan','Aiden','Seth','Omar','Tyler'];

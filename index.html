@@ -631,6 +631,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .road-art{width:46px;height:46px;flex:none;display:flex;align-items:center;justify-content:center;font-size:28px}.road-art svg{width:46px;height:46px}
 .road-name{font-size:13px;font-weight:900}.road-name span{font-size:9px;color:var(--sub);letter-spacing:1px;margin-left:4px}
 .beta-pill{font-size:8px;letter-spacing:1px;background:#1ab3bd2e;color:#1ab3bd;border-radius:4px;padding:1px 4px;vertical-align:middle;font-weight:900}
+.epa-card{--accent:#0caab5;border-top:3px solid #0caab5;background:linear-gradient(180deg,#0caab514,transparent 140px),var(--bg2)}.epa-crest{width:22px;height:auto;vertical-align:-5px;margin-right:6px}.epa-org{font-size:9px;letter-spacing:1.5px;color:#3fd3dc;font-weight:900;margin-top:2px}
 .epa-coach{font-size:12px;color:var(--text);background:var(--bg3);border-radius:10px;padding:8px 10px;margin:8px 0}.epa-coach div{color:var(--sub);margin-top:3px}
 .epa-strip{display:flex;gap:8px;margin:10px 0}
 .epa-d{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:6px;text-align:center}.epa-d b{display:block;font-size:10px;letter-spacing:1px;color:var(--sub)}.epa-d span{font-size:12px;font-weight:800;color:var(--sub)}
@@ -782,9 +783,18 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .vid-wrap{width:100%;max-width:520px}.vid-top{display:flex;justify-content:space-between;align-items:center;color:#fff;margin-bottom:10px;font-size:15px}
 .vid-top button{background:#ffffff22;border:0;color:#fff;border-radius:50%;width:34px;height:34px;font-size:16px;cursor:pointer}
 .vid-wrap iframe{width:100%;border:0;border-radius:12px;background:#000;display:block}
+.coach-org{display:flex;align-items:center;gap:10px;margin-top:12px}.coach-org img{width:30px}.coach-org .ini{width:30px;height:30px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-weight:900}
+.coach-org b{font-size:13px;display:block}.coach-org span{font-size:10px;letter-spacing:1px;color:var(--sub);font-weight:800}
+.coach-prog{margin:6px 0 0 40px;font-size:12px;color:var(--sub)}.coach-prog details summary{cursor:pointer;color:var(--accent);font-weight:800;margin-top:4px}
 .epa-idp{margin-top:10px;padding:10px 12px;border:1px solid #1ab3bd55;border-radius:12px;background:#1ab3bd12;font-size:13px}
 .idp-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--border)}.idp-row span{display:block;font-size:11px;color:var(--sub);font-weight:600}
 .idp-note{font-size:12px;color:var(--sub);margin-top:6px}
+.epa-next{margin-top:8px;font-size:13px}.epa-next div{padding:6px 0;border-top:1px solid var(--border)}.epa-next b{color:#1ab3bd;font-size:11px;letter-spacing:1px;margin-right:6px}.epa-next span{display:block;font-size:11px;color:var(--sub);margin-top:2px}
+.game-link{width:100%;margin-top:10px;background:transparent;border:1px dashed var(--border);color:var(--sub);border-radius:14px;padding:11px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit}.game-link b{color:var(--accent);margin-left:6px}
+.game-card{margin-top:12px;border:1px solid var(--accent);border-radius:16px;padding:12px;background:#ff6b1a10}.gc-h{font-size:11px;letter-spacing:2px;font-weight:900;color:var(--accent);margin-bottom:8px}
+.gc-steps{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.gc-steps button{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:10px 6px;color:var(--text);font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:3px}
+.gc-steps button b{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#000;display:flex;align-items:center;justify-content:center;font-size:12px}.gc-steps button span{font-size:10px;color:var(--sub)}
+.gc-steps button.done{border-color:var(--green);color:var(--green)}.gc-steps button.done b{background:var(--green)}.gc-sub{font-size:11px;color:var(--sub);margin-top:8px;text-align:center}
 .idp-focus{margin:8px 0;padding:8px 10px;border-radius:10px;background:#1ab3bd22;font-weight:700;font-size:13px;line-height:1.4}.idp-focus span{display:block;font-size:10px;letter-spacing:1.5px;color:#1ab3bd;font-weight:900;margin-bottom:2px}
 .idp-rate{display:grid;grid-template-columns:1fr auto 34px;align-items:center;gap:8px;padding:4px 0;font-size:12px;font-weight:700}.idp-rate b{color:#1ab3bd;letter-spacing:2px;font-size:13px}.idp-rate i{color:var(--border);font-style:normal}
 .idp-rate em{font-style:normal;font-size:11px;font-weight:900;text-align:right}.idp-rate em.up{color:var(--green)}.idp-rate em.dn{color:var(--red)}
@@ -1242,6 +1252,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
           <div class="ms-bar" id="msBar"></div>
           <div class="today-hint" id="todayHint"></div>
           <div id="resumeRow"></div>
+          <div id="gameRow"></div>
           <div class="diff-label" style="margin-top:14px">INTENSITY</div>
           <div class="diff-btns">
             <button id="diff-limited" class="diff-btn" onclick="setDifficulty('limited')">🌙 LIGHT</button>
@@ -1289,6 +1300,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
         <div class="week-chart" id="weekBars"></div>
         <div class="week-labels" id="weekLabels" style="display:flex;margin-top:6px"></div>
       </div>
+      <div class="badges-card" id="coachesCard" style="display:none"></div>
       <div class="badges-card" id="goalsCard" style="display:none"></div>
       <div class="badges-card" id="speedCard"></div>
       <div class="badges-card" id="trophyCard"></div>
@@ -2430,7 +2442,7 @@ function renderProfile() {
       <div class="goal-ladder">${[['season','THIS SEASON'],['month','THIS MONTH'],['week','THIS WEEK']].filter(([k]) => sh[k]).map(([k,l]) => `<div><span>${l}</span>${esc(sh[k])}</div>`).join('')}</div>
       ${(p.goals||{}).coach ? `<div class="goal-coach"><b>COACH'S STANDARD</b><br>${esc(p.goals.coach)}</div>` : '<div class="goal-coach">Your coach will add the standard it takes.</div>'}` : '')
       + (g.length ? `<div class="badges-title" style="margin-top:${sh?14:0}px">MY SEASON GOALS</div>` : '') + `${g.map(x => `<div class="goal-row ${x.done?'done':''}">${x.done?'✅':'🎯'} ${esc(x.t)}</div>`).join('')}${!sh && (p.goals||{}).coach ? `<div class="goal-coach">💬 Coach: ${esc(p.goals.coach)}</div>` : ''}`; }
-  renderSpeed();
+  renderSpeed(); renderCoaches();
   const rank = rankOf(p);
   document.getElementById('profileRank').textContent = `${rank.name} · ${seasonLabel(seasonOf())}`;
   renderTrophies();
@@ -3082,13 +3094,16 @@ function openVideo(skill) { const u = vidUrl(skill); if (!u) return; const e = e
 function closeVideo() { const m = document.getElementById('vidModal'); if (m) { m.classList.remove('open'); m.innerHTML = ''; } }
 // IDP in MSA format: 5 categories rated 1-5 with notes, strengths, areas to improve, how, primary focus, linked drills
 const IDP_CATS = [['bm','Ball Mastery'],['v1','1v1 Ability'],['ft','First Touch / Passing'],['fin','Finishing'],['men','Mentals']];
+function nextSessionHTML(p) { const D = (p.days || []).filter(x => x.day >= localDate()).slice(0, 2); if (!D.length) return '';
+  const nm = d => d === localDate() ? 'TODAY' : new Date(d + 'T12:00:00').toLocaleDateString('en-US', {weekday:'short', month:'numeric', day:'numeric'}).toUpperCase();
+  return `<div class="epa-next">${D.map(x => `<div><b>${nm(x.day)}</b> ${FOCUS[x.theme] ? FOCUS[x.theme].ico + ' ' : ''}${esc(x.title || (FOCUS[x.theme]||{}).name || 'Session')}${x.family ? `<span>${esc(x.family)}</span>` : ''}</div>`).join('')}</div>`; }
 function idpOf(p) { const d = p && p.idp; return d && (d.ratings || d.focus || (d.drills||[]).length) ? d : null; }
 function idpDrills(p) { return ((idpOf(p)||{}).drills||[]).filter(k => k && SKILLS[k]); }
-function idpHTML(p) { const d = idpOf(p); if (!d) return '';
+function idpHTML(p, dd) { const d = dd || idpOf(p); if (!d) return '';
   const prev = (d.history||[])[0] || null, R = d.ratings || {};
   const rows = IDP_CATS.filter(([k]) => R[k] && R[k].lvl).map(([k,l]) => { const v = +R[k].lvl, was = prev && prev.ratings ? +prev.ratings[k] : 0;
     return `<div class="idp-rate"><span>${l}</span><b>${'●'.repeat(v)}<i>${'●'.repeat(5-v)}</i></b>${was && was !== v ? `<em class="${v>was?'up':'dn'}">${v>was?'▲':'▼'}${Math.abs(v-was)}</em>` : '<em></em>'}</div>`; }).join('');
-  const dr = idpDrills(p);
+  const dr = dd ? (dd.drills||[]).filter(k => k && SKILLS[k]) : idpDrills(p);
   return `<div class="epa-idp"><div style="display:flex;justify-content:space-between"><b>🎯 YOUR IDP</b><span class="idp-note" style="margin:0">${esc(d.coach||'Coach')}${d.date?` · ${esc(d.date)}`:''}</span></div>
     ${d.focus ? `<div class="idp-focus"><span>NEXT 4-6 WEEKS</span>${esc(d.focus)}</div>` : ''}
     ${rows}
@@ -3205,6 +3220,7 @@ function renderToday() {
   document.getElementById('startSub').textContent = going ? `${ex.items.filter(i=>i.done).length} of ${ex.items.length} done · ${ex.target.toLocaleString()} touches`
     : hit ? 'Bonus session: extra XP and touches' : `${goal.toLocaleString()} touches · ~${Math.max(5, Math.round(goal/70))} min · ball mastery, moves + passing`;
   const S = loadSess();
+  const gr = document.getElementById('gameRow'); if (gr) gr.innerHTML = gameCardHTML(p);
   document.getElementById('resumeRow').innerHTML = S && !S.finished && S.mode !== 'goal'
     ? `<button class="resume-btn" onclick="resumeSession()">▶ RESUME ${S.mode==='goal'?'TOUCH GOAL':S.mode==='recovery'?'RECOVERY':'TIMED SESSION'} ${S.mode!=='goal'?`(${S.idx+1}/${S.plan.length})`:''}</button>` : '';
 }
@@ -3527,11 +3543,11 @@ function planPlayerHTML() {
 }
 function programsOn() { return localStorage.getItem('sfc_beta') === '1' || !!(family && family.flags && family.flags.programs); }
 function epaShareHTML() {
-  const e = planDraft.programs.find(x => x.id === 'epa'); if (!e) return '';
-  const sh = e.share || 'all', seg = (v, l) => `<button class="opt-btn ${sh===v?'sel':''}" onclick="planDraft.programs.find(x=>x.id==='epa').share='${v}';planDraft.progTouched=1;paintPlan()">${l}</button>`;
-  return `<div class="field-lbl" style="margin-top:14px">EPA · WHAT THE COACH CAN SEE</div><div class="opt-row">${seg('all','ALL TRAINING')}${seg('program','EPA ONLY')}</div>
-    <div class="sk-desc" style="font-size:12px;margin:-4px 0 8px">${sh === 'all' ? 'Coach sees home sessions and touches too, so plans fit the whole week.' : 'Coach only sees EPA logs, check-ins, journals, game analysis and speed tests.'} Never your email or contact info.</div>
-    <button class="opt-btn" style="border-color:#ef444455;color:var(--red)" onclick="if(confirm('Leave EPA? The coach loses access. Logs stay on your account.')){planDraft.programs=planDraft.programs.filter(x=>x.id!=='epa');planDraft.progTouched=1;paintPlan()}">LEAVE EPA</button>`;
+  return planDraft.programs.map((e, ix) => { const nm = e.id === 'epa' ? 'EPA' : (e.name || e.id), sh = e.share || 'all';
+    const seg = (v, l) => `<button class="opt-btn ${sh===v?'sel':''}" onclick="planDraft.programs[${ix}].share='${v}';planDraft.progTouched=1;paintPlan()">${l}</button>`;
+    return `<div class="field-lbl" style="margin-top:14px">${esc(nm.toUpperCase())} · WHAT THE COACH CAN SEE</div><div class="opt-row">${seg('all','ALL TRAINING')}${seg('program','THIS PROGRAM ONLY')}</div>
+    <div class="sk-desc" style="font-size:12px;margin:-4px 0 8px">${sh === 'all' ? 'Coach sees home sessions and touches too, so plans fit the whole week.' : 'Coach only sees this program\'s logs, check-ins, journals, game analysis and speed tests.'} Never your email or contact info.</div>
+    <button class="opt-btn" style="border-color:#ef444455;color:var(--red)" onclick="if(confirm('Leave ${esc(nm).replace(/'/g,'')}? The coaches lose access. Logs stay on your account.')){planDraft.programs.splice(${ix},1);planDraft.progTouched=1;paintPlan()}">LEAVE</button>`; }).join('');
 }
 async function joinProgram(id) {
   const code = (prompt('Enter the program code from your coach (e.g. EPA-1234):') || '').trim(); if (!code) return;
@@ -3733,6 +3749,16 @@ const EPA_XP = 150, CHECKIN_XP = 20, WEEKLOG_XP = 30;
 const READY_Q = [['sleep','SLEEP','😴','🙂'],['energy','ENERGY','🪫','⚡'],['legs','LEGS','🥵','🦵'],['mood','MOOD','😞','😄']];
 const FEELS = ['😫','😐','🙂','🔥'];
 
+// Profile: every academy / club / trainer this player is with, and each one's IDP
+function renderCoaches() {
+  const p = currentPlayer, el = document.getElementById('coachesCard'); if (!el || !p) return;
+  const O = p.orgs || {}, ids = Object.keys(O); if (!ids.length) { el.style.display = 'none'; return; }
+  const by = {}; ids.forEach(id => { const o = O[id]; (by[o.org] = by[o.org] || {o, progs:[]}).progs.push(id); });
+  const KL = {cohort:'Program', group:'Group training', clinic:'Clinic', private:'Private 1:1', team:'Team'}, OK = {academy:'ACADEMY', club:'CLUB', trainer:'TRAINER'};
+  el.style.display = 'block';
+  el.innerHTML = `<div class="badges-title">🧢 MY TEAMS + COACHES</div>` + Object.values(by).map(({o, progs}) => `<div class="coach-org">${(o.brand||{}).logo ? `<img src="${esc(o.brand.logo)}" alt="">` : `<div class="ini">${esc((o.short||o.org_name||'?')[0])}</div>`}<div><b>${esc(o.org_name)}</b><span>${OK[o.org_kind]||''}</span></div></div>
+    ${progs.map(id => { const d = (p.idps||{})[id]; return `<div class="coach-prog">${esc(O[id].program)}${KL[O[id].kind] && KL[O[id].kind] !== O[id].program ? ' · ' + KL[O[id].kind] : ''}${d && (d.ratings || d.focus) ? `<details><summary>🎯 IDP${d.coach ? ' · ' + esc(d.coach) : ''}${d.date ? ' · ' + esc(d.date) : ''}</summary>${idpHTML(p, d)}</details>` : ''}</div>`; }).join('')}`).join('');
+}
 function progOf(p, id='epa') { return (p && Array.isArray(p.programs) ? p.programs : []).find(x => x && x.id === id); }
 function epaOff(date) { return PROGRAMS.epa.off.find(([a,b]) => date >= a && date <= b); }
 function wdOf(date) { return new Date(date + 'T12:00:00').getDay(); }
@@ -3751,11 +3777,11 @@ function epaWeek(wk) { return wk.filter(d => PROGRAMS.epa.days.includes(wdOf(d))
 let plansAt = 0;
 function planToday(p) { const wk = weekDates(0)[0]; return (p.plans || []).find(x => x.week_start === wk) || null; }
 async function loadPlans() {
-  const p = currentPlayer; if (!p || !progOf(p) || !deviceToken() || Date.now() - plansAt < 5 * 60e3) return;
+  const p = currentPlayer; if (!p || !(p.programs||[]).length || !deviceToken() || Date.now() - plansAt < 5 * 60e3) return;
   plansAt = Date.now();
   try { p.plans = await rpc('sfc_player_plans', {p_token:deviceToken(), p_player:p.id}) || []; localStorage.setItem('sfc_player', JSON.stringify(p)); renderEPA(); renderToday(); } catch(e) {}
-  try { const x = await rpc('sfc_player_extras', {p_token:deviceToken(), p_player:p.id}) || {}; localStorage.setItem('sfc_media', JSON.stringify(x.media || {})); p.idp = (x.idp || {}).epa || null;
-    localStorage.setItem('sfc_player', JSON.stringify(p)); localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p)); renderEPA(); } catch(e) {}
+  try { const x = await rpc('sfc_player_extras', {p_token:deviceToken(), p_player:p.id}) || {}; localStorage.setItem('sfc_media', JSON.stringify(x.media || {})); p.idps = x.idp || {}; p.idp = p.idps.epa || Object.values(p.idps)[0] || null; p.orgs = x.orgs || {}; p.days = x.days || [];
+    localStorage.setItem('sfc_player', JSON.stringify(p)); localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p)); renderEPA(); renderCoaches(); } catch(e) {}
 }
 // Home card (only for enrolled kids)
 function renderEPA() {
@@ -3768,7 +3794,7 @@ function renderEPA() {
     const late = !done && missedEpa(p).includes(d);
     return `<div class="epa-d ${done?'on':''} ${d===today?'today':''} ${off?'off':''}" ${late?`style="cursor:pointer;border-style:dashed" onclick="openEpaLog('${d}')"`:''}><b>${['MON','TUE','WED','THU','FRI','SAT','SUN'][i]}</b><span>${off?'OFF':done?'✓':late?'+ log':d<today?'missed':''}</span></div>`; }).join('');
   const ready = T.ready ? `<div class="epa-done">✓ Checked in · ready ${T.ready.score}/5</div>`
-    : `<button class="epa-btn ghost" onclick="openCheckin()">💬 HOW'S YOUR BODY? <b>+${CHECKIN_XP} XP</b></button>`;
+    : `<button class="epa-btn ghost" onclick="openCheckin()">${es.kind === 'day' ? '🚌 HEADING TO EPA? CHECK IN' : "💬 HOW'S YOUR BODY?"} <b>+${CHECKIN_XP} XP</b></button>`;
   let main = '';
   if (es.kind === 'day') main = T.epa ? `<div class="epa-done">✓ EPA logged · ${FOCUS[T.epa.focus].name} · effort ${T.epa.effort} · ~${FOCUS[T.epa.focus].touches.toLocaleString()} touches</div>`
     : `<button class="epa-btn" onclick="openEpaLog()">🏟 LOG TODAY'S EPA <b>+${EPA_XP} XP</b></button><div class="epa-sub">Counts as a training day. Keeps your streak.</div>`;
@@ -3780,12 +3806,13 @@ function renderEPA() {
   const weekly = (dow >= 4 || dow === 0) ? (L[wkKey] && L[wkKey].weekly ? `<div class="epa-done">✓ Weekly journal done</div>` : `<button class="epa-btn ghost" onclick="openForm('journal')">📝 WEEKLY JOURNAL <b>+${JOURNAL_XP} XP</b></button>`) : '';
   const sheet = (p.goals||{}).sheet ? '' : `<button class="epa-btn ghost" onclick="openForm('sheet')">🎯 GOAL WORKSHEET <b>+${SHEET_XP} XP</b></button>`;
   const film = T.film ? `<div class="epa-done">✓ Game analysis saved</div>` : `<button class="epa-btn ghost" onclick="openForm('film')">🎥 GAME ANALYSIS <span style="opacity:.6">OPTIONAL</span> <b>+${FILM_XP} XP</b></button>`;
-  el.innerHTML = `<div class="q-top"><div class="today-title">🏟 EPA <span class="beta-pill">BETA</span></div><div class="recap-sub">${(es.e.group||'younger').toUpperCase()} GROUP</div></div>
+  el.innerHTML = `<div class="q-top"><div><div class="today-title"><img class="epa-crest" src="/brand/msa-shield.png" alt="">MSA EAST · EPA</div><div class="epa-org">McGHEE SOCCER ACADEMY</div></div><div class="recap-sub">${(es.e.group||'younger').toUpperCase()} GROUP</div></div>
     ${(() => { const pl = planToday(p); if (!pl) return ''; const dn = (pl.days||{})[String(wdOf(today))];
       return `<div class="epa-plan"><div class="epa-plan-h">COACH PLAN · THIS WEEK${pl.focus ? ' · ' + esc(pl.focus.toUpperCase()) : ''}</div>
         ${pl.touches ? `<div><b>${pl.touches.toLocaleString()}</b> touches a day at home</div>` : ''}${dn ? `<div>📅 Today: <b>${esc(dn)}</b></div>` : ''}
         ${(pl.emphasis||[]).length ? `<div class="epa-emph">${pl.emphasis.map(x => `<span>${esc(x)}</span>`).join('')}</div>` : ''}${pl.note ? `<div style="color:var(--sub)">${esc(pl.note)}</div>` : ''}</div>`; })()}
     ${f || es.e.note ? `<div class="epa-coach">${f?`<b>THIS WEEK:</b> ${f.ico} ${f.name}`:''}${es.e.note?`<div>${esc(es.e.note)}</div>`:''}</div>` : ''}
+    ${nextSessionHTML(p)}
     ${idpHTML(p)}
     <div class="epa-strip">${strip}</div>${main}${ready}${sheet}${weekly}${film}<button class="epa-btn ghost" onclick="openSpeed()">⚡ SPEED TEST <span style="opacity:.6">OPTIONAL</span> <b>+${SPEED_XP} XP</b></button>`;
 }
@@ -3802,7 +3829,9 @@ function openEpaLog(date) {
   epaDraft = {kind:'epa', focus: FOCUS[e.focus] ? e.focus : 'mixed', effort:0, feel:-1, note:'', date: past ? date : null};
   paintEpa(); openEpaModal(past ? `${['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][wdOf(date)]}'s EPA` : "Today's EPA", past ? 'Forgot to log it? You still get the XP. Streaks only count days you log on time.' : `${PROGRAMS.epa.mins} min with the group. 20 seconds to log.`);
 }
-function openCheckin() { epaDraft = {kind:'ready', sleep:0, energy:0, legs:0, mood:0}; paintEpa(); openEpaModal('Check in', 'Tap one for each. Be honest, it helps your coach.'); }
+const ENERGY = ['😴','😕','😐','🙂','🔥'], BODY = [['Fresh',5,'💪'],['Good',4,'👍'],['Tight',3,'😬'],['Sore',2,'🤕'],['Hurt',1,'🚑']];
+function openCheckin() { const epa = (dayInfo(currentPlayer)||{}).type === 'epa'; epaDraft = {kind:'ready', energy:0, body:'', hurt:[], epa};
+  paintEpa(); openEpaModal(epa ? '🚌 Heading to EPA' : 'Check in', epa ? 'Two taps on the way. Your coach sees it before the session.' : 'Two taps. Be honest, it helps your coach.'); }
 function openWeekLog() { epaDraft = {kind:'weekly', best:'', hard:'', goal:'', hurt:null}; paintEpa(); openEpaModal('Week log', 'Three quick ones about your EPA week.'); }
 function paintEpa() {
   if (FORMS[epaDraft.kind]) return paintForm();
@@ -3816,8 +3845,11 @@ function paintEpa() {
       <div class="field-lbl">HOW DID IT FEEL?</div><div class="epa-emo">${FEELS.map((e,i) => `<button class="${d.feel===i?'sel':''}" onclick="epaDraft.feel=${i};paintEpa()">${e}</button>`).join('')}</div>
       <div class="field-lbl">ONE THING YOU WORKED ON (OPTIONAL)</div><input class="auth-input" maxlength="60" value="${esc(d.note)}" placeholder="e.g. first touch on the half turn" oninput="epaDraft.note=this.value">`;
   } else if (d.kind === 'ready') {
-    ok = READY_Q.every(([k]) => d[k] > 0);
-    h = READY_Q.map(([k,l,lo,hi]) => `<div class="field-lbl">${l} <span style="float:right">${lo} → ${hi}</span></div><div class="epa-nums five">${[1,2,3,4,5].map(n => `<button class="${d[k]===n?'sel':''}" onclick="epaDraft.${k}=${n};paintEpa()">${n}</button>`).join('')}</div>`).join('');
+    const needWhere = d.body === 'Sore' || d.body === 'Hurt';
+    ok = d.energy > 0 && d.body && (!needWhere || d.hurt.length);
+    h = `<div class="field-lbl">ENERGY</div><div class="epa-emo" style="grid-template-columns:repeat(5,1fr)">${ENERGY.map((e,i) => `<button class="${d.energy===i+1?'sel':''}" onclick="epaDraft.energy=${i+1};paintEpa()">${e}</button>`).join('')}</div>
+      <div class="field-lbl">BODY</div><div class="hurt-chips">${BODY.map(([b,,ico]) => `<button class="${d.body===b?'sel '+(b==='Sore'||b==='Hurt'?'':'good'):''}" onclick="epaDraft.body='${b}';${b==='Sore'||b==='Hurt'?'':'epaDraft.hurt=[];'}paintEpa()">${ico} ${b.toUpperCase()}</button>`).join('')}</div>
+      ${needWhere ? `<div class="field-lbl">WHERE?</div><div class="hurt-chips">${HURT.map(x => `<button class="${d.hurt.includes(x)?'sel':''}" onclick="toggleHurt('${x}')">${x.toUpperCase()}</button>`).join('')}</div>` : ''}`;
   } else {
     ok = (d.best + d.hard + d.goal).trim().length >= 3;
     h = [['best','BEST PART OF THE WEEK'],['hard','HARDEST THING'],['goal','ONE GOAL FOR NEXT WEEK']].map(([k,l]) => `<div class="field-lbl">${l}</div><input class="auth-input" maxlength="80" value="${esc(d[k])}" oninput="epaDraft.${k}=this.value;document.getElementById('epaSave').disabled=(epaDraft.best+epaDraft.hard+epaDraft.goal).trim().length<3">`).join('')
@@ -3837,7 +3869,7 @@ function saveEpa() {
   if (d.kind === 'epa') return commitEPA(d);
   const p = currentPlayer, today = localDate(), xp = d.kind === 'ready' ? CHECKIN_XP : WEEKLOG_XP;
   let data, key = today, field = d.kind;
-  if (d.kind === 'ready') { const score = Math.round(READY_Q.reduce((a,[k]) => a + d[k], 0) / READY_Q.length * 10) / 10; data = {sleep:d.sleep, energy:d.energy, legs:d.legs, mood:d.mood, score}; }
+  if (d.kind === 'ready') { const bs = (BODY.find(b => b[0] === d.body)||[0,3])[1], score = Math.round((d.energy + bs) / 2 * 10) / 10; data = {energy:d.energy, body:d.body, hurt:d.hurt, legs:bs, score, ...(d.epa ? {arrive:1} : {})}; }
   else { data = {best:d.best.trim(), hard:d.hard.trim(), goal:d.goal.trim(), ...(Array.isArray(d.hurt) ? {hurt:d.hurt} : {})}; key = 'wk_' + weekDates(0)[0]; field = 'weekly'; }
   if ((epaLog(p.id)[key]||{})[field]) return;
   setEpaLog(p.id, key, field, data);
@@ -3870,7 +3902,8 @@ function commitEPA(d) {
 }
 
 // ── MSA forms, in the app: Goal Worksheet, Weekly Journal, Game Analysis (step-by-step, tap-first) ──
-const JOURNAL_XP = 50, FILM_XP = 40, SHEET_XP = 50;
+const JOURNAL_XP = 50, FILM_XP = 40, SHEET_XP = 50, PREGAME_XP = 15, GAME_XP = 60;
+const GAME_TOUCHES = {'0-15':150, '15-30':300, '30-45':450, '45-60':600, '60+':750};
 const AREAS = ['First Touch','Passing','Dribbling','Shooting','Defending','Speed','Decision Making','Communication','Confidence','Leadership'];
 const WORKED = ['Ball Mastery','Juggling','Passing','Shooting','Speed','Strength','Watching Soccer','Recovery','Stretching','Scanning'];
 const FORMATIONS = ['2-4-2 (9v9)','4-1-2-1 (9v9)','3-2-3 (9v9)','4-2-2 (9v9)','4-4-2','4-3-3','4-1-4-1','4-2-3-1','3-5-2','3-4-3','Other'];
@@ -3893,6 +3926,16 @@ const FORMS = {
     {h:'A good moment', f:[{k:'gFrom', t:'num', l:'From minute', req:1}, {k:'gTo', t:'num', l:'To minute', req:1}, {k:'gPhase', t:'chips', o:PHASES, l:'Phase of play', req:1}, {k:'gWhy', t:'text', l:'Why was it good?', req:1}]},
     {h:'A moment to improve', f:[{k:'bFrom', t:'num', l:'From minute', req:1}, {k:'bTo', t:'num', l:'To minute', req:1}, {k:'bPhase', t:'chips', o:PHASES, l:'Phase of play', req:1}, {k:'bWhy', t:'text', l:'Why was it bad?', req:1},
       {k:'aggr', t:'text', l:'What would you do differently? Aggressive option (higher risk)', req:1}, {k:'safe', t:'text', l:'Safe option (lower risk)'}]}]},
+  pregame: {title:'Pre-game check-in', xp:PREGAME_XP, steps:[
+    {h:'Before the game', sub:'30 seconds. Set your mind.', f:[{k:'energy', t:'scale', n:5, l:'Energy · 1 = drained · 5 = ready to go', req:1}, {k:'nerves', t:'chips', o:['Calm','A little nervous','Very nervous','Excited'], l:'How do you feel?', req:1},
+      {k:'body', t:'chips', o:['Fresh','Good','Tight','Sore'], l:'Body', req:1}, {k:'goal', t:'text', l:'One thing I will do today', ph:'e.g. take my player on 1v1'}]}]},
+  game: {title:'Game log', xp:GAME_XP, steps:[
+    {h:'The game', f:[{k:'date', t:'date', l:'Game date', req:1}, {k:'opp', t:'text', l:'Opponent (optional)'}, {k:'result', t:'chips', o:['Won','Tied','Lost','Skip'], l:'Result', req:1},
+      {k:'mins', t:'chips', o:['0-15','15-30','30-45','45-60','60+'], l:'Minutes you played', req:1}, {k:'pos', t:'chips', o:['GK','Defense','Midfield','Attack'], l:'Where you played'}]},
+    {h:'How it went', f:[{k:'rate', t:'scale', n:10, l:'Rate your game · 1 = rough · 10 = best ever', req:1}, {k:'effort', t:'scale', n:5, l:'Effort ⭐', req:1},
+      {k:'well', t:'text', l:'What went well?', req:1}, {k:'work', t:'text', l:'What do you want to work on?', req:1}]},
+    {h:'Body + film', f:[{k:'body', t:'chips', o:['Fresh','Tired','Sore','Hurt'], l:'How does your body feel now?', req:1}, {k:'hurt', t:'chips', multi:1, o:HURT, none:'Nothing 👍', l:'Anything hurting?'},
+      {k:'link', t:'text', l:'Game film link (you or your coach can add it later)', ph:'https://'}]}]},
   sheet: {title:'Goal worksheet', xp:SHEET_XP, steps:[
     {h:'My dream goal', sub:'Perfect world. No judgment. Nothing is too big.', f:[{k:'dream', t:'text', l:'If nothing could stop you, what is the biggest thing you want to achieve in soccer?', req:1}]},
     {h:'My goal ladder', sub:'Short steps that build to the big goal.', f:[{k:'season', t:'text', l:'This season, I want to:', req:1}, {k:'month', t:'text', l:'This month, I want to:'}, {k:'week', t:'text', l:'This week, I will:'}]},
@@ -3907,7 +3950,7 @@ function journalPrefill(p) {
 }
 function openForm(kind) {
   const p = currentPlayer, F = FORMS[kind];
-  epaDraft = {kind, step:0, v: kind === 'journal' ? journalPrefill(p) : kind === 'film' ? {date: localDate()} : {...(((p.goals||{}).sheet)||{})}};
+  epaDraft = {kind, step:0, v: kind === 'journal' ? journalPrefill(p) : kind === 'film' || kind === 'game' ? {date: localDate()} : kind === 'pregame' ? {} : {...(((p.goals||{}).sheet)||{})}};
   paintEpa(); openEpaModal(F.title, '');
 }
 function formField(f, v) {
@@ -3930,6 +3973,31 @@ function paintForm() {
     + (d.step ? `<button class="epa-btn ghost" style="margin-top:4px" onclick="epaDraft.step--;paintEpa()">← BACK</button>` : '');
   const s = document.getElementById('epaSave'); s.disabled = !formStepOk(); s.textContent = last ? `SUBMIT +${F.xp} XP` : 'NEXT →';
 }
+// Game counts as a training day: streak + touches (by minutes played, capped) + XP
+function commitGame(p, v) {
+  const today = localDate(), day = v.date && v.date <= today ? v.date : today, games = epaLog(p.id)[day] || {};
+  const n = (games.games || []).length, xp = n >= 2 ? 0 : GAME_XP, touches = n >= 2 ? 0 : capTouches(p, GAME_TOUCHES[v.mins] || 0, day);
+  if (day === today) applyStreak(p, today); addHistory(p.id, day, touches); addDay(`sfc_xpdays_${p.id}`, today, xp);
+  p.xp = (p.xp||0) + xp; p.total_touches = (p.total_touches||0) + touches; p.sessions = (p.sessions||0) + 1;
+  setEpaLog(p.id, day, 'games', [...(games.games || []), v]);
+  localStorage.setItem('sfc_player', JSON.stringify(p)); localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p)); recordSeason(p); checkBadges();
+  if (deviceToken()) callOrQueue('sfc_log_session', {p_token:deviceToken(), p_player:p.id, p_state:playerState(p),
+    p_session:{date:day, touches, mode:'game', full_session:true, xp_earned:xp, bm_skills:[], mv_skills:[], rounds:[{game:v}]}});
+  renderHome(); renderProfile();
+  showToast(xp ? `⚽ Game logged · +${xp} XP · ${touches.toLocaleString()} touches${day === today ? ' · streak ✓' : ''}` : '⚽ Game logged', 'success');
+  if (v.body === 'Sore' || v.body === 'Hurt' || (v.hurt||[]).length) setTimeout(() => showToast('Take it easy tomorrow: try a Recovery session 🧘', 'success'), 2200);
+}
+function gameCardHTML(p) {
+  const di = dayInfo(p), L = epaLog(p.id)[localDate()] || {}, played = (L.games || []).length, isGame = di.type === 'game';
+  if (!isGame && !played) return `<button class="game-link" onclick="openForm('game')">⚽ Played a game? Log it <b>+${GAME_XP} XP</b></button>`;
+  return `<div class="game-card"><div class="gc-h">⚽ GAME DAY</div>
+    <div class="gc-steps">
+      <button class="${L.pregame?'done':''}" onclick="${L.pregame?'':"openForm('pregame')"}"><b>1</b>${L.pregame?'✓ Ready':'Pre-game check-in'}<span>+${PREGAME_XP} XP</span></button>
+      <button onclick="startLightPrework()"><b>2</b>Light warm-up<span>5-10 min</span></button>
+      <button class="${played?'done':''}" onclick="openForm('game')"><b>3</b>${played ? `✓ ${played} logged` : 'Log the game'}<span>+${GAME_XP} XP</span></button>
+    </div><div class="gc-sub">Tomorrow: Recovery session to bounce back.</div></div>`;
+}
+function startLightPrework() { setDifficulty('limited'); window.scrollTo({top:0,behavior:'smooth'}); showToast('Light session: wake up your feet, save your legs', 'success'); }
 function progXP(p, xp, mode, rounds) {
   const today = localDate();
   addDay(`sfc_xpdays_${p.id}`, today, xp); p.xp = (p.xp||0) + xp;
@@ -3945,6 +4013,8 @@ function submitForm() {
   const v = JSON.parse(JSON.stringify(d.v)), today = localDate();
   if (d.kind === 'journal') { const key = 'wk_' + weekDates(0)[0]; if ((epaLog(p.id)[key]||{}).weekly) return; setEpaLog(p.id, key, 'weekly', v); progXP(p, F.xp, 'weekly', [{weekly:v}]); }
   else if (d.kind === 'film') { if ((epaLog(p.id)[today]||{}).film) return showToast('One game analysis per day'); setEpaLog(p.id, today, 'film', v); progXP(p, F.xp, 'film', [{film:v}]); }
+  else if (d.kind === 'pregame') { if ((epaLog(p.id)[today]||{}).pregame) return; setEpaLog(p.id, today, 'pregame', v); progXP(p, F.xp, 'pregame', [{pregame:v}]); }
+  else if (d.kind === 'game') { return commitGame(p, v); }
   else { const first = !((p.goals||{}).sheet); p.goals = {...(p.goals||{}), sheet:{...v, at:today}}; progXP(p, first ? F.xp : 0, 'goalsheet', [{sheet:v}]); }
   renderHome(); renderProfile();
   showToast(d.kind === 'sheet' ? '🎯 Goals locked in. Your coach will add the standard.' : `+${F.xp} XP · ${F.title.toLowerCase()} saved`, 'success');
