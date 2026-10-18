@@ -135,18 +135,18 @@ textarea{font:inherit;background:var(--bg3);color:var(--text);border:1px solid v
 <div id="app">
   <aside class="side">
     <div class="brand">STREAK<span>FC</span></div><div class="brand-sub">CONSOLE · ADMIN</div><div id="orgHead"></div>
+    <div class="sep adm">① PLATFORM · STREAKFC</div>
     <div class="nav adm" data-v="overview">📊 Overview</div>
     <div class="nav adm" data-v="kids">👟 Kids <span class="n" id="nKids"></span></div>
     <div class="nav adm" data-v="families">🏠 Families <span class="n" id="nFams"></span></div>
     <div class="nav adm" data-v="activity">⚡ Activity</div>
-    <div class="sep adm">CLUB <span class="chip c-teal" style="margin-left:4px">SANDBOX</span></div>
+    <div id="orgNav"></div>
+    <div class="sep adm">DEMOS <span class="chip c-teal" style="margin-left:4px">SANDBOX</span></div>
     <div class="nav adm" data-v="club">🏆 Club</div>
     <div class="nav adm" data-v="teams">👥 Teams</div>
     <div class="nav adm" data-v="coaches">🧢 Coaches</div>
     <div class="nav adm" data-v="seats">🎟 Seats + billing</div>
-    <div class="sep adm">TRAINER <span class="chip c-teal" style="margin-left:4px">SANDBOX</span></div>
-    <div class="nav adm" data-v="trainer">🎯 1:1 Training</div>
-    <div id="orgNav"></div>
+    <div class="nav adm" data-v="trainer">🎯 1:1 Trainer</div>
     <div class="side-foot"><div id="coachFoot" style="margin-bottom:10px;font-size:12px"></div><div class="mode"><span>DATA</span><button class="mode-btn" data-m="live" onclick="setMode('live')">LIVE</button><button class="mode-btn" data-m="sandbox" onclick="setMode('sandbox')">SANDBOX</button></div><div id="who"></div><div style="margin-top:6px"><a href="#" onclick="refresh();return false">Refresh</a> · <a href="#" onclick="signOut();return false">Sign out</a></div><div style="margin-top:6px"><a href="/">Open app</a></div></div>
   </aside>
   <main class="main" id="view"></main>
@@ -292,9 +292,10 @@ function paintOrg() {
   const b = ORG.brand || {};
   $('orgHead').innerHTML = `<div class="cob" style="display:flex">${b.logo ? `<img src="${esc(b.logo)}" alt="">` : `<div class="av">${esc((ORG.short||ORG.name)[0])}</div>`}<div style="min-width:0;flex:1"><b>${esc(ORG.name.toUpperCase())}</b><span>${esc(ROLE_L[myOrgRole()]||'')} · ${esc(ORG_KIND[ORG.kind]||'')}</span>
     ${L.length > 1 ? `<select onchange="switchOrg(this.value)">${L.map(o => `<option value="${o.id}" ${o.id===ORG.id?'selected':''}>${esc(o.name)}</option>`).join('')}</select>` : ''}</div></div>`;
-  $('orgNav').innerHTML = `<div class="sep">${esc((ORG.short||ORG.name).toUpperCase())}</div>
+  $('orgNav').innerHTML = `<div class="sep">${coachView() ? '' : '② '}${esc((ORG_KIND[ORG.kind]||'Academy').toUpperCase())} · ${esc((ORG.short||ORG.name).toUpperCase())}</div>
     <div class="nav" data-v="org" onclick="go('org')">🏠 Home</div>
-    ${(ORG.programs||[]).map(p => `<div class="nav" data-v="${p.id === 'epa' ? 'epa' : 'prog:' + p.id}" onclick="go('${p.id === 'epa' ? 'epa' : 'prog:' + p.id}')">${(KIND[p.kind]||['•'])[0]} ${esc(p.name.replace(/^MSA East /,''))}</div>`).join('')}
+    <div class="legend" style="padding:6px 12px 2px;letter-spacing:1.5px;font-weight:800;font-size:9px">PROGRAMS</div>
+    ${(ORG.programs||[]).map(p => `<div class="nav" style="padding-left:22px" data-v="${p.id === 'epa' ? 'epa' : 'prog:' + p.id}" onclick="go('${p.id === 'epa' ? 'epa' : 'prog:' + p.id}')">${(KIND[p.kind]||['•'])[0]} ${esc(p.name.replace(/^MSA East /,''))}</div>`).join('')}
     <div class="nav" data-v="staff" onclick="go('staff')">🧢 Staff</div>`;
   document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.v === view));
 }
@@ -346,7 +347,7 @@ function vOrg() {
       return `<div class="pcard" onclick="go('${v}')"><div class="ic">${ic}</div><h3>${esc(p.name)}</h3><div class="k">${esc(kl.toUpperCase())}</div>
         <div class="n"><div><b>${p.players}</b><span>ON STREAKFC</span></div>${p.roster ? `<div><b>${p.roster}</b><span>NOT YET</span></div>` : ''}</div>
         <div class="code">Join code <b>${esc(p.code||'-')}</b></div><div class="legend" style="margin-top:6px">${coaches.length ? 'Coaches: ' + esc(coaches.join(', ')) : 'Owner + admins'}</div></div>`; }).join('')}</div>
-    <div class="grid2"><div class="card"><div class="card-h">STAFF ${m ? `<a href="#" class="small" style="color:var(--accent)" onclick="go('staff');return false">Manage</a>` : ''}</div><div class="ppl">${S.staff.map(staffChip).join('')}</div></div>
+    <div class="grid2"><div class="card"><div class="card-h">STAFF ${m ? `<a href="#" class="small" style="color:var(--accent)" onclick="go('staff');return false">Manage</a>` : ''}</div><div class="ppl">${S.staff.map(staffChip).join('') || `<div class="muted small">No staff yet.${m ? ' Invite the owner and coaches from Staff.' : ''}</div>`}</div></div>
     <div class="card"><div class="card-h">WHO SEES WHAT</div>
       <div class="layer"><b>Owner · Co-owner</b><span class="muted">Everything in the academy. Staff, roles, programs.</span></div>
       <div class="layer"><b>Admin</b><span class="muted">Every program and roster. Invites coaches. Can't change owners.</span></div>

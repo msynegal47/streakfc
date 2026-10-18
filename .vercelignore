@@ -1,0 +1,4 @@
+*.sql
+.migrate-all.sql
+scripts/
+ship.sh
