@@ -1063,6 +1063,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .rec-link span{font-size:10px;color:var(--sub);font-weight:700}
 .jg-save{width:100%;margin-top:8px;border:1px solid #22c55e66;background:#22c55e18;color:var(--green);border-radius:10px;padding:9px;font-size:12px;font-weight:900;cursor:pointer}
 .jg-save span{color:var(--sub);font-weight:700;font-size:10px}
+
+.idea-card{background:linear-gradient(135deg,#1a1405,#0f1520);border:1px solid #f59e0b77;border-radius:var(--radius);padding:14px 16px;margin-bottom:12px}
+.idea-row{padding:8px 0;border-top:1px solid var(--border);font-size:13px;line-height:1.4}
+.idea-acts{display:flex;gap:8px;margin-top:8px}
 </style>
 </head>
 <body>
@@ -1143,15 +1147,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 <div class="modal-overlay" id="rewardModal">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title">Set a Reward</div>
+    <div class="modal-title">Set a Challenge</div>
     <div class="modal-sub" id="rewardModalSub">Pick a real reward and how many training days it takes.</div>
     <div class="opt-row" id="rewardPresets"></div>
     <div class="field-lbl">REWARD</div>
     <input class="auth-input" id="rewardName" placeholder="e.g. New cleats" style="margin:6px 0 14px">
-    <div class="field-lbl">TRAINING DAYS TO EARN IT</div>
-    <div class="opt-row" id="rewardDays"></div>
-    <button class="modal-save-btn" onclick="saveReward()">SAVE REWARD</button>
-    <button id="rewardClearBtn" onclick="clearReward()" style="width:100%;background:none;border:none;color:var(--red);font-size:13px;padding:10px;cursor:pointer">Remove reward</button>
+    <div class="field-lbl">THE CHALLENGE</div>
+    <div id="rewardDays"></div>
+    <button class="modal-save-btn" onclick="saveReward()">SET CHALLENGE</button>
+    <button id="rewardClearBtn" onclick="clearReward()" style="width:100%;background:none;border:none;color:var(--red);font-size:13px;padding:10px;cursor:pointer">Remove</button>
     <button onclick="closeModal('rewardModal')" style="width:100%;background:none;border:none;color:var(--sub);font-size:13px;padding:10px;cursor:pointer">Cancel</button>
   </div>
 </div>
@@ -2191,7 +2195,7 @@ function renderParentPortal() {
   const body = document.getElementById('portalBody');
   body.innerHTML = '';
   document.getElementById('portalTitle').textContent = family?.parent_name ? `${family.parent_name.toUpperCase()}'S CREW` : 'YOUR CREW';
-  if (players.length) { body.appendChild(todayStrip()); body.appendChild(weekRecapCard()); }
+  if (players.length) { const ic = ideasCard(); if (ic) body.appendChild(ic); body.appendChild(todayStrip()); body.appendChild(weekRecapCard()); }
   players.forEach(p => {
     const color = p.color || '#4fc3f7', rank = rankOf(p), w = kidWeek(p);
     const card = document.createElement('div');
@@ -3009,69 +3013,90 @@ function openRoad() {
   document.getElementById('roadModal').classList.add('open');
 }
 
-// Rewards (parent-set, real world)
+// Rewards = parent-built challenges. Kids pitch ideas ("what would make you train more?"), parents decide.
 const REWARD_PRESETS = ['New cleats','New ball','Pizza night','Pick dinner','Jersey','Movie night'];
-const REWARD_DAYS = [10,20,30,50];
-let rewardFor = null, rewardDaysSel = 20;
+const CH_DAYS = [5,10,20,30], CH_TOUCHES = [2500,5000,7500,10000];
+let rewardFor = null, chDraft = null;
 function getReward(id) { try { return JSON.parse(localStorage.getItem(`sfc_reward_${id}`)||'null'); } catch(e) { return null; } }
+function rTarget(r) { return r ? (r.target || r.days || 0) : 0; }
+function rKind(r) { return r && r.kind === 'touches' ? 'touches' : 'days'; }
 function rewardProgress(id, r) {
-  const hist = JSON.parse(localStorage.getItem(`sfc_history_${id}`)||'{}');
-  return Object.keys(hist).filter(d => d >= r.start && hist[d] > 0).length;
+  const hist = jget(`sfc_history_${id}`, {}), inR = d => d >= r.start && (!r.end || d <= r.end);
+  return rKind(r) === 'touches' ? Object.keys(hist).filter(inR).reduce((a, d) => a + (hist[d] || 0), 0) : Object.keys(hist).filter(d => inR(d) && hist[d] > 0).length;
 }
+function rEndTxt(r) { if (!r.end) return ''; const t = localDate(); if (t > r.end) return 'ended'; const d = new Date(r.end + 'T12:00:00'); return r.end === t ? 'ends today' : 'by ' + d.toLocaleDateString('en-US', {weekday:'short'}) + (dayDiff(r.end, t) > 6 ? ' ' + (d.getMonth()+1) + '/' + d.getDate() : ''); }
+function rGoalTxt(r) { const n = rTarget(r); return rKind(r) === 'touches' ? `${n.toLocaleString()} touches` : `${n} training day${n === 1 ? '' : 's'}`; }
 function rewardLine(p) {
   const r = getReward(p.id); if (!r) return '';
-  if (!r.days) return r.wish ? `<div style="margin-top:10px;font-size:11px;color:var(--amber);font-weight:700;cursor:pointer" onclick="openRewardModal('${p.id}')">🎁 ${esc(p.name)} wants: ${esc(r.wish)} · <u>SET IT UP</u></div>` : '';
-  const n = Math.min(r.days, rewardProgress(p.id, r));
-  return `<div style="margin-top:10px;font-size:11px;color:var(--amber);font-weight:700">🎁 ${r.name}: ${n}/${r.days} days${n>=r.days?' · EARNED!':''}</div>`;
+  if (!rTarget(r)) return r.wish ? `<div style="margin-top:10px;font-size:11px;color:var(--amber);font-weight:700;cursor:pointer" onclick="openRewardModal('${p.id}')">💡 ${esc(p.name)}'s idea: ${esc(r.wish)} · <u>MAKE IT A CHALLENGE</u></div>` : '';
+  const n = Math.min(rTarget(r), rewardProgress(p.id, r));
+  return `<div style="margin-top:10px;font-size:11px;color:var(--amber);font-weight:700">🎯 ${esc(r.name)}: ${n.toLocaleString()} / ${rGoalTxt(r)}${r.end ? ' · ' + rEndTxt(r) : ''}${n >= rTarget(r) ? ' · EARNED!' : ''}</div>`;
 }
 function renderRewardCard() {
   const p = currentPlayer, r = getReward(p.id), home = document.getElementById('rewardCard'), pick = document.getElementById('rewardPick');
-  if (r && r.days) {
-    const n = Math.min(r.days, rewardProgress(p.id, r));
-    const html = `<div class="reward-top"><div class="reward-name">🎁 ${esc(r.name)}</div><div class="reward-count">${n} / ${r.days} DAYS</div></div>
-      <div class="reward-bar"><div style="width:${n/r.days*100}%"></div></div>
-      <div style="font-size:11px;color:var(--sub);margin-top:6px">${n>=r.days?'You earned it! Go tell your parents 🎉':(r.days-n)+' more training days to earn it'}</div>`;
+  if (r && rTarget(r)) {
+    const T = rTarget(r), n = Math.min(T, rewardProgress(p.id, r)), done = n >= T, end = rEndTxt(r), left = rKind(r) === 'touches' ? `${(T - n).toLocaleString()} more touches` : `${T - n} more training day${T - n === 1 ? '' : 's'}`;
+    const html = `<div class="reward-top"><div class="reward-name">🎯 CHALLENGE · ${esc(r.name)}</div><div class="reward-count">${end ? end.toUpperCase() : ''}</div></div>
+      <div style="font-size:12px;color:var(--text);font-weight:700;margin-bottom:8px">${rGoalTxt(r)}${r.end ? ' ' + (end === 'ended' ? '' : end) : ''} → ${esc(r.name)}</div>
+      <div class="reward-bar"><div style="width:${n/T*100}%"></div></div>
+      <div style="font-size:11px;color:var(--sub);margin-top:6px">${n.toLocaleString()} / ${T.toLocaleString()} · ${done ? 'You did it! Go tell your parents 🎉' : end === 'ended' ? 'Time ran out on this one. Ask for a rematch.' : left + ' to go'}</div>`;
     home.style.display = 'block'; home.innerHTML = html; if (pick) { pick.style.display = 'block'; pick.innerHTML = html; }
     return;
   }
   home.style.display = 'none'; if (!pick) return; pick.style.display = 'block';
-  pick.innerHTML = r && r.wish ? `<div class="reward-top"><div class="reward-name">🎁 ${esc(r.wish)}</div><div class="reward-count">ASKED</div></div>
-      <div style="font-size:12px;color:var(--sub);line-height:1.4">Waiting on a parent to set how many training days it takes. Keep stacking days, they'll count once it's set.</div>
-      <button class="wish-change" onclick="pickWish()">Change my pick</button>`
-    : `<div class="reward-top"><div class="reward-name">🎁 WHAT ARE YOU TRAINING FOR?</div></div>
-    <div style="font-size:12px;color:var(--sub);margin-bottom:8px">Pick one. Your parent sets how many training days it takes.</div>
+  pick.innerHTML = r && r.wish ? `<div class="reward-top"><div class="reward-name">💡 YOUR IDEA: ${esc(r.wish)}</div><div class="reward-count">SENT</div></div>
+      <div style="font-size:12px;color:var(--sub);line-height:1.4">Your parent got it. If they like it, they'll turn it into a challenge and it shows up here.</div>
+      <button class="wish-change" onclick="pickWish()">Change my idea</button>`
+    : `<div class="reward-top"><div class="reward-name">💡 WHAT WOULD MAKE YOU TRAIN MORE?</div></div>
+    <div style="font-size:12px;color:var(--sub);margin-bottom:8px;line-height:1.4">Tap an idea. It goes to your parent, and they decide if it becomes a challenge.</div>
     <div class="wish-row">${REWARD_PRESETS.map(x => `<button class="wish-chip" onclick="saveWish('${x}')">${x}</button>`).join('')}<button class="wish-chip" onclick="pickWish()">✏️ Other</button></div>`;
 }
-function pickWish() { const w = (prompt('What do you want to earn?') || '').trim(); if (w) saveWish(w); }
+function pickWish() { const w = (prompt('What would make you train more?') || '').trim(); if (w) saveWish(w); }
 function saveWish(w) {
   const p = currentPlayer; w = w.slice(0, 40);
   localStorage.setItem(`sfc_reward_${p.id}`, JSON.stringify({wish:w, at:localDate()}));
   const args = {p_token:deviceToken() || null, p_player:p.id, p_wish:w};
   if (deviceToken()) callOrQueue('sfc_player_wish', args); else if (currentUser) rpc('sfc_player_wish', args).catch(() => {});
-  renderRewardCard(); showToast(`🎁 ${w}! Your parent will see it.`, 'success');
+  renderRewardCard(); showToast(`💡 Sent to your parent: ${w}`, 'success');
 }
+// Parent: ideas from the kids, top of the parent view
+function ideasCard() {
+  const kids = players.filter(p => { const r = getReward(p.id); return r && r.wish && !rTarget(r); }); if (!kids.length) return null;
+  const el = document.createElement('div'); el.className = 'idea-card';
+  el.innerHTML = `<div class="q-top"><div class="today-title">💡 IDEAS FROM THE KIDS</div></div>` + kids.map(p => `<div class="idea-row"><div><b>${esc(p.name)}</b> would train more for <b>${esc(getReward(p.id).wish)}</b></div>
+    <div class="idea-acts"><button class="pt-btn" onclick="openRewardModal('${p.id}')">MAKE IT A CHALLENGE</button><button class="pt-btn ghost" onclick="rewardFor='${p.id}';clearReward()">NOT NOW</button></div></div>`).join('');
+  return el;
+}
+function sundayOf(weeks) { const d = new Date(), base = (7 - d.getDay()) % 7, add = (base < 2 ? base + 7 : base) + (weeks - 1) * 7; d.setDate(d.getDate() + add); return localDate(d); }
 function openRewardModal(id) {
   rewardFor = id;
-  const p = players.find(x=>x.id===id), r = getReward(id);
-  document.getElementById('rewardModalSub').textContent = r && r.wish && !r.days ? `${p?p.name:''} asked for: ${r.wish}. Pick how many training days it takes.` : `Reward for ${p?p.name:''}. Counts days they train.`;
-  document.getElementById('rewardName').value = r ? (r.name || r.wish || '') : '';
-  rewardDaysSel = r && r.days ? r.days : 20;
-  document.getElementById('rewardPresets').innerHTML = REWARD_PRESETS.map(x=>`<button class="opt-btn" onclick="document.getElementById('rewardName').value='${x}'">${x}</button>`).join('');
+  const p = players.find(x=>x.id===id), r = getReward(id), live = r && rTarget(r);
+  chDraft = {name: r ? (r.name || r.wish || '') : '', kind: live ? rKind(r) : 'touches', target: live ? rTarget(r) : 7500, due: r && r.end ? 'keep' : live ? 'none' : 'week'};
+  document.getElementById('rewardModalSub').textContent = r && r.wish && !live ? `${p?p.name:''}'s idea: ${r.wish}. Set the challenge that earns it.` : `Challenge for ${p?p.name:''}. They see progress on their home screen.`;
+  document.getElementById('rewardPresets').innerHTML = REWARD_PRESETS.map(x=>`<button class="opt-btn" onclick="chDraft.name='${x}';document.getElementById('rewardName').value='${x}'">${x}</button>`).join('');
+  document.getElementById('rewardName').value = chDraft.name;
   paintRewardDays();
   document.getElementById('rewardClearBtn').style.display = r ? 'block' : 'none';
   document.getElementById('rewardModal').classList.add('open');
 }
 function paintRewardDays() {
-  document.getElementById('rewardDays').innerHTML = REWARD_DAYS.map(d=>`<button class="opt-btn ${d===rewardDaysSel?'sel':''}" onclick="rewardDaysSel=${d};paintRewardDays()">${d} days</button>`).join('');
+  const d = chDraft, opts = d.kind === 'touches' ? CH_TOUCHES : CH_DAYS;
+  if (!opts.includes(d.target)) d.target = d.kind === 'touches' ? 7500 : 10;
+  const b = (on, click, txt) => `<button class="opt-btn ${on?'sel':''}" onclick="${click};paintRewardDays()">${txt}</button>`;
+  document.getElementById('rewardDays').innerHTML = `<div class="opt-row">${b(d.kind==='touches',"chDraft.kind='touches'",'TOUCHES')}${b(d.kind==='days',"chDraft.kind='days'",'TRAINING DAYS')}</div>
+    <div class="field-lbl" style="margin-top:12px">HOW MANY?</div><div class="opt-row" style="flex-wrap:wrap">${opts.map(n => b(d.target===n, `chDraft.target=${n}`, n.toLocaleString())).join('')}</div>
+    <div class="field-lbl" style="margin-top:12px">BY WHEN?</div><div class="opt-row" style="flex-wrap:wrap">${d.due==='keep'?b(1,"chDraft.due='keep'",'KEEP DATE'):''}${b(d.due==='week',"chDraft.due='week'",'BY SUNDAY ' + sundayOf(1).slice(5).replace('-','/'))}${b(d.due==='2wk',"chDraft.due='2wk'",'2 WEEKS')}${b(d.due==='none',"chDraft.due='none'",'NO DEADLINE')}</div>
+    <div class="sk-desc" style="margin-top:8px">${d.kind==='touches'?`Counts every touch logged: sessions, EPA, games, juggles. Their usual week is about ${(expectedTouches(players.find(x=>x.id===rewardFor)||currentPlayer)*5).toLocaleString()}.`:'Counts days they train (any session, EPA, game or juggles).'}</div>`;
 }
 function saveReward() {
-  const name = document.getElementById('rewardName').value.trim();
+  const name = document.getElementById('rewardName').value.trim(), d = chDraft;
   if (!name) { showToast('Name the reward','error'); return; }
-  const old = getReward(rewardFor);
-  const r = {name, days:rewardDaysSel, start: old && old.name===name ? old.start : localDate()};
+  const old = getReward(rewardFor), keep = old && rTarget(old) && old.name === name && old.kind === d.kind;
+  const end = d.due === 'keep' ? (old && old.end) || null : d.due === 'week' ? sundayOf(1) : d.due === '2wk' ? sundayOf(2) : null;
+  const r = {name, kind:d.kind, target:d.target, ...(d.kind === 'days' ? {days:d.target} : {}), start: keep ? old.start : localDate(), ...(end ? {end} : {})};
   localStorage.setItem(`sfc_reward_${rewardFor}`, JSON.stringify(r));
   sb(`sfc_players?id=eq.${rewardFor}`, {method:'PATCH', body:JSON.stringify({reward:r}), prefer:'return=minimal'}).catch(()=>showToast('Saved on this phone only','error'));
-  closeModal('rewardModal'); renderParentPortal(); showToast('Reward set 🎁','success');
+  closeModal('rewardModal'); renderParentPortal(); showToast(`🎯 Challenge set: ${rGoalTxt(r)} → ${name}`,'success');
 }
 function clearReward() {
   localStorage.removeItem(`sfc_reward_${rewardFor}`);
@@ -4033,7 +4058,7 @@ function openKidMenu(id) {
     <div class="menu-list">
       <button onclick="${go(`openLogModal('${id}')`)}">📋 <span>Log a session<small>Trained without the app? Add touches here.</small></span></button>
       <button onclick="${go(`goTrainAs('${id}')`)}">▶ <span>Train as ${p.name}<small>Use this phone for their session.</small></span></button>
-      <button onclick="${go(`openRewardModal('${id}')`)}">🎁 <span>Set a reward<small>Something to earn for training days.</small></span></button>
+      <button onclick="${go(`openRewardModal('${id}')`)}">🎯 <span>Set a challenge<small>e.g. 7,500 touches this week = pizza Friday.</small></span></button>
       <button onclick="${go(`joinProgram('${id}')`)}">🏟 <span>Join a program<small>${progOf(p) ? 'In EPA · manage in Plan &amp; level' : 'Got a code from a coach? Enter it here.'}</small></span></button>
       <button onclick="${go(`openParentSpeed('${id}')`)}">⚡ <span>Speed + agility<small>Personal bests, improvement, log a test you timed.</small></span></button>
       <button onclick="${go(`openPlanModal('${id}')`)}">⚙️ <span>Plan &amp; level<small>${(LEVELS[levelIdx(p)]||'').replace(/^./,c=>c.toUpperCase())} · sizes their daily session.</small></span></button>

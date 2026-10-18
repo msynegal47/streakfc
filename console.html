@@ -183,7 +183,7 @@ const PROGRAMS = {epa:{name:'EPA', brand:{org:'McGhee Soccer Academy', short:'MS
        ['2027-01-18','2027-01-18','MLK Day'],['2027-02-15','2027-02-15','Presidents Day'],['2027-03-15','2027-03-28','Spring Break']]}};
 const FOCUS = {technical:{name:'Technical',ico:'⚽',touches:1200},mixed:{name:'Mixed',ico:'🔀',touches:700},tactical:{name:'Small-sided / tactical',ico:'🧠',touches:500},speed:{name:'Speed + agility',ico:'⚡',touches:200}};
 const FEELS = ['😫','😐','🙂','🔥'];
-const MODE = {speed:'Speed test', film:'Game analysis', goalsheet:'Goal worksheet', goal:'Home session', timed:'Timed test', recovery:'Recovery', parent:'Parent log', epa:'EPA session', checkin:'Check-in', weekly:'Weekly journal', game:'Game', pregame:'Pre-game'};
+const MODE = {speed:'Speed test', film:'Game analysis', goalsheet:'Goal worksheet', goal:'Home session', timed:'Timed test', recovery:'Recovery', parent:'Parent log', epa:'EPA session', checkin:'Check-in', weekly:'Weekly journal', game:'Game', pregame:'Pre-game', mini:'Game Time', juggle:'Juggles'};
 
 let ROLE = 'admin', ROLES = null, asCoach = localStorage.getItem('sfc_as_coach') === '1', showDemo = localStorage.getItem('sfc_show_demo') !== '0', MIXED = null;
 { const m = /invite=([A-Za-z0-9]+)/.exec(location.hash); if (m) { localStorage.setItem('sfc_invite', m[1].toUpperCase()); history.replaceState(null, '', location.pathname); } }
@@ -549,7 +549,12 @@ function progChips(p) { return (p.programs||[]).map(e => `<span class="chip c-te
 function detail(s) {
   const r = (s.rounds||[])[0] || {};
   if (r.epa) { const f = FOCUS[r.epa.focus]; return `${r.epa.coach?`<span class="chip c-sub">${esc(r.epa.coach)}</span>`:''}${f?f.ico+' '+f.name:esc(r.epa.focus)} · effort <b>${r.epa.effort}</b> · ${FEELS[r.epa.feel]||''}${r.epa.note?` · <span class="muted">"${esc(r.epa.note)}"</span>`:''}`; }
-  if (r.ready) return `Ready <b>${r.ready.score}/5</b> <span class="muted">sleep ${r.ready.sleep} · energy ${r.ready.energy} · legs ${r.ready.legs} · mood ${r.ready.mood}</span>`;
+  if (r.ready) { const y = r.ready; if (!y.score) return y.arrive === 2 ? '✅ Arrived (check-in board)' : '🚌 Checked in';
+    return `Ready <b>${y.score}/5</b> <span class="muted">${[y.sleep ? 'sleep ' + y.sleep : '', y.energy ? 'energy ' + y.energy : '', y.body ? 'body ' + esc(y.body) : y.legs ? 'legs ' + y.legs : '', y.mood ? 'mood ' + y.mood : ''].filter(Boolean).join(' · ')}</span>${(y.hurt||[]).length ? ` <span class="chip c-red">SORE: ${y.hurt.map(esc).join(', ').toUpperCase()}</span>` : ''}`; }
+  if (r.game) { const g = r.game; return `⚽ ${esc(g.result && g.result !== 'Skip' ? g.result : 'Game')}${g.opp ? ' vs ' + esc(g.opp) : ''} · <b>${g.rate || '-'}/10</b> · ${esc(g.mins || '')} min · ${esc([].concat(g.pos || []).join('/'))}${(g.hurt||[]).length ? ` <span class="chip c-red">SORE: ${g.hurt.map(esc).join(', ').toUpperCase()}</span>` : ''}${g.well ? `<div class="muted">👍 ${esc(g.well)}${g.work ? ' · 🛠 ' + esc(g.work) : ''}</div>` : ''}`; }
+  if (r.pregame) { const g = r.pregame; return `Energy <b>${g.energy || '-'}/5</b> · ${esc(g.nerves || '')} · body ${esc(g.body || '')}${g.goal ? ` <span class="muted">· "${esc(g.goal)}"</span>` : ''}`; }
+  if (r.mini) { const m = r.mini, N = {bowling:'🎳 Pass bowling', wall:'🧱 Wall tap race', toes:'🦶 Toe tap beat', lights:'🚦 Red light green light'}; return `${N[m.game] || esc(m.game)} · score <b>${m.game === 'toes' ? '⭐'.repeat(m.score || 0) : m.score}</b>${m.pins ? ` <span class="muted">(${m.pins} cones)</span>` : ''}`; }
+  if (r.juggle) return `🎯 ${r.juggle.add} juggles <span class="muted">· ${r.juggle.total} today · best row ${r.juggle.row || '-'}</span>`;
   if (r.weekly && r.weekly.rate) { const w = r.weekly, red = /Stressed|talk/.test(w.mental||'');
     return `${w.followup === 'Yes' ? '<span class="chip c-amber">WANTS FOLLOW-UP</span>' : ''}${red ? `<span class="chip c-red">${esc(w.mental.toUpperCase())}</span>` : ''}${w.hurt && w.hurt.length ? `<span class="chip c-red">SORE: ${w.hurt.map(esc).join(', ').toUpperCase()}</span>` : ''}
       Week <b>${w.rate}/10</b> · effort ${w.effort}/5 · focus ${w.focus}/5${w.improved ? ` · improved <b>${esc(w.improved)}</b>` : ''} · ${esc(w.days)} days own · sleep ${esc(w.sleep)} · energy ${w.energy}/5${red ? '' : ` · ${esc(w.mental||'')}`}
