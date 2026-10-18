@@ -1067,6 +1067,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .idea-card{background:linear-gradient(135deg,#1a1405,#0f1520);border:1px solid #f59e0b77;border-radius:var(--radius);padding:14px 16px;margin-bottom:12px}
 .idea-row{padding:8px 0;border-top:1px solid var(--border);font-size:13px;line-height:1.4}
 .idea-acts{display:flex;gap:8px;margin-top:8px}
+
+.wish-chip.sel{border-color:var(--amber);background:#f59e0b22;color:var(--amber)}
+.wish-other{display:flex;gap:8px;margin-top:10px;align-items:center}.wish-other .auth-input{margin:0;flex:1}.wish-other .pt-btn{flex:none;padding:12px 16px}
 </style>
 </head>
 <body>
@@ -3044,17 +3047,20 @@ function renderRewardCard() {
     return;
   }
   home.style.display = 'none'; if (!pick) return; pick.style.display = 'block';
-  pick.innerHTML = r && r.wish ? `<div class="reward-top"><div class="reward-name">💡 YOUR IDEA: ${esc(r.wish)}</div><div class="reward-count">SENT</div></div>
+  const cur = r && r.wish;
+  pick.innerHTML = cur && !wishEdit ? `<div class="reward-top"><div class="reward-name">💡 YOUR IDEA: ${esc(r.wish)}</div><div class="reward-count">SENT</div></div>
       <div style="font-size:12px;color:var(--sub);line-height:1.4">Your parent got it. If they like it, they'll turn it into a challenge and it shows up here.</div>
-      <button class="wish-change" onclick="pickWish()">Change my idea</button>`
-    : `<div class="reward-top"><div class="reward-name">💡 WHAT WOULD MAKE YOU TRAIN MORE?</div></div>
+      <button class="wish-change" onclick="wishEdit=1;renderRewardCard()">Change my idea</button>`
+    : `<div class="reward-top"><div class="reward-name">💡 WHAT WOULD MAKE YOU TRAIN MORE?</div>${cur ? `<div class="reward-count" style="cursor:pointer" onclick="wishEdit=0;renderRewardCard()">CANCEL</div>` : ''}</div>
     <div style="font-size:12px;color:var(--sub);margin-bottom:8px;line-height:1.4">Tap an idea. It goes to your parent, and they decide if it becomes a challenge.</div>
-    <div class="wish-row">${REWARD_PRESETS.map(x => `<button class="wish-chip" onclick="saveWish('${x}')">${x}</button>`).join('')}<button class="wish-chip" onclick="pickWish()">✏️ Other</button></div>`;
+    <div class="wish-row">${REWARD_PRESETS.map(x => `<button class="wish-chip ${cur === x ? 'sel' : ''}" onclick="saveWish('${x}')">${x}</button>`).join('')}<button class="wish-chip ${wishOther || (cur && !REWARD_PRESETS.includes(cur)) ? 'sel' : ''}" onclick="wishOther=1;renderRewardCard()">✏️ Other</button></div>
+    ${wishOther || (cur && !REWARD_PRESETS.includes(cur)) ? `<div class="wish-other"><input class="auth-input" id="wishText" maxlength="40" placeholder="Type your idea" value="${cur && !REWARD_PRESETS.includes(cur) ? esc(cur) : ''}" onkeydown="if(event.key==='Enter')pickWish()"><button class="pt-btn" onclick="pickWish()">SEND</button></div>` : ''}`;
 }
-function pickWish() { const w = (prompt('What would make you train more?') || '').trim(); if (w) saveWish(w); }
+let wishEdit = 0, wishOther = 0;
+function pickWish() { const el = document.getElementById('wishText'), w = (el ? el.value : '').trim(); if (!w) return showToast('Type your idea first', 'error'); saveWish(w); }
 function saveWish(w) {
   const p = currentPlayer; w = w.slice(0, 40);
-  localStorage.setItem(`sfc_reward_${p.id}`, JSON.stringify({wish:w, at:localDate()}));
+  localStorage.setItem(`sfc_reward_${p.id}`, JSON.stringify({wish:w, at:localDate()})); wishEdit = 0; wishOther = 0;
   const args = {p_token:deviceToken() || null, p_player:p.id, p_wish:w};
   if (deviceToken()) callOrQueue('sfc_player_wish', args); else if (currentUser) rpc('sfc_player_wish', args).catch(() => {});
   renderRewardCard(); showToast(`💡 Sent to your parent: ${w}`, 'success');
