@@ -605,7 +605,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 
 /* Clear the fixed bottom nav on every tab (must come after the per-screen padding rules) */
 #screen-home{padding:0}
-#screen-home,#screen-profile,#screen-skills,#screen-crew{
+#screen-home,#screen-teams,#screen-profile,#screen-skills,#screen-crew{
   padding-bottom:calc(84px + env(safe-area-inset-bottom,0px));
   -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
 }
@@ -936,6 +936,66 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .xpb{display:grid;grid-template-columns:1fr auto;gap:4px 14px;font-size:13px;margin:10px auto 0;max-width:260px;text-align:left}
 .xpb span{color:var(--sub)}.xpb b{text-align:right}
 .rankups{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.35);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:13px;font-weight:800}
+
+/* ── HOME v2: snapshot, my week, program row, compact quests, wish ── */
+.home-avatar{cursor:pointer;position:relative}
+.home-avatar svg{width:46px;height:46px}
+.home-avatar.av-locked{border:2px dashed #4b5563;overflow:visible}
+.av-day{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:900;letter-spacing:.5px;background:var(--accent);color:#fff;border-radius:6px;padding:1px 5px;white-space:nowrap}
+.home-tease{font-size:11px;color:var(--sub);margin-top:5px;cursor:pointer;line-height:1.35}
+.home-tease b{color:var(--accent)}
+.snap-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.snap{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:8px 4px;text-align:center;min-width:0}
+.snap b{display:block;font-size:14px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.snap span{display:block;font-size:8px;letter-spacing:.8px;color:var(--sub);font-weight:800;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.snap.hot{border-color:#f9731688}.snap.hot b{color:var(--accent)}
+.snap.ok{border-color:#22c55e66}.snap.ok b{color:var(--green)}
+.snap.next{cursor:pointer;border-style:dashed}.snap.next b{font-size:11px;line-height:17px}
+.myweek-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 12px}
+.mw-hint{font-size:10px;color:var(--sub);font-weight:700}
+.mw-row{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.mw-day{background:none;border:0;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--text);min-width:0}
+.mw-l{font-size:10px;font-weight:900;color:var(--sub)}
+.mw-day.today .mw-l{color:var(--accent)}
+.mw-c{width:34px;height:34px;border-radius:50%;border:2px solid #2a3a55;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:var(--green);background:var(--bg3)}
+.mw-c.p{border-color:#3b82f6;background:#3b82f622}
+.mw-c.g{border-color:#facc15;background:#facc1522}
+.mw-day.today .mw-c{outline:2px solid var(--accent);outline-offset:6px}
+.mw-day.past .mw-c{opacity:.75}
+.mw-t{font-size:8px;font-weight:900;letter-spacing:.3px;color:var(--sub);min-height:10px;text-align:center;line-height:1.1}
+.mw-legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:12px;font-size:10px;color:var(--sub);font-weight:700}
+.mw-legend span{display:flex;align-items:center;gap:5px}
+.mw-k{width:10px;height:10px;border-radius:50%;display:inline-block;border:2px solid}
+.mw-k.p{border-color:#3b82f6;background:#3b82f633}.mw-k.g{border-color:#facc15;background:#facc1533}
+.prog-today{background:linear-gradient(135deg,#06201f,#0f1520);border:1px solid;border-radius:var(--radius);padding:12px 14px}
+.pt-top{display:flex;justify-content:space-between;align-items:center}
+.pt-h{font-size:13px;font-weight:900;letter-spacing:1px;display:flex;align-items:center;gap:6px}
+.pt-sub{font-size:10px;color:var(--sub);font-weight:700;margin-top:2px}
+.pt-more{font-size:11px;font-weight:900;color:var(--accent);cursor:pointer}
+.pt-acts{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap}
+.pt-btn{flex:1;border:0;border-radius:10px;padding:10px 8px;font-size:12px;font-weight:900;background:var(--accent);color:#fff;cursor:pointer;white-space:nowrap}
+.pt-btn.ghost{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.pt-done{font-size:12px;font-weight:800;color:var(--green)}
+.jg-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.jg-cell{display:flex;flex-direction:column;gap:6px}
+.jg-lbl{font-size:9px;font-weight:900;letter-spacing:.8px;color:var(--sub);display:flex;justify-content:space-between;gap:4px}
+.jg-cell .juggle-input{width:100%;box-sizing:border-box;padding:6px 8px;font-size:16px}
+.qt-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.qt{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:10px 4px;text-align:center}
+.qt.done{border-color:var(--green)}
+.qt-ring{width:44px;height:44px;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center}
+.qt-ring>div{width:36px;height:36px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900}
+.qt.done .qt-ring>div{color:var(--green)}
+.qt-txt{font-size:11px;font-weight:800;margin-top:6px;line-height:1.2}
+.qt-xp{font-size:11px;font-weight:900;color:var(--accent);margin-top:2px}
+.qt.done .qt-xp{color:var(--green)}
+.wish-row{display:flex;flex-wrap:wrap;gap:6px}
+.wish-chip{background:var(--bg3);border:1px solid #f59e0b55;color:var(--text);border-radius:20px;padding:7px 12px;font-size:12px;font-weight:800;cursor:pointer}
+.wish-change{background:none;border:0;color:var(--amber);font-size:11px;font-weight:800;padding:8px 0 0;cursor:pointer;text-decoration:underline}
+.start-bottom{margin-top:4px}
+.crew-tabs{display:flex;gap:6px;margin-bottom:10px}
+.crew-tabs button{flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:var(--bg2);color:var(--sub);font-size:11px;font-weight:900;letter-spacing:1px;cursor:pointer}
+.crew-tabs button.sel{color:#fff;border-color:var(--tabc,var(--accent));background:color-mix(in srgb,var(--tabc,var(--accent)) 25%,var(--bg2))}
 </style>
 </head>
 <body>
@@ -1230,25 +1290,21 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
     <!-- HOME -->
     <div class="app-screen active" id="screen-home">
       <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
-        <!-- Hero -->
+        <!-- Hero: avatar next to name, snapshot chips -->
         <div class="home-hero">
           <div class="home-avatar" id="homeAvatar"></div>
           <div class="home-hero-info">
             <div class="home-date" id="homeSubLabel"></div>
             <div class="home-name" id="homePlayerName"></div>
-            <div class="home-streak" id="homeStreakBadge"></div>
             <div class="home-title" id="homeTitle" style="display:none"></div>
+            <div class="home-tease" id="homeTease" style="display:none"></div>
           </div>
         </div>
-        <!-- Rank -->
-        <div class="season-card" id="seasonCard"></div>
-        <!-- Reward progress (parent-set) -->
-        <div class="reward-card" id="rewardCard" style="display:none"></div>
-        <!-- Unlock road -->
-        <div class="unlock-card" id="unlockCard"></div>
-        <!-- Daily quests -->
-        <div class="quest-card epa-card" id="epaCard" style="display:none"></div>
-        <div class="quest-card" id="questCard"></div>
+        <div class="snap-row" id="snapRow"></div>
+        <!-- My Week: tap a day for team practice / game -->
+        <div class="myweek-card" id="myWeek"></div>
+        <!-- Program today (EPA day etc.), full cards live in TEAMS -->
+        <div id="progToday"></div>
         <!-- TODAY: session launcher -->
         <div class="today-card" id="todayCard">
           <div class="today-top"><div class="today-title">TODAY</div><div class="today-daytype" id="todayDayType"></div></div>
@@ -1265,22 +1321,33 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
           </div>
           <button class="start-btn" onclick="startSession()"><b id="startLbl">▶ START</b><span id="startSub"></span></button>
           <button class="rec-link" onclick="startRecovery()">🌙 Recovery day instead · ~8 min, keeps the streak</button>
-        </div>
-        <!-- Juggle -->
-        <div class="juggle-card" style="flex-direction:column;align-items:stretch;gap:10px;margin-bottom:12px">
-          <div style="display:flex;align-items:center;gap:12px">
-            <div class="juggle-icon">🎯</div>
-            <div class="juggle-label">Total juggles today<br><span id="juggleMinLbl" style="font-size:11px">Daily minimum: 150</span></div>
-            <input class="juggle-input" id="juggleToday" type="number" inputmode="numeric" placeholder="0" min="0" oninput="saveWip();updateJuggleBar()">
-          </div>
-          <div class="touch-bar"><div class="touch-bar-fill" id="juggleBar" style="width:0%;background:linear-gradient(90deg,#22c55e,#86efac)"></div></div>
-          <div style="display:flex;align-items:center;gap:12px">
-            <div class="juggle-icon">🔥</div>
-            <div class="juggle-label">Best in a row today</div>
-            <input class="juggle-input" id="juggleStreak" type="number" inputmode="numeric" placeholder="0" min="0" oninput="saveWip()">
-            <div class="juggle-pb-badge" id="jugglePbBadge">PB: --</div>
+          <!-- Juggles (folded in) -->
+          <div class="jg-row">
+            <div class="jg-cell"><div class="jg-lbl">🎯 JUGGLES TODAY <span id="juggleMinLbl">0 / 150</span></div>
+              <input class="juggle-input" id="juggleToday" type="number" inputmode="numeric" placeholder="0" min="0" oninput="saveWip();updateJuggleBar()">
+              <div class="touch-bar"><div class="touch-bar-fill" id="juggleBar" style="width:0%;background:linear-gradient(90deg,#22c55e,#86efac)"></div></div></div>
+            <div class="jg-cell"><div class="jg-lbl">🔥 BEST IN A ROW <span id="jugglePbBadge">PB: --</span></div>
+              <input class="juggle-input" id="juggleStreak" type="number" inputmode="numeric" placeholder="0" min="0" oninput="saveWip()"></div>
           </div>
         </div>
+        <!-- Daily quests (compact) -->
+        <div class="quest-card" id="questCard"></div>
+        <!-- Reward (parent-set) or wish nudge -->
+        <div class="reward-card" id="rewardCard" style="display:none"></div>
+        <!-- Rank -->
+        <div class="season-card" id="seasonCard"></div>
+        <!-- Unlock road -->
+        <div class="unlock-card" id="unlockCard"></div>
+        <button class="start-btn start-bottom" onclick="playToday()"><b id="startLbl2">▶ START TODAY'S SESSION</b></button>
+      </div>
+    </div>
+
+    <!-- TEAMS -->
+    <div class="app-screen" id="screen-teams">
+      <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+        <div class="quest-card epa-card" id="epaCard" style="display:none"></div>
+        <div class="badges-card" id="coachesCard" style="display:none"></div>
+        <div class="crew-empty" id="teamsEmpty" style="display:none">No teams yet. A parent can add a program code from a coach in the parent view.</div>
       </div>
     </div>
 
@@ -1304,7 +1371,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
         <div class="week-chart" id="weekBars"></div>
         <div class="week-labels" id="weekLabels" style="display:flex;margin-top:6px"></div>
       </div>
-      <div class="badges-card" id="coachesCard" style="display:none"></div>
       <div class="badges-card" id="goalsCard" style="display:none"></div>
       <div class="badges-card" id="speedCard"></div>
       <div class="badges-card" id="trophyCard"></div>
@@ -1332,6 +1398,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
           <path d="M3 9.5L11 3l8 6.5V19a1 1 0 01-1 1H6a1 1 0 01-1-1V9.5z" stroke="#4a6080" stroke-width="1.5" stroke-linejoin="round"/>
         </svg>
         <span>HOME</span>
+      </button>
+      <button class="nav-btn" id="nav-teams" onclick="switchTab('teams')" style="display:none">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M11 2.5l7 2.5v5.5c0 4.3-3 7.6-7 9-4-1.4-7-4.7-7-9V5l7-2.5z" stroke="#4a6080" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        <span>TEAMS</span>
       </button>
       <button class="nav-btn" id="nav-profile" onclick="switchTab('profile')">
         <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
@@ -2240,12 +2312,12 @@ function renderHome() {
   const colors = {};
   const color = p.color || colors[p.id] || '#4fc3f7';
 
-  paintAvatar(document.getElementById('homeAvatar'), p, color);
+  paintHomeAvatar(p, color);
   renderUnlocks();
   renderRewardCard();
-  renderEPA();
+  renderEPA(); renderCoaches(); renderTeamsNav();
+  renderSnap(p); renderMyWeek(); renderProgToday();
   document.getElementById('homePlayerName').textContent = p.name.toUpperCase();
-  { const w = weekInfo(p); document.getElementById('homeStreakBadge').textContent = `🔥 ${liveStreak(p)} DAY · 📅 ${Math.min(w.days, 7)}/${WEEK_DAYS_GOAL} THIS WEEK${w.streak ? ` · ${w.streak}-WK STREAK` : ''}`; }
   { const t = activeTitle(p), el = document.getElementById('homeTitle'); el.textContent = t; el.style.display = t ? 'inline-block' : 'none'; }
   document.getElementById('homeSubLabel').textContent = getTodayLabel();
 
@@ -2262,6 +2334,89 @@ function renderHome() {
   renderToday();
   renderQuests();
   renderSeasonCard();
+}
+// Hero avatar: real kit once unlocked, locked kit teaser before that
+function paintHomeAvatar(p, color) {
+  const el = document.getElementById('homeAvatar'), t = document.getElementById('homeTease'), u = UNLOCKS.find(x => x.id === 'avatar');
+  if (hasUnlock(p.id, 'avatar') || !u) { el.classList.remove('av-locked'); paintAvatar(el, p, color); el.onclick = () => openAvatarEditor(); t.style.display = 'none'; return; }
+  el.classList.add('av-wrap', 'av-locked'); el.style.background = '#0b1220';
+  el.innerHTML = jerseySVG({primary:color, trim:'#fff', number:''}, true) + `<div class="av-day">DAY ${u.at}</div>`;
+  el.onclick = () => openRoad();
+  t.style.display = 'block'; t.innerHTML = `🔒 Your avatar unlocks at a ${u.at}-day streak · <b>${uLeft(p, u)}</b>`;
+  t.onclick = () => openRoad();
+}
+// Snapshot chips under the name
+function renderSnap(p) {
+  const w = weekInfo(p), st = liveStreak(p), nx = nextUnlocks(p, 1)[0];
+  const chip = (cls, big, small, click) => `<div class="snap ${cls}" ${click ? `onclick="${click}"` : ''}><b>${big}</b><span>${small}</span></div>`;
+  document.getElementById('snapRow').innerHTML =
+    chip(st ? 'hot' : '', `🔥 ${st}`, 'DAY STREAK') +
+    chip(w.days >= WEEK_DAYS_GOAL ? 'ok' : '', `📅 ${Math.min(w.days, 7)}/${WEEK_DAYS_GOAL}`, 'THIS WEEK') +
+    chip(w.streak ? 'ok' : '', `🗓 ${w.streak}`, 'WK STREAK') +
+(nx ? chip('next', '🔓 NEXT', nx.mystery ? '???' : uName(nx), 'openRoad()') : '');
+}
+
+// ─── MY WEEK: tap a day = practice (repeats weekly) → game (this date) → clear ───
+function schedOn(p, d) {
+  const sch = p.schedule || {}, o = (sch.dates || {})[d], wd = wdOf(d);
+  if (o) return o === 'off' ? '' : o;
+  if ((sch.game || []).includes(wd)) return 'g';
+  if ((sch.practice || []).includes(wd)) return 'p';
+  return '';
+}
+const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+function progDaysOn(p, d) {   // programs on this date: [{label, color}]
+  const out = [], O = p.orgs || {}, col = id => ((O[id] || {}).brand || {}).accent;
+  const es = epaState(p, d); if (es && es.kind === 'day') out.push({id:'epa', label:'EPA', color:col('epa') || '#2dd4bf'});
+  (p.days || []).forEach(x => { if (x.day === d && x.program !== 'epa' && !out.some(o => o.id === x.program)) out.push({id:x.program, label:((O[x.program] || {}).program || x.program).split(' ').pop().toUpperCase().slice(0, 6), color:col(x.program) || '#a78bfa'}); });
+  return out;
+}
+function renderMyWeek() {
+  const p = currentPlayer, el = document.getElementById('myWeek'); if (!p || !el) return;
+  const wk = weekDates(0), today = localDate(), T = trainDays(p), progs = new Set();
+  const cells = wk.map((d, i) => {
+    const k = schedOn(p, d), pr = progDaysOn(p, d), done = T.has(d); pr.forEach(x => progs.add(JSON.stringify([x.label, x.color])));
+    const ring = pr[0] ? `box-shadow:0 0 0 3px var(--bg2),0 0 0 5px ${pr[0].color};` : '';
+    const lbl = [k === 'g' ? 'GAME' : k === 'p' ? 'PRAC' : '', ...pr.map(x => x.label)].filter(Boolean).join(' · ');
+    return `<button class="mw-day ${d === today ? 'today' : ''} ${d < today ? 'past' : ''}" onclick="cycleDay('${d}')">
+      <div class="mw-l">${'MTWTFSS'[i]}</div>
+      <div class="mw-c ${k}" style="${ring}">${done ? '✓' : k === 'g' ? '⚽' : k === 'p' ? '🏃' : ''}</div>
+      <div class="mw-t">${lbl}</div></button>`; }).join('');
+  const legend = [`<span><i class="mw-k p"></i>Practice</span>`, `<span><i class="mw-k g"></i>Game</span>`,
+    ...[...progs].map(j => { const [l, c] = JSON.parse(j); return `<span><i class="mw-k" style="background:none;box-shadow:0 0 0 2px ${c}"></i>${l}</span>`; }), `<span>✓ Trained</span>`].join('');
+  el.innerHTML = `<div class="q-top"><div class="today-title">MY WEEK</div><div class="mw-hint">Tap a day: practice → game → clear</div></div><div class="mw-row">${cells}</div><div class="mw-legend">${legend}</div>`;
+}
+function cycleDay(d) {
+  const p = currentPlayer; if (!p) return;
+  const sch = p.schedule = {practice:[...((p.schedule || {}).practice || [])], game:[...((p.schedule || {}).game || [])], dates:{...((p.schedule || {}).dates || {})}};
+  const cur = schedOn(p, d), wd = wdOf(d), drop = (a, v) => { const i = a.indexOf(v); if (i >= 0) a.splice(i, 1); };
+  let msg;
+  if (cur === '') { delete sch.dates[d]; drop(sch.game, wd); if (!sch.practice.includes(wd)) sch.practice.push(wd); sch.practice.sort();
+    if (schedOn(p, d) !== 'p') sch.dates[d] = 'p'; msg = `🏃 Team practice every ${DAY_NAMES[wd]}`; }
+  else if (cur === 'p') { sch.dates[d] = 'g'; msg = `⚽ Game ${DAY_NAMES[wd]}. Tap again to clear.`; }
+  else { delete sch.dates[d]; drop(sch.practice, wd); drop(sch.game, wd); msg = `Cleared ${DAY_NAMES[wd]}`; }
+  // prune old overrides
+  const cut = localDate(new Date(Date.now() - 14 * 864e5)); Object.keys(sch.dates).forEach(k => { if (k < cut) delete sch.dates[k]; });
+  localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p)); try { localStorage.setItem('sfc_player', JSON.stringify(p)); } catch(e) {}
+  showToast(msg, 'success'); renderMyWeek(); renderToday();
+  const args = {p_token:deviceToken() || null, p_player:p.id, p_schedule:sch};
+  if (deviceToken()) callOrQueue('sfc_player_schedule', args); else if (currentUser) rpc('sfc_player_schedule', args).catch(() => {});
+}
+// Program day on Home: one slim row, the full card lives in TEAMS
+function renderProgToday() {
+  const p = currentPlayer, el = document.getElementById('progToday'); if (!p || !el) return;
+  const today = localDate(), pr = progDaysOn(p, today), es = epaState(p), L = epaLog(p.id), T = L[today] || {}, miss = es && es.kind !== 'offseason' ? missedEpa(p)[0] : null;
+  if (!pr.length && !miss) { el.innerHTML = ''; return; }
+  const epa = pr.find(x => x.id === 'epa'), c = (pr[0] || {color:'#2dd4bf'}).color;
+  const acts = epa ? (T.epa ? `<span class="pt-done">✓ EPA logged</span>` : `${T.ready ? '<span class="pt-done">✓ Checked in</span>' : `<button class="pt-btn ghost" onclick="openCheckin()">🚌 CHECK IN</button>`}<button class="pt-btn" onclick="openEpaLog()">🏟 LOG EPA +${EPA_XP}</button>`) : '';
+  el.innerHTML = `<div class="prog-today" style="border-color:${c}88">
+    ${pr.length ? `<div class="pt-top"><div><div class="pt-h" style="color:${c}">${epa ? '<img class="epa-crest" src="/brand/msa-shield.png" alt="">' : '🏟'} ${pr.map(x => x.label).join(' + ')} TODAY</div><div class="pt-sub">${epa ? 'MSA East · ' + PROGRAMS.epa.mins + ' min' : ''}</div></div><a class="pt-more" onclick="switchTab('teams')">TEAMS ›</a></div><div class="pt-acts">${acts}</div>` : ''}
+    ${miss ? `<button class="pt-btn ghost" style="width:100%;margin-top:${pr.length ? 8 : 0}px" onclick="openEpaLog('${miss}')">⏪ Forgot ${DAY_NAMES[wdOf(miss)]}'s EPA? Log it +${EPA_XP} XP</button>` : ''}</div>`;
+}
+function renderTeamsNav() {
+  const p = currentPlayer, on = !!(p && (p.programs || []).length);
+  const n = document.getElementById('nav-teams'); if (n) n.style.display = on ? '' : 'none';
+  const e = document.getElementById('teamsEmpty'); if (e) e.style.display = on ? 'none' : 'block';
 }
 
 function getTodayLabel() {
@@ -2535,6 +2690,35 @@ function renderSkillsList() {
 
 // ─── CREW (sibling leaderboard) ───────────────────────
 let crewMode = 'week';
+// Crew tabs: my crew + one board per program (MSA EPA etc.)
+let crewScope = 'crew', BOARD = {};
+function progLabel(p, id) { const o = (p.orgs || {})[id] || {}; return `${o.short ? o.short + ' ' : ''}${id === 'epa' ? 'EPA' : (o.program || id).replace(/^MSA · /, '')}`.toUpperCase(); }
+function crewTabs() {
+  const p = currentPlayer, progs = (p?.programs || []).filter(e => e && e.id); if (!progs.length) return '';
+  return `<div class="crew-tabs"><button class="${crewScope === 'crew' ? 'sel' : ''}" onclick="crewScope='crew';renderCrew()">MY CREW</button>${progs.map(e => { const c = (((p.orgs || {})[e.id] || {}).brand || {}).accent || '#2dd4bf';
+    return `<button class="${crewScope === e.id ? 'sel' : ''}" style="--tabc:${c}" onclick="crewScope='${e.id}';renderCrew()">${esc(progLabel(p, e.id))}</button>`; }).join('')}</div>`;
+}
+async function loadBoard(prog) {
+  const p = currentPlayer, ss = seasonOf(); if (!p || (!deviceToken() && !currentUser)) return;
+  BOARD[prog] = {...(BOARD[prog] || {rows:[]}), at:Date.now()};
+  try { const rows = await rpc('sfc_program_board', {p_token:deviceToken() || null, p_player:p.id, p_program:prog, p_week:weekDates(0)[0], p_since:ss.start && ss.start > localDate(new Date(Date.now() - 119 * 864e5)) ? ss.start : weekDates(0)[0]});
+    BOARD[prog] = {at:Date.now(), rows:rows || [], ok:true}; if (crewScope === prog) renderCrew(); }
+  catch(e) { BOARD[prog] = {at:Date.now(), rows:[], err:e.message}; if (crewScope === prog) renderCrew(); }
+}
+function renderBoard(tabs) {
+  const list = document.getElementById('crewList'), prog = crewScope, B = BOARD[prog], wk = crewMode === 'week', ss = seasonOf();
+  if (!B || Date.now() - B.at > 60e3) loadBoard(prog);
+  const live = r => (r.last_log && r.last_log >= yesterdayStr()) ? (r.streak || 0) : 0;
+  const rows = (B ? B.rows : []).map(r => ({...r, score: wk ? r.week_xp : r.season_xp})).sort((a, b) => b.score - a.score);
+  list.innerHTML = tabs + `<div class="crew-toggle"><button class="${wk?'sel':''}" onclick="crewMode='week';renderCrew()">THIS WEEK</button><button class="${wk?'':'sel'}" onclick="crewMode='season';renderCrew()">${ss.n ? 'SEASON '+ss.n : 'PRESEASON'}</button></div>
+    <div style="font-size:11px;color:var(--sub);margin:-2px 0 12px">Everyone in ${esc(progLabel(currentPlayer, prog))} · nicknames only${wk ? ' · resets Monday' : ''}</div>` +
+    (!B || (!B.ok && !B.err) ? '<div class="crew-empty">Loading…</div>' : B.err ? '<div class="crew-empty">Board needs internet. Try again in a bit.</div>' : !rows.length ? '<div class="crew-empty">No one on the board yet.</div>' :
+    rows.map((r, i) => `<div class="crew-card" style="margin-bottom:10px;${r.me ? `border-color:${r.color || '#4fc3f7'}` : ''}">
+      <div style="width:18px;color:var(--sub);font-weight:800">${i === 0 && r.score > 0 ? '👑' : i + 1}</div>
+      <div class="crew-avatar" style="background:${r.has_avatar && r.avatar ? '#0b1220' : (r.color || '#4fc3f7')}">${r.has_avatar && r.avatar ? jerseySVG(kitCfg(r.avatar)) : esc((r.nickname || '?')[0].toUpperCase())}</div>
+      <div><div class="crew-name">${esc(r.nickname)}${r.me ? ' <span class="bot-tag" style="background:var(--accent);color:#fff">YOU</span>' : ''}</div><div class="crew-rank">${seasonRank(r.season_xp || 0).name} · ${(r.score || 0).toLocaleString()} XP${wk ? ' this week' : ''}</div></div>
+      <div class="crew-streak">🔥${live(r)}</div></div>`).join(''));
+}
 function renderCrew() {
   const list = document.getElementById('crewList');
   const empty = document.getElementById('crewEmpty');
@@ -2546,7 +2730,9 @@ function renderCrew() {
   roster = roster.concat(paceBots().map(b => ({...b, score: b.rate*(wk ? dayIdxThisWeek()+1 : sDay)})));
   roster.sort((a,b)=>b.score-a.score);
   empty.style.display = 'none';
-  list.innerHTML = `<div class="crew-toggle"><button class="${wk?'sel':''}" onclick="crewMode='week';renderCrew()">THIS WEEK</button><button class="${wk?'':'sel'}" onclick="crewMode='season';renderCrew()">${ss.n ? 'SEASON '+ss.n : 'PRESEASON'}</button></div>${ups.map(u=>`<div class="rankups">⬆ ${u.p.name} made <span style="color:${u.r.color}">${u.r.name}</span> today</div>`).join('')}
+  const tabs = crewTabs();
+  if (crewScope !== 'crew' && (currentPlayer?.programs || []).some(e => e.id === crewScope)) return renderBoard(tabs);
+  list.innerHTML = tabs + `<div class="crew-toggle"><button class="${wk?'sel':''}" onclick="crewMode='week';renderCrew()">THIS WEEK</button><button class="${wk?'':'sel'}" onclick="crewMode='season';renderCrew()">${ss.n ? 'SEASON '+ss.n : 'PRESEASON'}</button></div>${ups.map(u=>`<div class="rankups">⬆ ${u.p.name} made <span style="color:${u.r.color}">${u.r.name}</span> today</div>`).join('')}
     <div style="font-size:11px;color:var(--sub);margin:-2px 0 12px">${wk ? `Weekly XP · resets Monday${left?` · ${left} day${left===1?'':'s'} left`:' · last day!'} ` : ''}🤖 Pace bots train the same amount every day.</div>`;
   const colors = {};
   roster.forEach((p,i) => {
@@ -2573,7 +2759,7 @@ function renderCrew() {
 
 // ─── NAV ──────────────────────────────────────────────
 function switchTab(tab) {
-  ['home','profile','skills','crew'].forEach(t => {
+  ['home','teams','profile','skills','crew'].forEach(t => {
     document.getElementById(`screen-${t}`).classList.toggle('active', t===tab);
     document.getElementById(`nav-${t}`).classList.toggle('active', t===tab);
     const navEl = document.getElementById(`nav-${t}`);
@@ -2743,24 +2929,44 @@ function rewardProgress(id, r) {
 }
 function rewardLine(p) {
   const r = getReward(p.id); if (!r) return '';
+  if (!r.days) return r.wish ? `<div style="margin-top:10px;font-size:11px;color:var(--amber);font-weight:700;cursor:pointer" onclick="openRewardModal('${p.id}')">🎁 ${esc(p.name)} wants: ${esc(r.wish)} · <u>SET IT UP</u></div>` : '';
   const n = Math.min(r.days, rewardProgress(p.id, r));
   return `<div style="margin-top:10px;font-size:11px;color:var(--amber);font-weight:700">🎁 ${r.name}: ${n}/${r.days} days${n>=r.days?' · EARNED!':''}</div>`;
 }
 function renderRewardCard() {
-  const el = document.getElementById('rewardCard'), r = getReward(currentPlayer.id);
-  if (!r) { el.style.display = 'none'; return; }
-  const n = Math.min(r.days, rewardProgress(currentPlayer.id, r));
+  const el = document.getElementById('rewardCard'), p = currentPlayer, r = getReward(p.id);
   el.style.display = 'block';
-  el.innerHTML = `<div class="reward-top"><div class="reward-name">🎁 ${r.name}</div><div class="reward-count">${n} / ${r.days} DAYS</div></div>
-    <div class="reward-bar"><div style="width:${n/r.days*100}%"></div></div>
-    <div style="font-size:11px;color:var(--sub);margin-top:6px">${n>=r.days?'You earned it! Go tell your parents 🎉':(r.days-n)+' more training days to earn it'}</div>`;
+  if (r && r.days) {
+    const n = Math.min(r.days, rewardProgress(p.id, r));
+    el.innerHTML = `<div class="reward-top"><div class="reward-name">🎁 ${esc(r.name)}</div><div class="reward-count">${n} / ${r.days} DAYS</div></div>
+      <div class="reward-bar"><div style="width:${n/r.days*100}%"></div></div>
+      <div style="font-size:11px;color:var(--sub);margin-top:6px">${n>=r.days?'You earned it! Go tell your parents 🎉':(r.days-n)+' more training days to earn it'}</div>`;
+    return;
+  }
+  if (r && r.wish) {
+    el.innerHTML = `<div class="reward-top"><div class="reward-name">🎁 ${esc(r.wish)}</div><div class="reward-count">ASKED</div></div>
+      <div style="font-size:12px;color:var(--sub);line-height:1.4">Waiting on a parent to set how many training days it takes. Keep stacking days, they'll count once it's set.</div>
+      <button class="wish-change" onclick="pickWish()">Change my pick</button>`;
+    return;
+  }
+  el.innerHTML = `<div class="reward-top"><div class="reward-name">🎁 WHAT ARE YOU TRAINING FOR?</div></div>
+    <div style="font-size:12px;color:var(--sub);margin-bottom:8px">Pick one. Your parent sets how many training days it takes.</div>
+    <div class="wish-row">${REWARD_PRESETS.map(x => `<button class="wish-chip" onclick="saveWish('${x}')">${x}</button>`).join('')}<button class="wish-chip" onclick="pickWish()">✏️ Other</button></div>`;
+}
+function pickWish() { const w = (prompt('What do you want to earn?') || '').trim(); if (w) saveWish(w); }
+function saveWish(w) {
+  const p = currentPlayer; w = w.slice(0, 40);
+  localStorage.setItem(`sfc_reward_${p.id}`, JSON.stringify({wish:w, at:localDate()}));
+  const args = {p_token:deviceToken() || null, p_player:p.id, p_wish:w};
+  if (deviceToken()) callOrQueue('sfc_player_wish', args); else if (currentUser) rpc('sfc_player_wish', args).catch(() => {});
+  renderRewardCard(); showToast(`🎁 ${w}! Your parent will see it.`, 'success');
 }
 function openRewardModal(id) {
   rewardFor = id;
   const p = players.find(x=>x.id===id), r = getReward(id);
-  document.getElementById('rewardModalSub').textContent = `Reward for ${p?p.name:''}. Counts days they train.`;
-  document.getElementById('rewardName').value = r ? r.name : '';
-  rewardDaysSel = r ? r.days : 20;
+  document.getElementById('rewardModalSub').textContent = r && r.wish && !r.days ? `${p?p.name:''} asked for: ${r.wish}. Pick how many training days it takes.` : `Reward for ${p?p.name:''}. Counts days they train.`;
+  document.getElementById('rewardName').value = r ? (r.name || r.wish || '') : '';
+  rewardDaysSel = r && r.days ? r.days : 20;
   document.getElementById('rewardPresets').innerHTML = REWARD_PRESETS.map(x=>`<button class="opt-btn" onclick="document.getElementById('rewardName').value='${x}'">${x}</button>`).join('');
   paintRewardDays();
   document.getElementById('rewardClearBtn').style.display = r ? 'block' : 'none';
@@ -2940,7 +3146,7 @@ function updateJuggleBar() {
   if (!currentPlayer) return;
   const min = juggleMin(currentPlayer), tot = parseInt(document.getElementById('juggleToday').value)||0;
   document.getElementById('juggleBar').style.width = Math.min(100, tot/min*100) + '%';
-  document.getElementById('juggleMinLbl').textContent = tot >= min ? `✅ Daily minimum hit (${min})` : `Daily minimum: ${tot} / ${min}`;
+  document.getElementById('juggleMinLbl').textContent = tot >= min ? `✅ ${min} HIT` : `${tot} / ${min}`;
   document.getElementById('juggleMinLbl').style.color = tot >= min ? 'var(--green)' : '';
 }
 
@@ -3191,15 +3397,14 @@ function getPBs(id) { try { return JSON.parse(localStorage.getItem(`sfc_pbs_${id
 
 // Day type from the parent-set team schedule
 function dayInfo(p) {
-  const sch = p.schedule || {}, wd = new Date().getDay(), yd = (wd + 6) % 7;
-  const has = (arr, d) => Array.isArray(arr) && arr.includes(d);
-  if (has(sch.game, wd))      return {type:'game',      label:'⚽ GAME DAY',     suggest:'limited', hint:'Game day. A Light session keeps the streak and wakes up your feet. Save your legs.'};
-  if (has(sch.game, yd))      return {type:'aftergame', label:'🌙 RECOVERY DAY', suggest:'limited', hint:'Day after a game. Recovery Day is recommended: mobility + easy touches.'};
+  const td = schedOn(p, localDate()), yd = schedOn(p, yesterdayStr());
+  if (td === 'g')             return {type:'game',      label:'⚽ GAME DAY',     suggest:'limited', hint:'Game day. A Light session keeps the streak and wakes up your feet. Save your legs.'};
+  if (yd === 'g')             return {type:'aftergame', label:'🌙 RECOVERY DAY', suggest:'limited', hint:'Day after a game. Recovery Day is recommended: mobility + easy touches.'};
   const es = epaState(p);
   if (es && es.kind === 'day') { const f = FOCUS[es.e.focus];
     return f && !f.ball ? {type:'epa', label:'🏟 EPA DAY', suggest:'consistent', hint:`EPA is ${f.name.toLowerCase()} this week, light on the ball. Home work = touches. Log EPA for XP + streak.`}
       : {type:'epa', label:'🏟 EPA DAY', suggest:'limited', hint:`EPA today (${PROGRAMS.epa.mins} min). Log it for XP + streak. Home session is optional: keep it light.`}; }
-  if (has(sch.practice, wd))  return {type:'practice',  label:'🏟 PRACTICE DAY', suggest:'limited', hint:'Team practice today. A Light session keeps the streak without overloading.'};
+  if (td === 'p')             return {type:'practice',  label:'🏟 PRACTICE DAY', suggest:'limited', hint:'Team practice today. A Light session keeps the streak without overloading.'};
   if (es && es.kind === 'break') return {type:'break', label:'🏖 BREAK', suggest:'hustle', hint:`${es.name}: no EPA. Big ball days at home, this is when touches stack up.`};
   if (p.growing)              return {type:'free',      label:'💪 TRAINING DAY', suggest:'consistent', hint:'Growing fast: make at least 1-2 days a week Recovery days.'};
   return                             {type:'free',      label:'💪 TRAINING DAY', suggest:'consistent', hint:'Full training day. Go get your touches.'};
@@ -3227,6 +3432,7 @@ function renderToday() {
   document.getElementById('startLbl').textContent = going ? '▶ KEEP GOING' : hit ? '✓ DONE TODAY · GO AGAIN?' : '▶ START';
   document.getElementById('startSub').textContent = going ? `${ex.items.filter(i=>i.done).length} of ${ex.items.length} done · ${ex.target.toLocaleString()} touches`
     : hit ? 'Bonus session: extra XP and touches' : `${goal.toLocaleString()} touches · ~${Math.max(5, Math.round(goal/70))} min · ball mastery, moves + passing`;
+  { const b2 = document.getElementById('startLbl2'); if (b2) b2.textContent = going ? '▶ KEEP GOING' : hit ? '▶ GO AGAIN · BONUS XP' : "▶ START TODAY'S SESSION"; }
   const S = loadSess();
   const gr = document.getElementById('gameRow'); if (gr) gr.innerHTML = gameCardHTML(p);
   document.getElementById('resumeRow').innerHTML = S && !S.finished && S.mode !== 'goal'
@@ -3521,7 +3727,7 @@ function commitSession() {
 let planFor = null, planDraft = null;
 function openPlanModal(id) {
   const p = players.find(x=>x.id===id); if (!p) return;
-  planFor = id; planDraft = {skill_level:p.skill_level||'developing', schedule:{practice:[...(p.schedule?.practice||[])], game:[...(p.schedule?.game||[])]}, growing:!!p.growing, programs:JSON.parse(JSON.stringify(p.programs||[])), pos1:p.pos1||'', pos2:p.pos2||'',
+  planFor = id; planDraft = {skill_level:p.skill_level||'developing', schedule:{practice:[...(p.schedule?.practice||[])], game:[...(p.schedule?.game||[])], dates:{...(p.schedule?.dates||{})}}, growing:!!p.growing, programs:JSON.parse(JSON.stringify(p.programs||[])), pos1:p.pos1||'', pos2:p.pos2||'',
     goals:{...(p.goals||{}), items:[0,1,2].map(i => ({t:'', done:false, ...((p.goals&&p.goals.items||[])[i]||{})}))}};
   document.getElementById('planTitle').textContent = `${p.name}'s Plan`;
   paintPlan(); document.getElementById('planModal').classList.add('open');
@@ -3556,6 +3762,8 @@ function epaShareHTML() {
     const seg = (v, l) => `<button class="opt-btn ${sh===v?'sel':''}" onclick="planDraft.programs[${ix}].share='${v}';planDraft.progTouched=1;paintPlan()">${l}</button>`;
     return `<div class="field-lbl" style="margin-top:14px">${esc(nm.toUpperCase())} · WHAT THE COACH CAN SEE</div><div class="opt-row">${seg('all','ALL TRAINING')}${seg('program','THIS PROGRAM ONLY')}</div>
     <div class="sk-desc" style="font-size:12px;margin:-4px 0 8px">${sh === 'all' ? 'Coach sees home sessions and touches too, so plans fit the whole week.' : 'Coach only sees this program\'s logs, check-ins, journals, game analysis and speed tests.'} Never your email or contact info.</div>
+    <div class="field-lbl">${esc(nm.toUpperCase())} LEADERBOARD</div><div class="opt-row"><button class="opt-btn ${e.board !== false ? 'sel' : ''}" onclick="planDraft.programs[${ix}].board=true;planDraft.progTouched=1;paintPlan()">ON THE BOARD</button><button class="opt-btn ${e.board === false ? 'sel' : ''}" onclick="planDraft.programs[${ix}].board=false;planDraft.progTouched=1;paintPlan()">HIDE</button></div>
+    <div class="sk-desc" style="font-size:12px;margin:-4px 0 8px">Kids in this program see a nickname, kit, XP and streak. No photos, no last names, no contact info.</div>
     <button class="opt-btn" style="border-color:#ef444455;color:var(--red)" onclick="if(confirm('Leave ${esc(nm).replace(/'/g,'')}? The coaches lose access. Logs stay on your account.')){planDraft.programs.splice(${ix},1);planDraft.progTouched=1;paintPlan()}">LEAVE</button>`; }).join('');
 }
 async function joinProgram(id) {
@@ -3616,11 +3824,11 @@ function roundXP(p, skill, count) {
 // Daily quests: 3 per day, same all day, picked per kid
 const QUEST_ALL_BONUS = 50;
 const QUEST_POOL = {
-  touches: {ico:'⚽', xp:40, need:p => Math.max(250, Math.round(expectedTouches(p)*.75/50)*50), label:n => `Hit ${n.toLocaleString()} touches`, val:(p,q) => todayTouches()},
-  allbox:  {ico:'✅', xp:40, need:() => 1, label:() => 'Check every box in your session', val:(p,q) => q.allbox||0},
-  juggle:  {ico:'🎯', xp:30, need:p => juggleMin(p), label:n => `Juggle ${n} total`, val:(p,q) => q.juggle||0},
-  wall:    {ico:'🧱', xp:30, need:p => Math.max(30, Math.round(expectedTouches(p)*.07/10)*10), label:n => `${n} wall passes`, val:(p,q) => q.wall||0},
-  moves:   {ico:'🌀', xp:30, need:p => Math.max(30, Math.round(expectedTouches(p)*.1/10)*10), label:n => `${n} skill-move reps`, val:(p,q) => q.mv||0},
+  touches: {ico:'⚽', xp:40, need:p => Math.max(250, Math.round(expectedTouches(p)*.75/50)*50), label:n => `Hit ${n.toLocaleString()} touches`, sh:n => `${fmtK(n)} touches`, val:(p,q) => todayTouches()},
+  allbox:  {ico:'✅', xp:40, need:() => 1, label:() => 'Check every box in your session', sh:() => 'Every box', val:(p,q) => q.allbox||0},
+  juggle:  {ico:'🎯', xp:30, need:p => juggleMin(p), label:n => `Juggle ${n} total`, sh:n => `Juggle ${n}`, val:(p,q) => q.juggle||0},
+  wall:    {ico:'🧱', xp:30, need:p => Math.max(30, Math.round(expectedTouches(p)*.07/10)*10), label:n => `${n} wall passes`, sh:n => `${n} wall passes`, val:(p,q) => q.wall||0},
+  moves:   {ico:'🌀', xp:30, need:p => Math.max(30, Math.round(expectedTouches(p)*.1/10)*10), label:n => `${n} skill-move reps`, sh:n => `${n} moves`, val:(p,q) => q.mv||0},
 };
 function questKey(p) { return `sfc_q_${p.id}_${localDate()}`; }
 function questState(p) { return jget(questKey(p), {pb:0, juggle:0, wall:0, mv:0, timed:0, done:[], bonus:false}); }
@@ -3629,7 +3837,7 @@ function todaysQuests(p) {
   const rnd = seeded(p.id + localDate() + 'quests'), rest = shuffled(pool, rnd);
   const q = questState(p);
   return ['touches', rest[0], rest[1]].map(id => { const d = QUEST_POOL[id], need = d.need(p), val = Math.min(need, d.val(p,q));
-    return {id, ...d, need, val, text:d.label(need), done:q.done.includes(id)}; });
+    return {id, ...d, need, val, text:d.label(need), short:d.sh ? d.sh(need) : '', done:q.done.includes(id)}; });
 }
 // Called from commitSession after history is updated. Returns {xp, done:[text], bonus}
 function updateQuests(p, items, mode, pbCount, juggleTotal, allDone) {
@@ -3647,11 +3855,10 @@ function updateQuests(p, items, mode, pbCount, juggleTotal, allDone) {
 function renderQuests() {
   const p = currentPlayer, el = document.getElementById('questCard'); if (!p || !el) return;
   const qs = todaysQuests(p), n = qs.filter(x=>x.done).length, st = questState(p);
-  el.innerHTML = `<div class="q-top"><div class="today-title">DAILY QUESTS</div><div class="q-count ${n===3?'all':''}">${n}/3</div></div>
-    ${qs.map(t => `<div class="q-row ${t.done?'done':''}"><div class="q-ico">${t.done?'✓':t.ico}</div>
-      <div class="q-main"><div class="q-txt">${t.text}</div><div class="q-bar"><div style="width:${Math.min(100, t.val/t.need*100)}%"></div></div></div>
-      <div class="q-xp">${t.done?'DONE':'+'+t.xp}</div></div>`).join('')}
-    <div class="q-foot ${st.bonus?'all':''}">${st.bonus ? `🏆 ALL 3 DONE · +${QUEST_ALL_BONUS} BONUS EARNED` : `Finish all 3 for a +${QUEST_ALL_BONUS} XP bonus · new quests tomorrow`}</div>`;
+  el.innerHTML = `<div class="q-top"><div class="today-title">DAILY QUESTS</div><div class="q-count ${n===3?'all':''}">${n}/3${st.bonus ? ' · +' + QUEST_ALL_BONUS + ' 🏆' : ' · ALL 3 = +' + QUEST_ALL_BONUS}</div></div>
+    <div class="qt-row">${qs.map(t => { const pct = Math.min(100, Math.round(t.val/t.need*100));
+      return `<div class="qt ${t.done?'done':''}"><div class="qt-ring" style="background:conic-gradient(${t.done?'var(--green)':'var(--accent)'} ${pct*3.6}deg,var(--bg3) 0)"><div>${t.done?'✓':t.ico}</div></div>
+        <div class="qt-txt">${t.short || t.text}</div><div class="qt-xp">${t.done?'DONE':'+'+t.xp}</div></div>`; }).join('')}</div>`;
 }
 
 // Rank ladder + multiplier line on Home
@@ -3790,7 +3997,7 @@ async function loadPlans() {
   plansAt = Date.now();
   try { p.plans = await rpc('sfc_player_plans', {p_token:deviceToken(), p_player:p.id}) || []; localStorage.setItem('sfc_player', JSON.stringify(p)); renderEPA(); renderToday(); } catch(e) {}
   try { const x = await rpc('sfc_player_extras', {p_token:deviceToken(), p_player:p.id}) || {}; localStorage.setItem('sfc_media', JSON.stringify(x.media || {})); p.idps = x.idp || {}; p.idp = p.idps.epa || Object.values(p.idps)[0] || null; p.orgs = x.orgs || {}; p.days = x.days || [];
-    localStorage.setItem('sfc_player', JSON.stringify(p)); localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p)); renderEPA(); renderCoaches(); } catch(e) {}
+    localStorage.setItem('sfc_player', JSON.stringify(p)); localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p)); renderEPA(); renderCoaches(); renderMyWeek(); renderProgToday(); } catch(e) {}
 }
 // Home card (only for enrolled kids)
 function renderEPA() {
