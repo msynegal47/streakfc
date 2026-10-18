@@ -1020,7 +1020,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .mini-i{font-size:30px;line-height:1.1}
 .mini-t b{display:block;font-size:13px;font-weight:900;margin-top:4px}
 .mini-t span{display:block;font-size:10px;color:var(--sub);font-weight:700;margin-top:2px}
-#mini{position:fixed;inset:0;z-index:200;background:#0b0f17;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;transition:background .2s}
+#mini{position:fixed;inset:0;z-index:300;background:#0b0f17;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;transition:background .2s}
 #mini.open{display:flex}
 #mini.run.green{background:#064e1f}#mini.run.yellow{background:#5c4a05}#mini.run.red{background:#5c0a0a}
 .mn-x{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:16px;background:none;border:1px solid #ffffff33;color:#fff;border-radius:50%;width:40px;height:40px;font-size:16px;cursor:pointer}
@@ -1070,6 +1070,25 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 
 .wish-chip.sel{border-color:var(--amber);background:#f59e0b22;color:var(--amber)}
 .wish-other{display:flex;gap:8px;margin-top:10px;align-items:center}.wish-other .auth-input{margin:0;flex:1}.wish-other .pt-btn{flex:none;padding:12px 16px}
+
+#mini.beat{background:radial-gradient(600px 500px at 50% 35%,#1e293b,#0b0f17)}
+.bt-ring{width:230px;height:230px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:8px 0}
+.bt-ring>div{width:196px;height:196px;border-radius:50%;background:#0b0f17;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.bt-ring b{font-size:78px;font-weight:900;line-height:1}.bt-ring span{font-size:13px;color:#94a3b8;font-weight:800;letter-spacing:1px;text-transform:uppercase}
+.mn-chips.wrap{flex-wrap:wrap}.mn-chips button{font-size:16px}
+.rt-steps{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;max-width:320px}.rt-steps i{width:14px;height:6px;border-radius:3px;background:#1f2937}.rt-steps i.on{background:var(--green)}.rt-steps i.cur{background:var(--accent)}
+.mn-dist{background:#111827;border:1px solid #334155;border-radius:12px;padding:10px 14px;font-size:14px;color:#cbd5e1;line-height:1.4}.mn-dist b{color:#fff}
+.mn-pins.five{grid-template-columns:repeat(5,1fr)}
+.beat-btn{flex:none;margin-left:8px;width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);font-size:16px;cursor:pointer}
+.gy-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0}
+.gy{background:var(--bg3);border:2px solid var(--border);border-radius:18px;padding:14px 10px;text-align:center;cursor:pointer}
+.gy.done{border-color:var(--green);opacity:.75}
+.gy-i{font-size:38px;line-height:1.1}.gy-n{font-size:14px;font-weight:900;margin-top:6px}
+.gy-c{font-size:34px;font-weight:900;color:var(--accent);line-height:1.1;margin-top:4px}.gy-c small{display:block;font-size:11px;color:var(--sub);font-weight:700}
+.gy-dots{display:flex;gap:3px;justify-content:center;flex-wrap:wrap;margin-top:6px}.gy-dots i{width:9px;height:9px;border-radius:50%;background:#334155}.gy.done .gy-dots i{background:var(--green)}
+.rt-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.rt-row button{background:var(--bg3);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:12px;font-weight:900;padding:10px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.rt-row button span{font-size:10px;color:var(--sub);font-weight:700}
 </style>
 </head>
 <body>
@@ -1397,6 +1416,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
             <button id="diff-hustle" class="diff-btn" onclick="setDifficulty('hustle')">💪 HUSTLE</button>
           </div>
           <button class="start-btn" id="startBtn" onclick="todayMain()"><b id="startLbl">▶ START</b><span id="startSub"></span></button>
+          <div class="rt-row"><button onclick="openRoutine('warm')">🔥 WARM-UP <span>~4 min · on the beat</span></button><button onclick="openRoutine('cool')">🧊 COOL-DOWN <span>~4 min · timed holds</span></button></div>
           <button class="rec-link" id="recLink" onclick="todayAlt()">🌙 RECOVERY DAY INSTEAD <span>~8 min · keeps the streak</span></button>
           <!-- Juggles (folded in) -->
           <div class="jg-row">
@@ -3246,6 +3266,14 @@ function confetti() {
   }
 }
 let audioCtx = null;
+// iOS mutes Web Audio when the ring/silent switch is on. Mark the page as media playback so beeps + voice use the speaker.
+function audioUnlock() {
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch(e) {}
+  try { audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume();
+    const b = audioCtx.createBuffer(1, 1, 22050), src = audioCtx.createBufferSource(); src.buffer = b; src.connect(audioCtx.destination); src.start(0); } catch(e) {}
+  try { if (!window._silentEl) { const a = window._silentEl = new Audio('data:audio/mp4;base64,AAAAHGZ0eXBNNEEgAAAAAE00QSBpc29tbXA0MgAAAAFtZGF0AAAAAAAAAAA='); a.loop = true; a.setAttribute('playsinline', ''); a.volume = 0.01; } window._silentEl.play().catch(() => {}); } catch(e) {}
+}
+['touchstart','pointerdown','click'].forEach(ev => document.addEventListener(ev, audioUnlock, {passive:true}));
 function sfx(kind) {
   try {
     audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
@@ -3464,8 +3492,9 @@ function idpHTML(p, dd) { const d = dd || idpOf(p); if (!d) return '';
     ${d.strengths || d.improve || d.how ? `<details class="idp-more"><summary>Coach notes</summary>${[['strengths','💪 Strengths'],['improve','📈 Areas to improve'],['how','🛠 How we will improve']].filter(([k]) => d[k]).map(([k,l]) => `<div><b>${l}</b><p>${esc(d[k])}</p></div>`).join('')}${IDP_CATS.filter(([k]) => R[k] && R[k].note).map(([k,l]) => `<div><b>${l}</b><p>${esc(R[k].note)}</p></div>`).join('')}</details>` : ''}</div>`; }
 function openIdpDrill(k) { if (vidUrl(k)) openVideo(k); else showToast(`${SKILLS[k].name}: ${SKILLS[k].desc}`, 'success'); }
 function pickSkills(p, salt='') {
-  const rnd = seeded(p.id + localDate() + 'pick' + salt), all = b => Object.keys(SKILLS).filter(k => SKILLS[k].block===b);
-  const idp = idpDrills(p), take = (b, n) => { const lv = shuffled(poolFor(p,b), rnd), rest = shuffled(all(b).filter(k => !lv.includes(k)), rnd), mine = idp.filter(k => SKILLS[k].block === b); return [...mine, ...lv.concat(rest).filter(k => !mine.includes(k))].slice(0, n); };
+  const y = isYoung(p), rnd = seeded(p.id + localDate() + 'pick' + salt), all = b => Object.keys(SKILLS).filter(k => SKILLS[k].block===b && (!y || !SKILLS[k].lvl));
+  const idp = idpDrills(p), take = (b, n) => { const lv = shuffled(poolFor(p,b).filter(k => !y || !SKILLS[k].lvl), rnd), rest = shuffled(all(b).filter(k => !lv.includes(k)), rnd), mine = idp.filter(k => SKILLS[k].block === b); return [...mine, ...lv.concat(rest).filter(k => !mine.includes(k))].slice(0, n); };
+  if (y) return {bm: take('bm', 2), mv: take('mv', 1), wall: take('wall', 1)};   // U8 and under: 4 easy drills, not 8
   return {bm: take('bm', 3 + (rnd() < .5 ? 1 : 0)), mv: take('mv', 3 + (rnd() < .5 ? 1 : 0)), wall: take('wall', 1 + (rnd() < .5 ? 1 : 0))};
 }
 // Timed: a circuit that cycles the day's skills until the estimate reaches the goal
@@ -3797,13 +3826,16 @@ function renderGoalList() {
   const done = S.items.filter(i=>i.done).reduce((a,b)=>a+itemTouches(b),0);
   const lbl = S.intensity==='limited'?'LIGHT':S.intensity==='hustle'?'HUSTLE':'STANDARD', anyDone = S.items.some(i=>i.done);
   body(`<div style="display:flex;justify-content:space-between;align-items:center"><div class="sk-block">${lbl} · ${S.target.toLocaleString()} TOUCHES</div>${anyDone?'':'<button class="mix-btn" onclick="newMix()">🔀 New mix</button>'}</div>
-    <div class="sk-desc">Do each one, then tap it. Any order.</div>
+    <div class="sk-desc">${isYoung(currentPlayer) ? 'Tap one to start the beeps. One touch every beep!' : 'Do each one, then tap it. Any order. 🎵 = do it on the beat.'}</div>
     <div class="touch-bar"><div class="touch-bar-fill" style="width:${Math.min(100,done/S.target*100)}%"></div></div>
     <div class="sk-desc"><b style="color:var(--text)">${done.toLocaleString()}</b> / ${S.target.toLocaleString()}</div>
-    ${S.items.map((it,i)=>`<div class="gi ${it.done?'done':''}" onclick="goalToggle(${i})">
+    ${isYoung(currentPlayer) ? `<div class="gy-grid">${S.items.map((it,i)=>`<div class="gy ${it.done?'done':''}" onclick="${it.done?`goalToggle(${i})`:`openBeat(${i})`}">
+      <div class="gy-i">${it.done?'✅':({bm:'🦶',wall:'🧱',mv:'🌀'})[SKILLS[it.skill].block]||'⚽'}</div><div class="gy-n">${SKILLS[it.skill].name}</div>
+      <div class="gy-c">${it.count}${it.foot?`<small>${it.foot.toLowerCase()}</small>`:''}</div><div class="gy-dots">${[...Array(Math.min(10,Math.ceil(it.count/10)))].map(()=>'<i></i>').join('')}</div></div>`).join('')}</div>` : ''}
+    ${S.items.map((it,i)=> isYoung(currentPlayer) ? '' : `<div class="gi ${it.done?'done':''}" onclick="goalToggle(${i})">
       <div class="ck">${it.done?'✓':''}</div>
       ${vidBtn(it.skill, true)}<div class="gi-name">${idpDrills(currentPlayer).includes(it.skill)?'🎯 ':''}${SKILLS[it.skill].name}<small>${it.foot?it.foot.toLowerCase():''}${tpr(it.skill)>1?`${it.foot?' · ':''}${itemTouches(it)} touches`:''}</small></div>
-      <div class="gi-cnt">${it.count}</div></div>`).join('')}
+      <div class="gi-cnt">${it.count}</div>${it.done?'':`<button class="beat-btn" onclick="event.stopPropagation();openBeat(${i})" aria-label="Do it on the beat">🎵</button>`}</div>`).join('')}
     ${done >= S.target ? `<button class="big-btn ghost" onclick="S.items.push(...buildGoalItems(currentPlayer,250,pickSkills(currentPlayer,'+'+S.items.length)).slice(0,2));saveSess();renderGoalList()">+ BONUS ROUND (250 MORE)</button>` : ''}
     <div style="flex:1"></div>
     ${goalFinishHint()}
@@ -4422,8 +4454,8 @@ function gameCardHTML(p) {
 }
 // ─── GAME TIME: mini games for U8 and under. Outside, foot on the ball, tons of fun. ───
 const MINI = {
-  bowling: {ico:'🎳', name:'Pass Bowling', sub:'Knock down the cones', xp:25,
-    setup:'Set up 3 cones (or water bottles) like bowling pins. Stand 5 big steps away. Pass with the inside of your foot!'},
+  bowling: {ico:'🎳', name:'Pass Bowling', sub:'5 passes a round', xp:25,
+    setup:'Line up cones (or water bottles) like bowling pins. You get 5 passes to knock them all down. Inside of your foot!'},
   wall:    {ico:'🧱', name:'Wall Tap Race', sub:'30 seconds. Go!', xp:20,
     setup:'Stand 2 big steps from a wall. Pass, stop it, pass again. Count every kick out loud!'},
   toes:    {ico:'🦶', name:'Toe Tap Beat', sub:'Tap to the beep', xp:20,
@@ -4441,18 +4473,33 @@ function miniRowHTML(p) {
     `<button class="mini-t ${done.includes(k)?'done':''}" onclick="openMini('${k}')"><div class="mini-i">${g.ico}</div><b>${g.name}</b><span>${done.includes(k) ? '✓ played' : g.sub}${miniPB(p.id, k) ? ' · best ' + miniPB(p.id, k) : ''}</span></button>`).join('')}</div>`;
 }
 function miniEl() { let el = document.getElementById('mini'); if (!el) { el = document.createElement('div'); el.id = 'mini'; document.body.appendChild(el); } return el; }
-function openMini(k) { M = {k, step:'setup', pins:3, frames:[], score:0}; miniEl().classList.add('open'); keepAwake(true); paintMini(); }
+function openMini(k) { M = {k, step:'setup', pins:3, rounds:3, frames:[], score:0}; miniEl().classList.add('open'); keepAwake(true); audioUnlock(); paintMini(); }
+function bowlDist(p) { const n = ageNum(p); return n <= 7 ? '4 big steps (about 3 yards)' : n <= 9 ? '6 big steps (about 5 yards)' : n <= 12 ? '8 yards' : '10 yards'; }
+// Round: down = cones knocked, passes = passes used (fewer = bonus)
+function miniRound(down, passes) {
+  const all = down === M.pins, pts = down + (all ? (5 - passes) * 2 + 3 : 0);
+  M.frames.push({down, passes, pts}); M.score += pts; M.allDown = 0; M.passes = (M.passes || 0) + passes;
+  if (all) { say(passes === 1 ? 'Strike!' : 'All down!'); try { confetti(); } catch(e) {} } else beep(880, .1);
+  if (M.frames.length >= M.rounds) return miniDone(); paintMini();
+}
 function closeMini() { clearInterval(mTimer); clearTimeout(mTimer); miniEl().classList.remove('open'); keepAwake(false); M = null; renderToday(); }
 function paintMini() {
   const g = MINI[M.k], el = miniEl(); let b = '';
   if (M.step === 'setup') b = `<div class="mn-ico">${g.ico}</div><div class="mn-t">${g.name}</div><div class="mn-s">${g.setup}</div>
-    ${M.k === 'bowling' ? `<div class="mn-l">HOW MANY CONES?</div><div class="mn-chips">${[3,5,6].map(n => `<button class="${M.pins===n?'sel':''}" onclick="M.pins=${n};paintMini()">${n}</button>`).join('')}</div>` : ''}
+    ${M.k === 'bowling' ? `<div class="mn-dist">📏 Stand <b>${bowlDist(currentPlayer)}</b> away. Too easy? Take one step back.</div>
+      <div class="mn-l">HOW MANY CONES?</div><div class="mn-chips">${[3,5,6,10].map(n => `<button class="${M.pins===n?'sel':''}" onclick="M.pins=${n};paintMini()">${n}</button>`).join('')}</div>
+      <div class="mn-l">ROUNDS</div><div class="mn-chips">${[1,3,5].map(n => `<button class="${M.rounds===n?'sel':''}" onclick="M.rounds=${n};paintMini()">${n}</button>`).join('')}</div>` : ''}
     <button class="mn-go" onclick="miniStart()">▶ LET'S GO!</button>`;
-  else if (M.step === 'bowl') { const f = M.frames.length;
-    b = `<div class="mn-l">PASS ${f + 1} OF 10</div><div class="mn-big">${M.score}</div><div class="mn-s">How many cones fell down?</div>
-      <div class="mn-pins">${[...Array(M.pins + 1)].map((_, n) => `<button onclick="miniBowl(${n})">${n === M.pins ? '💥 ' : ''}${n}</button>`).join('')}</div>
-      <div class="mn-frames">${[...Array(10)].map((_, i) => `<i class="${i < f ? (M.frames[i] === M.pins ? 'x' : 'on') : ''}">${i < f ? (M.frames[i] === M.pins ? 'X' : M.frames[i]) : ''}</i>`).join('')}</div>
-      <div class="mn-s" style="font-size:12px">Stand the cones back up after each pass.</div>`; }
+  else if (M.step === 'bowl') { const r = M.frames.length;
+    b = `<div class="mn-l">ROUND ${r + 1} OF ${M.rounds} · ${M.pins} CONES</div><div class="mn-big">${M.score}</div><div class="mn-s" style="margin-top:-6px">points</div>
+      ${M.allDown ? `<div class="mn-s"><b>💥 All down!</b> How many passes did it take?</div><div class="mn-pins five">${[1,2,3,4,5].map(n => `<button onclick="miniRound(${M.pins},${n})">${n}</button>`).join('')}</div>
+        <button class="mn-back" onclick="M.allDown=0;paintMini()">← back</button>`
+      : `<div class="mn-s">5 passes. Then tell me what happened.</div>
+        <button class="mn-go" style="background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#1a1405" onclick="M.allDown=1;paintMini()">💥 ALL DOWN!</button>
+        <div class="mn-s" style="font-size:14px">Used all 5 passes? How many cones are <b>still standing</b>?</div>
+        <div class="mn-pins">${[...Array(M.pins)].map((_, n) => `<button onclick="miniRound(${M.pins - n - 1},5)">${n + 1}</button>`).join('')}</div>`}
+      <div class="mn-frames" style="grid-template-columns:repeat(${M.rounds},1fr)">${[...Array(M.rounds)].map((_, i) => { const x = M.frames[i]; return `<i class="${x ? (x.down === M.pins ? 'x' : 'on') : ''}">${x ? (x.down === M.pins ? '💥 ' + x.passes + ' pass' + (x.passes > 1 ? 'es' : '') : x.down + ' down') : 'R' + (i + 1)}</i>`; }).join('')}</div>
+      <div class="mn-s" style="font-size:12px">Stand all the cones back up between rounds.</div>`; }
   else if (M.step === 'count') b = `<div class="mn-ico">${g.ico}</div><div class="mn-t">TIME!</div><div class="mn-s">How many did you get?</div>
     <div class="mn-big">${M.score}</div><div class="mn-step"><button onclick="M.score=Math.max(0,M.score-5);paintMini()">−5</button><button onclick="M.score=Math.max(0,M.score-1);paintMini()">−1</button><button onclick="M.score++;paintMini()">+1</button><button onclick="M.score+=5;paintMini()">+5</button></div>
     <button class="mn-go" onclick="miniDone()">✓ THAT'S MY SCORE</button>`;
@@ -4493,7 +4540,7 @@ function miniBowl(n) { M.frames.push(n); M.score += n; if (n === M.pins) { say('
   if (M.frames.length >= 10) return miniDone(); paintMini(); }
 function miniDone() {
   const p = currentPlayer, today = localDate(), k = M.k, g = MINI[k];
-  const touches = capTouches(p, k === 'bowling' ? 30 : k === 'wall' ? M.score * 2 : k === 'toes' ? (M.beats || 0) : Math.round((M.secs || 0) * 2), today);
+  const touches = capTouches(p, k === 'bowling' ? (M.passes || 0) * 2 : k === 'wall' ? M.score * 2 : k === 'toes' ? (M.beats || 0) : Math.round((M.secs || 0) * 2), today);
   const pbs = jget(`sfc_minipb_${p.id}`, {}), pb = k !== 'toes' && M.score > (pbs[k] || 0) && (pbs[k] || 0) > 0; if (k !== 'toes' && M.score > (pbs[k] || 0)) { pbs[k] = M.score; localStorage.setItem(`sfc_minipb_${p.id}`, JSON.stringify(pbs)); }
   const played = jget(`sfc_mini_${p.id}_${today}`, []), first = !played.includes(k);
   const xp = capDailyXP(p.id, today, first ? g.xp + (pb ? 10 : 0) : 5);
@@ -4504,9 +4551,113 @@ function miniDone() {
   if (first) localStorage.setItem(`sfc_mini_${p.id}_${today}`, JSON.stringify([...played, k]));
   localStorage.setItem('sfc_player', JSON.stringify(p)); localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p)); recordSeason(p); checkBadges();
   if (deviceToken()) callOrQueue('sfc_log_session', {p_token:deviceToken(), p_player:p.id, p_state:playerState(p),
-    p_session:{date:today, touches, mode:'mini', full_session:false, xp_earned:xp, bm_skills:[], mv_skills:[], rounds:[{mini:{game:k, score:M.score, pins:k === 'bowling' ? M.pins : undefined, frames:k === 'bowling' ? M.frames : undefined}}]}});
+    p_session:{date:today, touches, mode:'mini', full_session:false, xp_earned:xp, bm_skills:[], mv_skills:[], rounds:[{mini:{game:k, score:M.score, pins:k === 'bowling' ? M.pins : undefined, frames:k === 'bowling' ? M.frames : undefined, beats:k === 'beat' ? M.beats : undefined}}]}});
   Object.assign(M, {step:'end', xp, touches, pb, streak: !had && touches > 0}); paintMini(); if (pb) try { confetti(); } catch(e) {}
 }
+// ─── BEAT PLAYER: touches to a beep. Young = slow + visual. Older = pick a speed or ramp slow → fast ───
+let BT = null, btTimer = null;
+const BEAT_MODES = {kid:[.28,.28,'EASY'], slow:[.3,.3,'SLOW'], med:[.45,.45,'MEDIUM'], fast:[.65,.65,'FAST'], ramp:[.3,.75,'SLOW → FAST']};
+function skBpm(skill, f) { const mx = (SKILLS[skill]||{}).max || 2; return Math.round(Math.max(30, Math.min(180, mx * 60 * f))); }
+function btBpm() { const [a, b] = BEAT_MODES[BT.mode], t = BT.reps ? BT.n / BT.reps : 0; return skBpm(BT.skill, a + (b - a) * t); }
+function openBeat(i) { const it = S.items[i], young = isYoung(currentPlayer);
+  BT = {i, skill:it.skill, reps:it.count, foot:it.foot, young, mode: young ? 'kid' : (localStorage.getItem('sfc_beatmode') || 'ramp'), n:0, run:0};
+  miniEl().classList.add('open'); keepAwake(true); audioUnlock(); paintBeat(); }
+function ringBg(p, c) { return `conic-gradient(${c || 'var(--accent)'} ${Math.min(1, p) * 360}deg,#1f2937 0)`; }
+function paintBeat() {
+  const sk = SKILLS[BT.skill], el = miniEl();
+  el.className = 'open beat';
+  el.innerHTML = `<button class="mn-x" onclick="closeBeat()">✕</button><div class="mn-body">
+    <div class="mn-l">${BT.young ? 'FOLLOW THE BEEP' : '🎵 TOUCHES ON THE BEAT'}</div>
+    <div class="mn-t" style="font-size:26px">${esc(sk.name)}${BT.foot ? ' · ' + esc(BT.foot.toLowerCase()) : ''}</div>
+    <div class="bt-ring" id="btRing" style="background:${ringBg(BT.n / BT.reps)}"><div><b id="btN">${BT.n}</b><span>of ${BT.reps}</span></div></div>
+    ${BT.run ? `<div class="mn-s" id="btBpm">${btBpm()} beats a minute</div><div class="mn-chips"><button onclick="beatStop()">⏸ PAUSE</button><button onclick="beatFinish()">✓ DONE</button></div>`
+     : `${BT.young ? `<div class="mn-s">One touch every beep. Watch the circle fill up!</div>` : `<div class="mn-l">SPEED</div><div class="mn-chips wrap">${['slow','med','fast','ramp'].map(m => `<button class="${BT.mode===m?'sel':''}" onclick="BT.mode='${m}';localStorage.setItem('sfc_beatmode','${m}');paintBeat()">${BEAT_MODES[m][2]}</button>`).join('')}</div><div class="mn-s" style="font-size:13px">Headphones in or speaker up.${BT.mode === 'ramp' ? ' Starts slow, speeds up as you go.' : ''}</div>`}
+       <button class="mn-go" onclick="beatGo()">${BT.n ? '▶ KEEP GOING' : '▶ START'}</button>${BT.n ? '' : `<button class="mn-back" onclick="beatFinish(true)">I already did it ✓</button>`}`}
+  </div>`;
+}
+function beatGo() { BT.run = 1; paintBeat(); say(BT.young ? 'Ready? Go!' : 'Ready, go');
+  const tick = () => { if (!BT || !BT.run) return; if (BT.n >= BT.reps) return beatFinish();
+    BT.n++; beep(BT.n % 10 === 0 ? 1320 : 990, .05, .14);
+    const e = document.getElementById('btN'), r = document.getElementById('btRing'), bp = document.getElementById('btBpm');
+    if (e) e.textContent = BT.n; if (r) r.style.background = ringBg(BT.n / BT.reps); if (bp) bp.textContent = btBpm() + ' beats a minute';
+    if (BT.young && BT.n === Math.round(BT.reps / 2)) say('Halfway!');
+    btTimer = setTimeout(tick, 60000 / btBpm()); };
+  clearTimeout(btTimer); btTimer = setTimeout(tick, 1500); }
+function beatStop() { clearTimeout(btTimer); BT.run = 0; paintBeat(); }
+function beatFinish(skip) { clearTimeout(btTimer); const i = BT.i, young = BT.young;
+  if (!skip) { say(young ? 'You did it!' : 'Done'); if (young) try { confetti(); } catch(e) {} }
+  BT = null; miniEl().classList.remove('open'); keepAwake(false);
+  if (S && S.items && S.items[i] && !S.items[i].done) goalToggle(i); else if (S) renderGoalList(); }
+function closeBeat() { clearTimeout(btTimer); BT = null; miniEl().classList.remove('open'); keepAwake(false); }
+
+// ─── WARM-UP / COOL-DOWN: beat reps + timed holds, voice cues, auto-advance ───
+const ROUTINES = {
+  warm: {name:'Dynamic warm-up', ico:'🔥', steps:[
+    {n:'Jog in place', t:'time', s:30, cue:'Easy jog. Light feet.'},
+    {n:'High knees', t:'beat', reps:20, bpm:110, cue:'Knee up on every beep.'},
+    {n:'Butt kicks', t:'beat', reps:20, bpm:110, cue:'Heel to your butt on every beep.'},
+    {n:'Leg swings, front to back', t:'beat', reps:10, bpm:50, sides:1, cue:'Hold a wall. One swing per beep.'},
+    {n:'Leg swings, side to side', t:'beat', reps:10, bpm:50, sides:1, cue:'Swing across your body and back out.'},
+    {n:'Walking lunges', t:'beat', reps:10, bpm:30, cue:'Step and drop on each beep. Chest up.'},
+    {n:'Hip openers', t:'beat', reps:8, bpm:36, sides:1, cue:'Knee up, open the gate out to the side.'},
+    {n:'Hamstring scoops', t:'beat', reps:10, bpm:40, cue:'Heel out, toes up, scoop down and up.'},
+    {n:'Quick feet', t:'time', s:15, cue:'Fast feet! As quick as you can.'}]},
+  cool: {name:'Cool-down stretch', ico:'🧊', steps:[
+    {n:'Quad stretch', t:'hold', s:20, sides:1, cue:'Grab your ankle, knees together, stand tall.'},
+    {n:'Hamstring stretch', t:'hold', s:20, sides:1, cue:'Heel out, toes up, lean forward with a flat back.'},
+    {n:'Calf stretch', t:'hold', s:20, sides:1, cue:'Hands on a wall, back heel down.'},
+    {n:'Hip flexor lunge', t:'hold', s:20, sides:1, cue:'Back knee down, push your hips forward.'},
+    {n:'Butterfly', t:'hold', s:30, cue:'Feet together, let your knees drop. Breathe.'},
+    {n:"Child's pose", t:'hold', s:20, cue:'Sit back on your heels, arms long. Slow breaths.'}]}};
+let RT = null, rtTimer = null;
+function openRoutine(k) {
+  const y = isYoung(currentPlayer), steps = [];
+  ROUTINES[k].steps.forEach(st => { const x = {...st, s: st.s ? Math.round(st.s * (y && st.t === 'hold' ? .75 : 1)) : 0};
+    if (st.sides) { steps.push({...x, side:'LEFT'}); steps.push({...x, side:'RIGHT'}); } else steps.push(x); });
+  RT = {k, steps, i:0, run:0}; rtLoad(); miniEl().classList.add('open'); keepAwake(true); audioUnlock(); paintRoutine();
+}
+function rtLoad() { const st = RT.steps[RT.i]; RT.left = st.t === 'beat' ? 0 : st.s; RT.n = 0; }
+function rtPct(st) { return st.t === 'beat' ? RT.n / st.reps : 1 - RT.left / st.s; }
+function paintRoutine() {
+  const R = ROUTINES[RT.k], st = RT.steps[RT.i], el = miniEl(), c = st.t === 'hold' ? '#38bdf8' : 'var(--accent)';
+  el.className = 'open beat';
+  el.innerHTML = `<button class="mn-x" onclick="closeRoutine()">✕</button><div class="mn-body">
+    <div class="mn-l">${R.ico} ${R.name.toUpperCase()} · ${RT.i + 1} OF ${RT.steps.length}</div>
+    <div class="mn-t" style="font-size:26px">${esc(st.n)}${st.side ? ` <span style="color:var(--accent)">· ${st.side}</span>` : ''}</div>
+    <div class="mn-s">${esc(st.cue)}</div>
+    <div class="bt-ring" id="rtRing" style="background:${ringBg(rtPct(st), c)}"><div><b id="rtV">${st.t === 'beat' ? RT.n : RT.left}</b><span>${st.t === 'beat' ? 'of ' + st.reps : st.t === 'hold' ? 'sec hold' : 'seconds'}</span></div></div>
+    <div class="mn-chips">${RT.run ? `<button onclick="rtPause()">⏸ PAUSE</button>` : `<button class="sel" onclick="rtGo()">▶ ${RT.i || RT.n ? 'GO' : 'START'}</button>`}<button onclick="rtNext()">SKIP ›</button></div>
+    <div class="rt-steps">${RT.steps.map((x, j) => `<i class="${j < RT.i ? 'on' : j === RT.i ? 'cur' : ''}"></i>`).join('')}</div></div>`;
+}
+function rtGo() { const st = RT.steps[RT.i]; RT.run = 1; say(st.n + (st.side ? ', ' + st.side.toLowerCase() + ' side' : '')); paintRoutine(); clearTimeout(rtTimer); rtTimer = setTimeout(rtTick, 1500); }
+function rtTick() {
+  if (!RT || !RT.run) return; const st = RT.steps[RT.i];
+  if (st.t === 'beat') { RT.n++; beep(990, .05, .14); if (RT.n >= st.reps) return rtNext(true); rtTimer = setTimeout(rtTick, 60000 / st.bpm); }
+  else { RT.left--; if (RT.left <= 3 && RT.left > 0) beep(600, .08); if (st.t === 'hold' && st.s >= 20 && RT.left === Math.floor(st.s / 2)) say('Halfway. Breathe.');
+    if (RT.left <= 0) return rtNext(true); rtTimer = setTimeout(rtTick, 1000); }
+  const v = document.getElementById('rtV'), r = document.getElementById('rtRing');
+  if (v) v.textContent = st.t === 'beat' ? RT.n : RT.left; if (r) r.style.background = ringBg(rtPct(st), st.t === 'hold' ? '#38bdf8' : 'var(--accent)');
+}
+function rtPause() { clearTimeout(rtTimer); RT.run = 0; paintRoutine(); }
+function rtNext(auto) {
+  clearTimeout(rtTimer); beep(1320, .15);
+  if (RT.i >= RT.steps.length - 1) return rtDone();
+  const cur = RT.steps[RT.i], nx = RT.steps[RT.i + 1], same = nx.n === cur.n; RT.i++; rtLoad();
+  say(same ? 'Switch sides' : 'Next, ' + nx.n);
+  if (auto || RT.run) { RT.run = 1; paintRoutine(); rtTimer = setTimeout(rtTick, same ? 2500 : 4000); } else paintRoutine();
+}
+function rtDone() {
+  const p = currentPlayer, today = localDate(), k = RT.k, R = ROUTINES[k], key = `sfc_rt_${p.id}_${k}_${today}`, first = !localStorage.getItem(key);
+  const xp = first ? capDailyXP(p.id, today, 10) : 0; if (first) localStorage.setItem(key, '1');
+  if (xp) { addDay(`sfc_xpdays_${p.id}`, today, xp); p.xp = (p.xp||0) + xp; localStorage.setItem('sfc_player', JSON.stringify(p)); localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p)); recordSeason(p); }
+  if (first && deviceToken()) callOrQueue('sfc_log_session', {p_token:deviceToken(), p_player:p.id, p_state:playerState(p),
+    p_session:{date:today, touches:0, mode: k === 'warm' ? 'warmup' : 'cooldown', full_session:false, xp_earned:xp, bm_skills:[], mv_skills:[], rounds:[{routine:{k, steps:RT.steps.length}}]}});
+  say(k === 'warm' ? "Warm-up done. Let's go!" : 'Nice work. All stretched.'); RT.run = 0;
+  miniEl().innerHTML = `<button class="mn-x" onclick="closeRoutine()">✕</button><div class="mn-body"><div class="mn-ico">${R.ico}</div><div class="mn-t">${k === 'warm' ? 'WARMED UP!' : 'ALL STRETCHED!'}</div>
+    <div class="mn-s">${xp ? '+' + xp + ' XP · ' : ''}${k === 'warm' ? 'Body is ready. Time for touches.' : 'Your legs will thank you tomorrow.'}</div>
+    ${k === 'warm' ? `<button class="mn-go" onclick="closeRoutine();todayMain()">▶ START MY SESSION</button>` : ''}<button class="mn-back" onclick="closeRoutine()">Back home</button></div>`;
+}
+function closeRoutine() { clearTimeout(rtTimer); RT = null; miniEl().classList.remove('open'); keepAwake(false); renderToday(); }
 function startLightPrework() { setDifficulty('limited'); window.scrollTo({top:0,behavior:'smooth'}); showToast('Light session: wake up your feet, save your legs', 'success'); }
 function progXP(p, xp, mode, rounds) {
   const today = localDate();
