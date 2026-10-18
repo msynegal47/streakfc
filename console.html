@@ -60,6 +60,8 @@ details.wk summary{cursor:pointer;display:flex;gap:12px;align-items:center;flex-
 .k-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
 .k-tile{background:#072a2e;border:2px solid #14434b;border-radius:18px;padding:22px 14px;color:#fff;text-align:center;cursor:pointer;transition:transform .1s}.k-tile:active{transform:scale(.97)}.k-tile b{display:block;font-size:24px;font-weight:900}.k-tile span{display:block;margin-top:6px;font-size:12px;letter-spacing:1.5px;color:#7fc7cc;font-weight:800}
 .k-tile.way{border-color:#0caab5;box-shadow:0 0 0 3px rgba(12,170,181,.25)}.k-tile.way span{color:#3fe0e8}
+.k-av{display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;border-radius:50%;font-style:normal;font-weight:900;font-size:22px;color:#fff;margin-bottom:8px;box-shadow:0 0 0 3px rgba(255,255,255,.12)}.k-av.big{width:84px;height:84px;font-size:40px}
+.k-legend{margin-top:10px;font-size:12px;color:#7fc7cc}
 .k-here{display:flex;flex-wrap:wrap;gap:8px}.k-here button{background:#0caab522;border:1px solid #0caab566;color:#bff4f7;border-radius:99px;padding:8px 14px;font-weight:800;font-size:14px}
 .k-done{font-size:28px;font-weight:900;padding:30px 0;color:#3fe0e8}.k-note{margin-top:24px;color:#7fc7cc;font-size:12px}
 #kSheet{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:51}.k-sheet{background:#06292c;border:1px solid #14434b;border-radius:24px;padding:30px;width:min(620px,92vw)}
@@ -249,7 +251,7 @@ async function boot() {
     $('who').textContent = u.email || '';
     await refresh(true);
     $('login').style.display = 'none'; $('app').style.display = 'block';
-    const h = location.hash.slice(1); paintMode(); paintRole(); if (coachView()) return go(!ORG ? 'epa' : ['org','staff','epa'].includes(h) || h.startsWith('prog:') ? h : 'org'); go(['overview','kids','families','activity','epa','club','teams','coaches','seats','trainer','org','staff'].includes(h) || h.startsWith('prog:') ? h : 'overview');
+    const h = location.hash.slice(1); paintMode(); paintRole(); if (h === 'board') { go('epa'); return openKiosk(); } if (coachView()) return go(!ORG ? 'epa' : ['org','staff','epa'].includes(h) || h.startsWith('prog:') ? h : 'org'); go(['overview','kids','families','activity','epa','club','teams','coaches','seats','trainer','org','staff'].includes(h) || h.startsWith('prog:') ? h : 'overview');
   } catch(e) { if (/JWT|401|expired/i.test(e.message) && await refreshSession()) return boot(); showLogin('Sign in again: ' + e.message); }
 }
 async function refresh(silent) {
@@ -487,8 +489,8 @@ let KIOSK = null;
 function kioskPlayers() { return (KIOSK.players || []).filter(p => (p.programs||[]).some(e => e.id === 'epa')); }
 function kioskState(p) {
   const t = localDate(), S = (KIOSK.sessions || []).filter(s => s.player_id === p.id && s.date === t);
-  const here = S.find(s => s.source === 'kiosk' || s.mode === 'epa'), way = S.find(s => s.mode === 'checkin' && s.source !== 'kiosk');
-  return here ? 'here' : way ? 'way' : 'no';
+  if (S.find(s => s.mode === 'checkin' && s.source !== 'kiosk')) return 'phone';
+  return S.find(s => s.source === 'kiosk' || s.mode === 'epa') ? 'here' : 'no';
 }
 async function kioskLoad() {
   if (D && D.mock) { if (KIOSK && KIOSK.mock) return; const t = localDate(), ps = D.players.filter(p => (p.programs||[]).some(e => e.id === 'epa')); KIOSK = {mock:true, players:ps, sessions:ps.slice(0, 4).map(p => ({player_id:p.id, date:t, mode:'checkin', source:'kid', rounds:[{ready:{arrive:1}}]})).concat(ps.slice(4, 9).map(p => ({player_id:p.id, date:t, mode:'checkin', source:'kiosk', rounds:[{ready:{arrive:2}}]})))}; return; }
@@ -497,50 +499,43 @@ async function kioskLoad() {
 async function openKiosk() {
   if (KIOSK && !KIOSK.mock) KIOSK = null; if (KIOSK && KIOSK.mock && !(D && D.mock)) KIOSK = null;
   let k = $('kiosk'); if (!k) { k = document.createElement('div'); k.id = 'kiosk'; document.body.appendChild(k); }
-  k.innerHTML = '<div class="k-load">Loading…</div>'; k.classList.add('open'); document.body.style.overflow = 'hidden';
+  let code = localStorage.getItem('sfc_board_code');
+  if (!code) { code = (prompt('Set a 4-digit code to exit the board (so players cannot get into the console):', '') || '').replace(/\D/g, '').slice(0, 4); if (code.length !== 4) return toast('Board needs a 4-digit exit code'); localStorage.setItem('sfc_board_code', code); }
+  k.innerHTML = '<div class="k-load">Loading…</div>'; k.classList.add('open'); document.body.style.overflow = 'hidden'; history.replaceState(null, '', '#board');
   if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
   await kioskLoad(); paintKiosk(); clearInterval(KIOSK._t); KIOSK._t = setInterval(async () => { if (!$('kSheet')) { await kioskLoad(); paintKiosk(); } }, 20000);
 }
-function closeKiosk() { if (!confirm('Exit the check-in board?')) return; clearInterval(KIOSK && KIOSK._t); $('kiosk').classList.remove('open'); document.body.style.overflow = ''; if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); render(); }
+function closeKiosk() { const c = prompt('Coach code to exit:'); if (c === null) return; if (c.trim() !== localStorage.getItem('sfc_board_code')) return toast('Wrong code'); history.replaceState(null, '', '#epa'); clearInterval(KIOSK && KIOSK._t); $('kiosk').classList.remove('open'); document.body.style.overflow = ''; if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); render(); }
 function paintKiosk() {
   const P = kioskPlayers().slice().sort((a,b) => a.nickname.localeCompare(b.nickname)), st = Object.fromEntries(P.map(p => [p.id, kioskState(p)]));
-  const here = P.filter(p => st[p.id] === 'here'), not = P.filter(p => st[p.id] !== 'here'), way = not.filter(p => st[p.id] === 'way').length, b = (ORG && ORG.brand) || {};
+  const here = P.filter(p => st[p.id] !== 'no'), not = P.filter(p => st[p.id] === 'no'), b = (ORG && ORG.brand) || {};
   const now = new Date(), clock = now.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
-  const tile = p => `<button class="k-tile ${st[p.id]}" onclick="kioskTap('${p.id}')"><b>${esc(p.nickname)}</b><span>${st[p.id] === 'way' ? '🚌 on the way' : esc((epaOf(p).group || '').toUpperCase())}</span></button>`;
+  const tile = p => `<button class="k-tile" onclick="kioskTap('${p.id}')"><i class="k-av" style="background:${esc(p.color||'#0caab5')}">${esc((p.nickname||'?')[0])}</i><b>${esc(p.nickname)}</b><span>${esc((epaOf(p).group || '').toUpperCase())}</span></button>`;
   $('kiosk').innerHTML = `<div class="k-top"><div class="k-brand">${b.logo ? `<img src="${esc(b.logo)}">` : ''}<div><b>${esc(ORG ? (ORG.short || ORG.name) : '')} EPA CHECK-IN</b><span>${fmtDay(localDate()).toUpperCase()} · ${clock}</span></div></div>
-      <div class="k-count"><div><b>${here.length}</b><span>HERE</span></div><div><b>${way}</b><span>ON THE WAY</span></div><div><b>${not.length - way}</b><span>NOT YET</span></div></div>
+      <div class="k-count"><div><b>${here.length}</b><span>CHECKED IN</span></div><div><b>${not.length}</b><span>NOT YET</span></div></div>
       <button class="k-exit" onclick="closeKiosk()">Exit</button></div>
-    <div class="k-h">TAP YOUR NAME WHEN YOU GET HERE 👇</div>
+    <div class="k-h">NOT CHECKED IN YET? TAP YOUR NAME 👇</div>
     <div class="k-grid">${not.map(tile).join('') || '<div class="k-done">Everyone is here 🔥</div>'}</div>
-    ${here.length ? `<div class="k-h small">HERE · ${here.length}</div><div class="k-here">${here.map(p => `<button onclick="kioskUndo('${p.id}')">✅ ${esc(p.nickname)}</button>`).join('')}</div>` : ''}
+    ${here.length ? `<div class="k-h small">CHECKED IN · ${here.length}</div><div class="k-here">${here.map(p => `<button onclick="kioskUndo('${p.id}')">${st[p.id] === 'phone' ? '🚌' : '✅'} ${esc(p.nickname)}</button>`).join('')}</div><div class="k-legend">🚌 checked in on the way · ✅ checked in here</div>` : ''}
     ${KIOSK.mock ? '<div class="k-note">Sandbox: sample players, nothing saved.</div>' : ''}`;
 }
 let kDraft = null;
-const K_EN = ['😴','😕','😐','🙂','🔥'], K_BODY = [['Fresh','💪'],['Good','👍'],['Tight','😬'],['Sore','🤕'],['Hurt','🚑']], K_WHERE = ['ankle','foot','knee','shin','quad','hamstring','groin','hip','back','other'];
 function kioskTap(id) {
   const p = kioskPlayers().find(x => x.id === id); if (!p) return;
-  const way = (KIOSK.sessions || []).find(s => s.player_id === id && s.date === localDate() && s.mode === 'checkin' && s.source !== 'kiosk');
-  kDraft = {id, name:p.nickname, energy:0, body:'', hurt:[], had: !!way};
-  paintKSheet();
-}
-function paintKSheet() {
-  const d = kDraft, needWhere = d.body === 'Sore' || d.body === 'Hurt', ok = d.had || (d.energy && d.body && (!needWhere || d.hurt.length));
-  let s = $('kSheet'); if (!s) { s = document.createElement('div'); s.id = 'kSheet'; $('kiosk').appendChild(s); }
-  s.innerHTML = `<div class="k-sheet"><div class="k-hi">Hey ${esc(d.name)}! 👋</div>
-    ${d.had ? '<div class="k-sub">You already checked in on the way. Tap below to say you made it.</div>' : `<div class="k-lbl">ENERGY</div><div class="k-row">${K_EN.map((e,i) => `<button class="${d.energy===i+1?'sel':''}" onclick="kDraft.energy=${i+1};paintKSheet()">${e}</button>`).join('')}</div>
-    <div class="k-lbl">BODY</div><div class="k-row">${K_BODY.map(([b,ic]) => `<button class="${d.body===b?'sel':''}" onclick="kDraft.body='${b}';${b==='Sore'||b==='Hurt'?'':'kDraft.hurt=[];'}paintKSheet()">${ic}<small>${b}</small></button>`).join('')}</div>
-    ${needWhere ? `<div class="k-lbl">WHERE?</div><div class="k-chips">${K_WHERE.map(x => `<button class="${d.hurt.includes(x)?'sel':''}" onclick="kDraft.hurt=kDraft.hurt.includes('${x}')?kDraft.hurt.filter(y=>y!=='${x}'):[...kDraft.hurt,'${x}'];paintKSheet()">${x}</button>`).join('')}</div>` : ''}`}
-    <button class="k-go" ${ok ? '' : 'disabled'} onclick="kioskSave()">I'M HERE ✓</button><button class="k-cancel" onclick="$('kSheet').remove()">Not me</button></div>`;
+  kDraft = {id, name:p.nickname};
+  let sh = $('kSheet'); if (!sh) { sh = document.createElement('div'); sh.id = 'kSheet'; sh.onclick = e => { if (e.target === sh) sh.remove(); }; $('kiosk').appendChild(sh); }
+  sh.innerHTML = `<div class="k-sheet" style="text-align:center"><i class="k-av big" style="background:${esc(p.color||'#0caab5')}">${esc((p.nickname||'?')[0])}</i><div class="k-hi">${esc(p.nickname)}</div>
+    <button class="k-go" onclick="kioskSave()">✓ CHECK ME IN</button><button class="k-cancel" onclick="$('kSheet').remove()">Not me</button></div>`;
 }
 async function kioskSave() {
-  const d = kDraft, t = localDate(), bs = {Fresh:5, Good:4, Tight:3, Sore:2, Hurt:1}[d.body], ready = d.had ? {} : {energy:d.energy, body:d.body, hurt:d.hurt, legs:bs, score:Math.round((d.energy + bs) / 2 * 10) / 10};
+  const d = kDraft, t = localDate(), ready = {};
   if (!KIOSK.mock) { try { await rpc('sfc_coach_checkin', {p_program:'epa', p_player:d.id, p_date:t, p_ready:ready}); } catch(e) { return toast('Did not save: ' + e.message); } }
-  KIOSK.sessions.push({player_id:d.id, date:t, mode:'checkin', source:'kiosk', rounds:[{ready:{...ready, arrive:2}}], created_at:new Date().toISOString()});
+  KIOSK.sessions.push({player_id:d.id, date:t, mode:'checkin', source:'kiosk', rounds:[{ready:{arrive:2}}], created_at:new Date().toISOString()});
   if (REAL && REAL.byId && REAL.byId[d.id]) { const row = KIOSK.sessions[KIOSK.sessions.length-1]; REAL.byId[d.id].sess.unshift(row); }
   $('kSheet').remove(); paintKiosk(); toast(`✅ ${d.name} is checked in`);
 }
 async function kioskUndo(id) {
-  const p = kioskPlayers().find(x => x.id === id); if (!p || !confirm(`Undo check-in for ${p.nickname}?`)) return;
+  const p = kioskPlayers().find(x => x.id === id); if (!p) return; if (kioskState(p) === 'phone') return toast(`${p.nickname} checked in on the way`); if (!confirm(`Undo check-in for ${p.nickname}?`)) return;
   if (!KIOSK.mock) { try { await rpc('sfc_coach_checkin_undo', {p_program:'epa', p_player:id, p_date:localDate()}); } catch(e) { return toast('Failed: ' + e.message); } }
   KIOSK.sessions = KIOSK.sessions.filter(s => !(s.player_id === id && s.date === localDate() && s.source === 'kiosk')); paintKiosk();
 }
