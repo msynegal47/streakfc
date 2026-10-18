@@ -391,6 +391,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .top-clock{font-size:11px;color:var(--sub)}
 .top-player{font-size:16px;font-weight:900;letter-spacing:.5px}
 .top-streak{font-size:12px;font-weight:700;color:var(--accent)}
+.play-btn{background:linear-gradient(135deg,#f97316,#fb923c);border:0;border-radius:10px;color:#fff;font-weight:900;font-size:13px;letter-spacing:1px;padding:9px 14px;cursor:pointer;box-shadow:0 4px 14px rgba(249,115,22,.35)}
+.epa-x{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:var(--bg3);color:var(--sub);font-size:15px;cursor:pointer;z-index:2}
 .logout-btn{background:none;border:1px solid var(--border);border-radius:8px;color:var(--sub);font-size:10px;padding:6px 10px;cursor:pointer;letter-spacing:1px}
 
 /* Screen content */
@@ -990,8 +992,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 </div>
 
 <!-- Parent: set reward -->
-<div class="modal-overlay" id="epaModal" onclick="if(event.target===this)closeModal('epaModal')">
-  <div class="modal-sheet" style="max-height:88vh;overflow-y:auto">
+<div class="modal-overlay" id="epaModal" onclick="if(event.target===this)epaBackdrop()">
+  <div class="modal-sheet" style="max-height:88vh;overflow-y:auto;position:relative">
+    <button class="epa-x" onclick="closeModal('epaModal')" aria-label="Close">✕</button>
     <div class="modal-handle"></div>
     <div class="modal-title" id="epaTitle">EPA</div>
     <div class="modal-sub" id="epaSub"></div>
@@ -1218,7 +1221,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
       <div class="top-player" id="appPlayerName"></div>
       <div class="top-streak" id="appPlayerStreak"></div>
     </div>
-    <button class="logout-btn" onclick="exitToPlayerSelect()">↩ EXIT</button>
+    <div style="display:flex;gap:8px;align-items:center"><button class="play-btn" onclick="playToday()">▶ PLAY</button><button class="logout-btn" onclick="exitToPlayerSelect()">↩ EXIT</button></div>
   </div>
 
   <!-- App screens container -->
@@ -3380,6 +3383,7 @@ function openGoal() {
   openSess(); renderGoalChoose();
 }
 // One tap: build today's mix from their level and go
+function playToday() { if (typeof switchTab === 'function') switchTab('home'); startSession(); }
 function startSession() {
   const ex = loadSess();
   if (ex && !ex.finished) { if (ex.mode === 'goal' && ex.intensity !== currentDiff && !ex.items.some(i=>i.done)) { clearSess(); } else { S = ex; return resumeSession(); } }
@@ -3952,8 +3956,13 @@ function journalPrefill(p) {
   const tot = own.reduce((a,d) => a + (h[d]||0) - ((L[d] && L[d].epa) ? (FOCUS[L[d].epa.focus]||{touches:0}).touches : 0), 0), perDay = own.length ? tot / own.length / 70 : 0;
   return {days: own.length >= 7 ? 'Every day' : own.length >= 4 ? '4+' : String(own.length), mins: !own.length ? '0' : perDay < 30 ? '15-30' : perDay < 60 ? '30-60' : '60+', worked: own.length ? ['Ball Mastery','Passing'] : []};
 }
+function formKey() { return 'sfc_formdraft_' + (currentPlayer||{}).id; }
+function saveFormDraft() { try { if (epaDraft && FORMS[epaDraft.kind]) localStorage.setItem(formKey(), JSON.stringify({...epaDraft, at:Date.now()})); } catch(e) {} }
+function epaBackdrop() { const d = epaDraft; if (d && FORMS[d.kind] && Object.values(d.v||{}).some(x => Array.isArray(x) ? x.length : x !== '' && x != null)) { saveFormDraft(); return showToast('Answers saved. Tap ✕ to close.', 'success'); } closeModal('epaModal'); }
 function openForm(kind) {
   const p = currentPlayer, F = FORMS[kind];
+  const sv = (() => { try { return JSON.parse(localStorage.getItem(formKey()) || 'null'); } catch(e) { return null; } })();
+  if (sv && sv.kind === kind && Date.now() - sv.at < 2 * 864e5) { epaDraft = {kind, step: sv.step || 0, v: sv.v || {}}; paintEpa(); openEpaModal(F.title, ''); return showToast('Picking up where you left off', 'success'); }
   epaDraft = {kind, step:0, v: kind === 'journal' ? journalPrefill(p) : kind === 'film' || kind === 'game' ? {date: localDate()} : kind === 'pregame' ? {} : {...(((p.goals||{}).sheet)||{})}};
   paintEpa(); openEpaModal(F.title, '');
 }
@@ -3968,7 +3977,7 @@ function formField(f, v) {
   if (f.t === 'num') return lbl + `<input class="auth-input" type="number" inputmode="numeric" min="0" max="120" value="${esc(val ?? '')}" oninput="formSet('${f.k}',this.value===''?'':+this.value,1)">`;
   return lbl + `<input class="auth-input" maxlength="${f.k==='link'?300:160}" ${f.ph?`placeholder="${f.ph}"`:''} value="${esc(val||'')}" oninput="formSet('${f.k}',this.value,1)">`;
 }
-function formSet(k, v, quiet) { epaDraft.v[k] = v; if (quiet) { const s = document.getElementById('epaSave'); s.disabled = !formStepOk(); } else paintEpa(); }
+function formSet(k, v, quiet) { epaDraft.v[k] = v; saveFormDraft(); if (quiet) { const s = document.getElementById('epaSave'); s.disabled = !formStepOk(); } else paintEpa(); }
 function formPick(k, o, multi) { const cur = epaDraft.v[k]; epaDraft.v[k] = multi ? (Array.isArray(cur) && cur.includes(o) ? cur.filter(x => x !== o) : [...(cur||[]), o]) : (cur === o ? '' : o); paintEpa(); }
 function formStepOk() { const st = FORMS[epaDraft.kind].steps[epaDraft.step]; return st.f.every(f => !f.req || (Array.isArray(epaDraft.v[f.k]) ? true : String(epaDraft.v[f.k] ?? '').trim() !== '')); }
 function paintForm() {
@@ -3977,7 +3986,7 @@ function paintForm() {
   document.getElementById('epaSub').textContent = `Step ${d.step + 1} of ${F.steps.length} · ${st.h}${st.sub ? ' · ' + st.sub : ''}`;
   document.getElementById('epaBody').innerHTML = `<div class="form-dots">${F.steps.map((_,i) => `<i class="${i<=d.step?'on':''}"></i>`).join('')}</div>` + st.f.map(f => formField(f, d.v)).join('')
     + (d.step ? `<button class="epa-btn ghost" style="margin-top:4px" onclick="epaDraft.step--;paintEpa()">← BACK</button>` : '');
-  const s = document.getElementById('epaSave'); s.disabled = !formStepOk(); s.textContent = last ? `SUBMIT +${F.xp} XP` : 'NEXT →';
+  const s = document.getElementById('epaSave'); s.disabled = !formStepOk(); s.textContent = last ? `SUBMIT +${F.xp} XP` : 'NEXT →'; saveFormDraft();
 }
 // Game counts as a training day: streak + touches (by minutes played, capped) + XP
 function commitGame(p, v) {
@@ -4015,7 +4024,7 @@ function progXP(p, xp, mode, rounds) {
 function submitForm() {
   const d = epaDraft, F = FORMS[d.kind], p = currentPlayer;
   if (d.step < F.steps.length - 1) { d.step++; return paintEpa(); }
-  closeModal('epaModal');
+  closeModal('epaModal'); try { localStorage.removeItem(formKey()); } catch(e) {}
   const v = JSON.parse(JSON.stringify(d.v)), today = localDate();
   if (d.kind === 'journal') { const key = 'wk_' + weekDates(0)[0]; if ((epaLog(p.id)[key]||{}).weekly) return; setEpaLog(p.id, key, 'weekly', v); progXP(p, F.xp, 'weekly', [{weekly:v}]); }
   else if (d.kind === 'film') { if ((epaLog(p.id)[today]||{}).film) return showToast('One game analysis per day'); setEpaLog(p.id, today, 'film', v); progXP(p, F.xp, 'film', [{film:v}]); }
