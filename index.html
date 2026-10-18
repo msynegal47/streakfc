@@ -1045,6 +1045,24 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .mn-step{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%}
 .mn-step button{padding:18px 0;border-radius:14px;border:2px solid #334155;background:#111827;color:#fff;font-size:22px;font-weight:900;cursor:pointer}
 .mn-call{font-size:34px;font-weight:900;line-height:1.15;min-height:80px;display:flex;align-items:center}
+
+.home-hero{flex-wrap:wrap}
+.hero-season{width:100%;flex-basis:100%;background:none!important;border:0!important;border-top:1px solid var(--border)!important;border-radius:0!important;padding:12px 0 0!important;margin-top:2px}
+.hero-season .ss-top{margin-bottom:6px}.hero-season .ss-name{font-size:10px}.hero-season .ss-left{font-size:10px}
+.hero-season .ss-rank{gap:10px;margin-bottom:6px}.hero-season .ss-badge{font-size:10px;padding:3px 8px}
+.hero-season .ss-team{font-size:15px}.hero-season .ss-xp{font-size:10px}
+.hero-season .ss-bar{height:5px}.hero-season .ss-next{font-size:11px;margin-top:6px}
+.hero-season .ss-track{margin-top:8px}.hero-season .ss-ti{transform:scale(.8)}
+.hero-season .ss-foot{display:none}.hero-season .rk-mult{font-size:10px;margin-top:4px}
+.profile-avatar.home-avatar{width:84px;height:84px;margin:0 auto}
+.profile-avatar.home-avatar svg{width:72px;height:72px}
+.streak-line{font-size:11px;color:var(--sub);line-height:1.4;margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--bg3);border:1px dashed #f9731655}
+.streak-line b{color:var(--accent)}
+.streak-line.safe{border:1px solid #22c55e55}.streak-line.safe b{color:var(--green)}
+.rec-link{border:1px solid var(--border)!important;border-radius:14px!important;background:var(--bg3)!important;color:var(--text)!important;font-size:13px!important;font-weight:900!important;padding:12px!important;display:flex;flex-direction:column;align-items:center;gap:2px}
+.rec-link span{font-size:10px;color:var(--sub);font-weight:700}
+.jg-save{width:100%;margin-top:8px;border:1px solid #22c55e66;background:#22c55e18;color:var(--green);border-radius:10px;padding:9px;font-size:12px;font-weight:900;cursor:pointer}
+.jg-save span{color:var(--sub);font-weight:700;font-size:10px}
 </style>
 </head>
 <body>
@@ -1348,6 +1366,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
             <div class="home-title" id="homeTitle" style="display:none"></div>
             <div class="home-tease" id="homeTease" style="display:none"></div>
           </div>
+          <div class="season-card hero-season" id="seasonCard"></div>
         </div>
         <div class="snap-row" id="snapRow"></div>
         <!-- My Week: tap a day for team practice / game -->
@@ -1360,6 +1379,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
           <div class="touch-prog-row"><div class="touch-count" id="touchCount">0</div><div class="touch-label" id="touchLabel">TOUCHES TODAY</div></div>
           <div class="ms-bar" id="msBar"></div>
           <div class="today-hint" id="todayHint"></div>
+          <div class="streak-line" id="streakLine"></div>
           <div id="resumeRow"></div>
           <div id="gameRow"></div>
           <div id="miniRow"></div>
@@ -1369,8 +1389,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
             <button id="diff-consistent" class="diff-btn active-consistent" onclick="setDifficulty('consistent')">✅ STANDARD</button>
             <button id="diff-hustle" class="diff-btn" onclick="setDifficulty('hustle')">💪 HUSTLE</button>
           </div>
-          <button class="start-btn" onclick="startSession()"><b id="startLbl">▶ START</b><span id="startSub"></span></button>
-          <button class="rec-link" onclick="startRecovery()">🌙 Recovery day instead · ~8 min, keeps the streak</button>
+          <button class="start-btn" id="startBtn" onclick="todayMain()"><b id="startLbl">▶ START</b><span id="startSub"></span></button>
+          <button class="rec-link" id="recLink" onclick="todayAlt()">🌙 RECOVERY DAY INSTEAD <span>~8 min · keeps the streak</span></button>
           <!-- Juggles (folded in) -->
           <div class="jg-row">
             <div class="jg-cell"><div class="jg-lbl">🎯 JUGGLES TODAY <span id="juggleMinLbl">0 / 150</span></div>
@@ -1379,13 +1399,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
             <div class="jg-cell"><div class="jg-lbl">🔥 BEST IN A ROW <span id="jugglePbBadge">PB: --</span></div>
               <input class="juggle-input" id="juggleStreak" type="number" inputmode="numeric" placeholder="0" min="0" oninput="saveWip()"></div>
           </div>
+          <button class="jg-save" onclick="saveJuggles()">✓ SAVE JUGGLES <span id="jgDay"></span></button>
         </div>
+        <!-- Reward in progress (parent-set). Picking one lives on Profile. -->
+        <div class="reward-card" id="rewardCard" style="display:none"></div>
         <!-- Daily quests (compact) -->
         <div class="quest-card" id="questCard"></div>
-        <!-- Reward (parent-set) or wish nudge -->
-        <div class="reward-card" id="rewardCard" style="display:none"></div>
-        <!-- Rank -->
-        <div class="season-card" id="seasonCard"></div>
         <!-- Unlock road -->
         <div class="unlock-card" id="unlockCard"></div>
         <button class="start-btn start-bottom" onclick="playToday()"><b id="startLbl2">▶ START TODAY'S SESSION</b></button>
@@ -1404,7 +1423,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
     <!-- PROFILE -->
     <div class="app-screen" id="screen-profile">
       <div class="profile-card">
-        <div class="profile-avatar" id="profileAvatar"></div>
+        <div class="profile-avatar home-avatar" id="profileAvatar"></div>
+        <div class="home-tease" id="profileTease" style="display:none;text-align:center"></div>
         <button class="edit-av-btn" id="editAvBtn" onclick="openAvatarEditor()" style="display:none">✏️ EDIT AVATAR</button>
         <div class="profile-name" id="profileName"></div>
         <div class="profile-club" id="profileClub"></div>
@@ -1421,6 +1441,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
         <div class="week-chart" id="weekBars"></div>
         <div class="week-labels" id="weekLabels" style="display:flex;margin-top:6px"></div>
       </div>
+      <div class="reward-card" id="rewardPick" style="display:none"></div>
       <div class="badges-card" id="goalsCard" style="display:none"></div>
       <div class="badges-card" id="gamesCard" style="display:none"></div>
       <div class="badges-card" id="speedCard"></div>
@@ -2388,8 +2409,9 @@ function renderHome() {
   renderSeasonCard();
 }
 // Hero avatar: real kit once unlocked, locked kit teaser before that
-function paintHomeAvatar(p, color) {
-  const el = document.getElementById('homeAvatar'), t = document.getElementById('homeTease'), u = UNLOCKS.find(x => x.id === 'avatar');
+function paintHomeAvatar(p, color) { paintHeroAvatar(document.getElementById('homeAvatar'), document.getElementById('homeTease'), p, color); }
+function paintHeroAvatar(el, t, p, color) {
+  const u = UNLOCKS.find(x => x.id === 'avatar'); if (!el || !t) return;
   if (hasUnlock(p.id, 'avatar') || !u) { el.classList.remove('av-locked'); paintAvatar(el, p, color); el.onclick = () => openAvatarEditor(); t.style.display = 'none'; return; }
   el.classList.add('av-wrap', 'av-locked'); el.style.background = '#0b1220';
   el.innerHTML = jerseySVG({primary:color, trim:'#fff', number:''}, true) + `<div class="av-day">DAY ${u.at}</div>`;
@@ -2663,8 +2685,8 @@ function renderProfile() {
   const p = currentPlayer;
   const colors = {};
   const color = p.color || colors[p.id] || '#4fc3f7';
-  paintAvatar(document.getElementById('profileAvatar'), p, color);
-  renderGamesCard(p);
+  paintHeroAvatar(document.getElementById('profileAvatar'), document.getElementById('profileTease'), p, color);
+  renderGamesCard(p); renderRewardCard();
   document.getElementById('editAvBtn').style.display = hasUnlock(p.id,'avatar') ? 'inline-block' : 'none';
   document.getElementById('profileName').textContent = p.name.toUpperCase();
   document.getElementById('profileClub').textContent = [(p.club||'').toUpperCase(), [p.pos1, p.pos2].filter(Boolean).join(' / ')].filter(Boolean).join(' · ');
@@ -3003,22 +3025,20 @@ function rewardLine(p) {
   return `<div style="margin-top:10px;font-size:11px;color:var(--amber);font-weight:700">🎁 ${r.name}: ${n}/${r.days} days${n>=r.days?' · EARNED!':''}</div>`;
 }
 function renderRewardCard() {
-  const el = document.getElementById('rewardCard'), p = currentPlayer, r = getReward(p.id);
-  el.style.display = 'block';
+  const p = currentPlayer, r = getReward(p.id), home = document.getElementById('rewardCard'), pick = document.getElementById('rewardPick');
   if (r && r.days) {
     const n = Math.min(r.days, rewardProgress(p.id, r));
-    el.innerHTML = `<div class="reward-top"><div class="reward-name">🎁 ${esc(r.name)}</div><div class="reward-count">${n} / ${r.days} DAYS</div></div>
+    const html = `<div class="reward-top"><div class="reward-name">🎁 ${esc(r.name)}</div><div class="reward-count">${n} / ${r.days} DAYS</div></div>
       <div class="reward-bar"><div style="width:${n/r.days*100}%"></div></div>
       <div style="font-size:11px;color:var(--sub);margin-top:6px">${n>=r.days?'You earned it! Go tell your parents 🎉':(r.days-n)+' more training days to earn it'}</div>`;
+    home.style.display = 'block'; home.innerHTML = html; if (pick) { pick.style.display = 'block'; pick.innerHTML = html; }
     return;
   }
-  if (r && r.wish) {
-    el.innerHTML = `<div class="reward-top"><div class="reward-name">🎁 ${esc(r.wish)}</div><div class="reward-count">ASKED</div></div>
+  home.style.display = 'none'; if (!pick) return; pick.style.display = 'block';
+  pick.innerHTML = r && r.wish ? `<div class="reward-top"><div class="reward-name">🎁 ${esc(r.wish)}</div><div class="reward-count">ASKED</div></div>
       <div style="font-size:12px;color:var(--sub);line-height:1.4">Waiting on a parent to set how many training days it takes. Keep stacking days, they'll count once it's set.</div>
-      <button class="wish-change" onclick="pickWish()">Change my pick</button>`;
-    return;
-  }
-  el.innerHTML = `<div class="reward-top"><div class="reward-name">🎁 WHAT ARE YOU TRAINING FOR?</div></div>
+      <button class="wish-change" onclick="pickWish()">Change my pick</button>`
+    : `<div class="reward-top"><div class="reward-name">🎁 WHAT ARE YOU TRAINING FOR?</div></div>
     <div style="font-size:12px;color:var(--sub);margin-bottom:8px">Pick one. Your parent sets how many training days it takes.</div>
     <div class="wish-row">${REWARD_PRESETS.map(x => `<button class="wish-chip" onclick="saveWish('${x}')">${x}</button>`).join('')}<button class="wish-chip" onclick="pickWish()">✏️ Other</button></div>`;
 }
@@ -3211,9 +3231,28 @@ const JUGGLE_BONUS_XP = 25;
 function juggleMin(p) {
   return parseInt(localStorage.getItem(`sfc_jugglemin_${p.id}`)) || p.juggle_min || JUGGLE_MIN_DEFAULT;
 }
+// Juggles count on their own: touches, quest, daily-minimum bonus, PB, streak. No session needed.
+function jugDay(p) { return parseInt(localStorage.getItem(`sfc_jugtot_${p.id}_${localDate()}`) || '0'); }
+function saveJuggles() {
+  const p = currentPlayer, today = localDate(), add = parseInt(document.getElementById('juggleToday').value) || 0, row = parseInt(document.getElementById('juggleStreak').value) || 0;
+  if (!add && !row) return showToast('Type how many juggles first', 'error');
+  const total = jugDay(p) + add; localStorage.setItem(`sfc_jugtot_${p.id}_${today}`, String(total));
+  const touches = capTouches(p, add, today), jKey = `sfc_jugglemin_hit_${p.id}_${today}`, bonus = total >= juggleMin(p) && !localStorage.getItem(jKey) ? JUGGLE_BONUS_XP : 0;
+  if (bonus) localStorage.setItem(jKey, '1');
+  const oldPB = getJugglePB(), pb = row > oldPB; if (pb) { localStorage.setItem(`sfc_juggle_${p.id}`, String(row)); p.juggle_pb = row; }
+  if (touches > 0) applyStreak(p, today);
+  const quest = updateQuests(p, [], 'juggle', 0, total, false), xp = capDailyXP(p.id, today, bonus + (pb ? 10 : 0) + Math.min(20, Math.round(add / 10))) + quest.xp;
+  addHistory(p.id, today, touches); addDay(`sfc_xpdays_${p.id}`, today, xp); p.xp = (p.xp||0) + xp; p.total_touches = (p.total_touches||0) + touches;
+  localStorage.setItem('sfc_player', JSON.stringify(p)); localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p)); recordSeason(p); checkBadges();
+  if (deviceToken()) callOrQueue('sfc_log_session', {p_token:deviceToken(), p_player:p.id, p_state:playerState(p),
+    p_session:{date:today, touches, juggle_high:row, juggle_total:add, mode:'juggle', full_session:false, xp_earned:xp, bm_skills:[], mv_skills:[], rounds:[{juggle:{add, row, total}}]}});
+  document.getElementById('juggleToday').value = ''; document.getElementById('juggleStreak').value = ''; saveWip();
+  renderHome(); showToast(`🎯 ${add} juggles saved · ${total} today${bonus ? ' · daily minimum hit!' : ''}${pb ? ' · NEW PB ' + row + '!' : ''} · +${xp} XP`, 'success');
+}
 function updateJuggleBar() {
   if (!currentPlayer) return;
-  const min = juggleMin(currentPlayer), tot = parseInt(document.getElementById('juggleToday').value)||0;
+  const min = juggleMin(currentPlayer), tot = jugDay(currentPlayer) + (parseInt(document.getElementById('juggleToday').value)||0);
+  { const jd = document.getElementById('jgDay'); if (jd) jd.textContent = jugDay(currentPlayer) ? `· ${jugDay(currentPlayer)} saved today` : '· counts as training'; }
   document.getElementById('juggleBar').style.width = Math.min(100, tot/min*100) + '%';
   document.getElementById('juggleMinLbl').textContent = tot >= min ? `✅ ${min} HIT` : `${tot} / ${min}`;
   document.getElementById('juggleMinLbl').style.color = tot >= min ? 'var(--green)' : '';
@@ -3501,7 +3540,17 @@ function renderToday() {
   document.getElementById('startLbl').textContent = going ? '▶ KEEP GOING' : hit ? '✓ DONE TODAY · GO AGAIN?' : '▶ START';
   document.getElementById('startSub').textContent = going ? `${ex.items.filter(i=>i.done).length} of ${ex.items.length} done · ${ex.target.toLocaleString()} touches`
     : hit ? 'Bonus session: extra XP and touches' : `${goal.toLocaleString()} touches · ~${Math.max(5, Math.round(goal/70))} min · ball mastery, moves + passing`;
-  { const b2 = document.getElementById('startLbl2'); if (b2) b2.textContent = going ? '▶ KEEP GOING' : hit ? '▶ GO AGAIN · BONUS XP' : "▶ START TODAY'S SESSION"; }
+  const heavy = heavyDone(p), safe = !!heavy || localStorage.getItem(`sfc_lastlog_${p.id}`) === localDate();
+  document.getElementById('streakLine').innerHTML = safe ? `<b>🔥 STREAK SAFE TODAY</b>${heavy ? ` · your ${heavy === 'game' ? 'game' : 'EPA'} counted` : ''}`
+    : `<b>🔥 KEEP YOUR STREAK:</b> finish any session, a recovery day, log a game you played today, log EPA, or a juggling set`;
+  document.getElementById('streakLine').className = 'streak-line ' + (safe ? 'safe' : '');
+  if (heavy && !going) {
+    document.getElementById('startLbl').textContent = '🌙 RECOVERY SESSION';
+    document.getElementById('startSub').textContent = `${heavy === 'game' ? 'Game' : 'EPA'} done. ~8 min of mobility + easy touches so you bounce back.`;
+    document.getElementById('todayHint').textContent = `${heavy === 'game' ? 'You played today' : 'You trained at EPA today'}. That was your big work. Recovery is the smart move, extra touches are optional.`;
+    document.getElementById('recLink').innerHTML = `⚽ LIGHT TOUCHES ANYWAY <span>optional · ${goalFor('limited').toLocaleString()} touches</span>`;
+  } else document.getElementById('recLink').innerHTML = `🌙 RECOVERY DAY INSTEAD <span>~8 min · keeps the streak</span>`;
+  { const b2 = document.getElementById('startLbl2'); if (b2) b2.textContent = going ? '▶ KEEP GOING' : heavy ? '🌙 RECOVERY SESSION' : hit ? '▶ GO AGAIN · BONUS XP' : "▶ START TODAY'S SESSION"; }
   const S = loadSess();
   const gr = document.getElementById('gameRow'); if (gr) gr.innerHTML = gameCardHTML(p);
   const mr = document.getElementById('miniRow'); if (mr) mr.innerHTML = miniRowHTML(p);
@@ -3664,7 +3713,11 @@ function openGoal() {
   openSess(); renderGoalChoose();
 }
 // One tap: build today's mix from their level and go
-function playToday() { if (typeof switchTab === 'function') switchTab('home'); startSession(); }
+function playToday() { if (typeof switchTab === 'function') switchTab('home'); todayMain(); }
+// Game / EPA already done today = the work is in. Default to recovery, touches optional.
+function heavyDone(p) { const T = epaLog(p.id)[localDate()] || {}; return (T.games || []).length ? 'game' : T.epa ? 'epa' : ''; }
+function todayMain() { const p = currentPlayer, ex = loadSess(); if (heavyDone(p) && !(ex && !ex.finished && ex.mode === 'goal')) return startRecovery(); startSession(); }
+function todayAlt() { if (heavyDone(currentPlayer)) { setDifficulty('limited'); return startSession(); } startRecovery(); }
 function startSession() {
   const ex = loadSess();
   if (ex && !ex.finished) { if (ex.mode === 'goal' && ex.intensity !== currentDiff && !ex.items.some(i=>i.done)) { clearSess(); } else { S = ex; return resumeSession(); } }
@@ -3748,7 +3801,7 @@ function commitSession() {
   const before = todayTouches(), after = before + touches;
   const milestones = MILESTONES_T.filter(m => before < m && after >= m);
   const juggle = parseInt(document.getElementById('juggleStreak').value)||0;
-  const juggleTotal = parseInt(document.getElementById('juggleToday').value)||0;
+  const juggleTotal = (parseInt(document.getElementById('juggleToday').value)||0) + jugDay(p);
   const jKey = `sfc_jugglemin_hit_${p.id}_${today}`;
   const jBonus = (juggleTotal >= juggleMin(p) && !localStorage.getItem(jKey)) ? JUGGLE_BONUS_XP : 0;
   if (jBonus) localStorage.setItem(jKey, '1');
