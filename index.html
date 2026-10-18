@@ -1011,6 +1011,40 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .gl-b div span{display:block;font-size:9px;font-weight:900;letter-spacing:.8px;color:var(--sub);text-transform:uppercase}
 .gl-b a{color:var(--accent);font-weight:800;font-size:12px}
 .gl-foot{font-size:11px;color:var(--sub);margin-top:8px;line-height:1.4}
+
+.mini-h{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:900;letter-spacing:1.5px;color:#a78bfa;margin:14px 0 8px}
+.mini-h span{color:var(--sub);letter-spacing:.5px;font-size:10px}
+.mini-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mini-t{background:linear-gradient(135deg,#1e1b4b,#0f1520);border:1px solid #a78bfa55;border-radius:14px;padding:12px 8px;color:var(--text);cursor:pointer;text-align:center}
+.mini-t.done{border-color:var(--green)}
+.mini-i{font-size:30px;line-height:1.1}
+.mini-t b{display:block;font-size:13px;font-weight:900;margin-top:4px}
+.mini-t span{display:block;font-size:10px;color:var(--sub);font-weight:700;margin-top:2px}
+#mini{position:fixed;inset:0;z-index:200;background:#0b0f17;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;transition:background .2s}
+#mini.open{display:flex}
+#mini.run.green{background:#064e1f}#mini.run.yellow{background:#5c4a05}#mini.run.red{background:#5c0a0a}
+.mn-x{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:16px;background:none;border:1px solid #ffffff33;color:#fff;border-radius:50%;width:40px;height:40px;font-size:16px;cursor:pointer}
+.mn-body{width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.mn-ico{font-size:72px;line-height:1}
+.mn-t{font-size:30px;font-weight:900;letter-spacing:1px}
+.mn-s{font-size:16px;color:#cbd5e1;line-height:1.4;font-weight:600}
+.mn-l{font-size:12px;font-weight:900;letter-spacing:2px;color:#a78bfa}
+.mn-big{font-size:84px;font-weight:900;line-height:1}
+.mn-go{width:100%;padding:20px;border:0;border-radius:18px;background:linear-gradient(135deg,#8b5cf6,#a78bfa);color:#fff;font-size:22px;font-weight:900;cursor:pointer;margin-top:6px}
+.mn-back,.mn-stop{background:none;border:0;color:#cbd5e1;font-size:14px;font-weight:700;padding:10px;cursor:pointer;text-decoration:underline}
+.mn-chips{display:flex;gap:10px;justify-content:center}
+.mn-chips button{min-width:64px;padding:14px 18px;border-radius:14px;border:2px solid #334155;background:#111827;color:#fff;font-size:22px;font-weight:900;cursor:pointer}
+.mn-chips button.sel{border-color:#a78bfa;background:#2e1065}
+.mn-chips.big{flex-direction:column;width:100%}.mn-chips.big button{font-size:30px;padding:16px}
+.mn-pins{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:100%}
+.mn-pins button{padding:22px 0;border-radius:16px;border:2px solid #334155;background:#111827;color:#fff;font-size:28px;font-weight:900;cursor:pointer}
+.mn-pins button:last-child{border-color:#f59e0b;background:#451a03}
+.mn-frames{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;width:100%}
+.mn-frames i{height:30px;border-radius:6px;background:#1f2937;font-style:normal;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:13px}
+.mn-frames i.on{background:#4c1d95}.mn-frames i.x{background:#f59e0b;color:#1a1405}
+.mn-step{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%}
+.mn-step button{padding:18px 0;border-radius:14px;border:2px solid #334155;background:#111827;color:#fff;font-size:22px;font-weight:900;cursor:pointer}
+.mn-call{font-size:34px;font-weight:900;line-height:1.15;min-height:80px;display:flex;align-items:center}
 </style>
 </head>
 <body>
@@ -1328,6 +1362,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
           <div class="today-hint" id="todayHint"></div>
           <div id="resumeRow"></div>
           <div id="gameRow"></div>
+          <div id="miniRow"></div>
           <div class="diff-label" style="margin-top:14px">INTENSITY</div>
           <div class="diff-btns">
             <button id="diff-limited" class="diff-btn" onclick="setDifficulty('limited')">🌙 LIGHT</button>
@@ -3469,6 +3504,7 @@ function renderToday() {
   { const b2 = document.getElementById('startLbl2'); if (b2) b2.textContent = going ? '▶ KEEP GOING' : hit ? '▶ GO AGAIN · BONUS XP' : "▶ START TODAY'S SESSION"; }
   const S = loadSess();
   const gr = document.getElementById('gameRow'); if (gr) gr.innerHTML = gameCardHTML(p);
+  const mr = document.getElementById('miniRow'); if (mr) mr.innerHTML = miniRowHTML(p);
   document.getElementById('resumeRow').innerHTML = S && !S.finished && S.mode !== 'goal'
     ? `<button class="resume-btn" onclick="resumeSession()">▶ RESUME ${S.mode==='goal'?'TOUCH GOAL':S.mode==='recovery'?'RECOVERY':'TIMED SESSION'} ${S.mode!=='goal'?`(${S.idx+1}/${S.plan.length})`:''}</button>` : '';
 }
@@ -4062,7 +4098,7 @@ function renderEPA() {
     const late = !done && missedEpa(p).includes(d);
     return `<div class="epa-d ${done?'on':''} ${d===today?'today':''} ${off?'off':''}" ${late?`style="cursor:pointer;border-style:dashed" onclick="openEpaLog('${d}')"`:''}><b>${['MON','TUE','WED','THU','FRI','SAT','SUN'][i]}</b><span>${off?'OFF':done?'✓':late?'+ log':d<today?'missed':''}</span></div>`; }).join('');
   const ready = T.ready ? `<div class="epa-done">✓ Checked in · ready ${T.ready.score}/5</div>`
-    : es.kind !== 'day' && bodyCovered(T) ? `<div class="epa-done">✓ Body checked in your ${(T.games||[]).length ? 'game log' : 'pre-game check-in'}</div>`
+    : es.kind !== 'day' && bodyCovered(T) ? `<div class="epa-done">✓ Body checked in your ${(T.games||[]).length ? 'game log' : 'pre-game check-in'} · <a style="color:var(--accent);cursor:pointer" onclick="openCheckin()">something hurting? update</a></div>`
     : `<button class="epa-btn ghost" onclick="openCheckin()">${es.kind === 'day' ? '🚌 HEADING TO EPA? CHECK IN' : "💬 HOW'S YOUR BODY?"} <b>+${CHECKIN_XP} XP</b></button>`;
   let main = '';
   if (es.kind === 'day') main = T.epa ? `<div class="epa-done">✓ EPA logged · ${FOCUS[T.epa.focus].name} · effort ${T.epa.effort} · ~${FOCUS[T.epa.focus].touches.toLocaleString()} touches</div>`
@@ -4128,7 +4164,7 @@ function paintEpa() {
     ok = d.energy > 0 && d.body && (!needWhere || d.hurt.length);
     h = `<div class="field-lbl">ENERGY</div><div class="epa-emo" style="grid-template-columns:repeat(5,1fr)">${ENERGY.map((e,i) => `<button class="${d.energy===i+1?'sel':''}" onclick="epaDraft.energy=${i+1};paintEpa()">${e}</button>`).join('')}</div>
       <div class="field-lbl">BODY</div><div class="hurt-chips">${BODY.map(([b,,ico]) => `<button class="${d.body===b?'sel '+(b==='Sore'||b==='Hurt'?'':'good'):''}" onclick="epaDraft.body='${b}';${b==='Sore'||b==='Hurt'?'':'epaDraft.hurt=[];'}paintEpa()">${ico} ${b.toUpperCase()}</button>`).join('')}</div>
-      ${needWhere ? `<div class="field-lbl">WHERE?</div><div class="hurt-chips">${HURT.map(x => `<button class="${d.hurt.includes(x)?'sel':''}" onclick="toggleHurt('${x}')">${x.toUpperCase()}</button>`).join('')}</div>` : ''}`;
+      ${needWhere ? `<div class="field-lbl">WHERE?</div><div class="hurt-chips">${HURT.map(x => `<button class="${d.hurt.includes(x)?'sel':''}" onclick="toggleHurt('${x}')">${x.toUpperCase()}</button>`).join('')}</div>${hurtDetailHTML(d, 'readySet')}` : ''}`;
   } else {
     ok = (d.best + d.hard + d.goal).trim().length >= 3;
     h = [['best','BEST PART OF THE WEEK'],['hard','HARDEST THING'],['goal','ONE GOAL FOR NEXT WEEK']].map(([k,l]) => `<div class="field-lbl">${l}</div><input class="auth-input" maxlength="80" value="${esc(d[k])}" oninput="epaDraft.${k}=this.value;document.getElementById('epaSave').disabled=(epaDraft.best+epaDraft.hard+epaDraft.goal).trim().length<3">`).join('')
@@ -4138,7 +4174,19 @@ function paintEpa() {
   const s = document.getElementById('epaSave'); s.disabled = !ok;
   s.textContent = d.kind === 'epa' ? `LOG IT +${EPA_XP} XP` : d.kind === 'ready' ? `CHECK IN +${CHECKIN_XP} XP` : `SAVE +${WEEKLOG_XP} XP`;
 }
-const HURT = ['ankle','foot','knee','shin','quad','hamstring','groin','hip','back','other'];
+const HURT = ['heel','toes','arch','top of foot','ankle','knee','shin','quad','hamstring','groin','hip','back','other'];
+// Side + exact spot, folded into the hurt list on save so every coach view shows it ("left heel", "middle toe")
+function hurtDetailHTML(o, setFn) {
+  if (!(o.hurt || []).length) return '';
+  return `<div class="field-lbl">WHICH SIDE?</div><div class="hurt-chips">${['Left','Right','Both'].map(x => `<button class="${o.side===x?'sel':''}" onclick="${setFn}('side','${x}')">${x.toUpperCase()}</button>`).join('')}</div>
+    <div class="field-lbl">WHERE EXACTLY? <span style="opacity:.6">(OPTIONAL)</span></div><input class="auth-input" maxlength="60" value="${esc(o.where||'')}" placeholder="e.g. middle toe, back of heel" oninput="${setFn}('where',this.value,1)">`;
+}
+function hurtFold(o) {
+  const h = (o.hurt || []).map(x => o.side && o.side !== 'Both' ? o.side.toLowerCase() + ' ' + x : o.side === 'Both' ? 'both ' + x : x);
+  if ((o.where || '').trim()) h.push(o.where.trim().toLowerCase());
+  return h;
+}
+function readySet(k, v, quiet) { epaDraft[k] = v; if (!quiet) paintEpa(); }
 function toggleHurt(x) { const h = Array.isArray(epaDraft.hurt) ? epaDraft.hurt : []; epaDraft.hurt = h.includes(x) ? h.filter(y => y !== x) : [...h, x]; paintEpa(); }
 function saveEpa() {
   const d = epaDraft; if (!d) return;
@@ -4148,7 +4196,7 @@ function saveEpa() {
   if (d.kind === 'epa') return commitEPA(d);
   const p = currentPlayer, today = localDate(), xp = d.kind === 'ready' ? CHECKIN_XP : WEEKLOG_XP;
   let data, key = today, field = d.kind;
-  if (d.kind === 'ready') { const bs = (BODY.find(b => b[0] === d.body)||[0,3])[1], score = Math.round((d.energy + bs) / 2 * 10) / 10; data = {energy:d.energy, body:d.body, hurt:d.hurt, legs:bs, score, ...(d.epa ? {arrive:1} : {})}; }
+  if (d.kind === 'ready') { const bs = (BODY.find(b => b[0] === d.body)||[0,3])[1], score = Math.round((d.energy + bs) / 2 * 10) / 10; data = {energy:d.energy, body:d.body, hurt:hurtFold(d), legs:bs, score, ...(d.epa ? {arrive:1} : {})}; }
   else { data = {best:d.best.trim(), hard:d.hard.trim(), goal:d.goal.trim(), ...(Array.isArray(d.hurt) ? {hurt:d.hurt} : {})}; key = 'wk_' + weekDates(0)[0]; field = 'weekly'; }
   if ((epaLog(p.id)[key]||{})[field]) return;
   setEpaLog(p.id, key, field, data);
@@ -4252,6 +4300,7 @@ function formField(f, v) {
   if (f.t === 'num') return lbl + `<input class="auth-input" type="number" inputmode="numeric" min="0" max="120" value="${esc(val ?? '')}" oninput="formSet('${f.k}',this.value===''?'':+this.value,1)">`;
   return lbl + `<input class="auth-input" maxlength="${f.k==='link'?300:160}" ${f.ph?`placeholder="${f.ph}"`:''} value="${esc(val||'')}" oninput="formSet('${f.k}',this.value,1)">`;
 }
+function formHurtSet(k, v, quiet) { epaDraft.v[k] = v; saveFormDraft(); if (!quiet) paintEpa(); }
 function formSet(k, v, quiet) { epaDraft.v[k] = v; saveFormDraft(); if (quiet) { const s = document.getElementById('epaSave'); s.disabled = !formStepOk(); } else paintEpa(); }
 function formPick(k, o, multi) { const cur = epaDraft.v[k]; epaDraft.v[k] = multi ? (Array.isArray(cur) && cur.includes(o) ? cur.filter(x => x !== o) : [...(cur||[]), o]) : (cur === o ? '' : o); paintEpa(); }
 function formStepOk() { const st = FORMS[epaDraft.kind].steps[epaDraft.step]; return st.f.every(f => !f.req || (Array.isArray(epaDraft.v[f.k]) ? true : String(epaDraft.v[f.k] ?? '').trim() !== '')); }
@@ -4259,7 +4308,7 @@ function paintForm() {
   const d = epaDraft, F = FORMS[d.kind], st = F.steps[d.step], last = d.step === F.steps.length - 1;
   document.getElementById('epaTitle').textContent = F.title;
   document.getElementById('epaSub').textContent = `Step ${d.step + 1} of ${F.steps.length} · ${st.h}${st.sub ? ' · ' + st.sub : ''}`;
-  document.getElementById('epaBody').innerHTML = `<div class="form-dots">${F.steps.map((_,i) => `<i class="${i<=d.step?'on':''}"></i>`).join('')}</div>` + st.f.map(f => formField(f, d.v)).join('')
+  document.getElementById('epaBody').innerHTML = `<div class="form-dots">${F.steps.map((_,i) => `<i class="${i<=d.step?'on':''}"></i>`).join('')}</div>` + st.f.map(f => formField(f, d.v) + (f.k === 'hurt' ? hurtDetailHTML(d.v, 'formHurtSet') : '')).join('')
     + (d.step ? `<button class="epa-btn ghost" style="margin-top:4px" onclick="epaDraft.step--;paintEpa()">← BACK</button>` : '');
   const s = document.getElementById('epaSave'); s.disabled = !formStepOk(); s.textContent = last ? `SUBMIT +${F.xp} XP` : 'NEXT →'; saveFormDraft();
 }
@@ -4287,6 +4336,93 @@ function gameCardHTML(p) {
       <button class="${played?'done':''}" onclick="openForm('game')"><b>3</b>${played ? `✓ ${played} logged` : 'Log the game'}<span>+${GAME_XP} XP</span></button>
     </div><div class="gc-sub">Tomorrow: Recovery session to bounce back.</div></div>`;
 }
+// ─── GAME TIME: mini games for U8 and under. Outside, foot on the ball, tons of fun. ───
+const MINI = {
+  bowling: {ico:'🎳', name:'Pass Bowling', sub:'Knock down the cones', xp:25,
+    setup:'Set up 3 cones (or water bottles) like bowling pins. Stand 5 big steps away. Pass with the inside of your foot!'},
+  wall:    {ico:'🧱', name:'Wall Tap Race', sub:'30 seconds. Go!', xp:20,
+    setup:'Stand 2 big steps from a wall. Pass, stop it, pass again. Count every kick out loud!'},
+  toes:    {ico:'🦶', name:'Toe Tap Beat', sub:'Tap to the beep', xp:20,
+    setup:'Ball in front of you. Every beep, tap the top of the ball with one foot, then the other. Stay on your toes!'},
+  lights:  {ico:'🚦', name:'Red Light Green Light', sub:'Dribble and freeze', xp:25,
+    setup:'Green = dribble around the yard. Yellow = go slow. Red = STOP with your foot on the ball!'},
+};
+let M = null, mTimer = null;
+function isYoung(p) { return p && ageNum(p) <= 8; }
+function miniPB(id, g) { return jget(`sfc_minipb_${id}`, {})[g] || 0; }
+function miniRowHTML(p) {
+  if (!isYoung(p)) return '';
+  const done = jget(`sfc_mini_${p.id}_${localDate()}`, []);
+  return `<div class="mini-h">🎮 GAME TIME <span>${done.length ? done.length + ' played today' : 'pick a game'}</span></div><div class="mini-row">${Object.entries(MINI).map(([k, g]) =>
+    `<button class="mini-t ${done.includes(k)?'done':''}" onclick="openMini('${k}')"><div class="mini-i">${g.ico}</div><b>${g.name}</b><span>${done.includes(k) ? '✓ played' : g.sub}${miniPB(p.id, k) ? ' · best ' + miniPB(p.id, k) : ''}</span></button>`).join('')}</div>`;
+}
+function miniEl() { let el = document.getElementById('mini'); if (!el) { el = document.createElement('div'); el.id = 'mini'; document.body.appendChild(el); } return el; }
+function openMini(k) { M = {k, step:'setup', pins:3, frames:[], score:0}; miniEl().classList.add('open'); keepAwake(true); paintMini(); }
+function closeMini() { clearInterval(mTimer); clearTimeout(mTimer); miniEl().classList.remove('open'); keepAwake(false); M = null; renderToday(); }
+function paintMini() {
+  const g = MINI[M.k], el = miniEl(); let b = '';
+  if (M.step === 'setup') b = `<div class="mn-ico">${g.ico}</div><div class="mn-t">${g.name}</div><div class="mn-s">${g.setup}</div>
+    ${M.k === 'bowling' ? `<div class="mn-l">HOW MANY CONES?</div><div class="mn-chips">${[3,5,6].map(n => `<button class="${M.pins===n?'sel':''}" onclick="M.pins=${n};paintMini()">${n}</button>`).join('')}</div>` : ''}
+    <button class="mn-go" onclick="miniStart()">▶ LET'S GO!</button>`;
+  else if (M.step === 'bowl') { const f = M.frames.length;
+    b = `<div class="mn-l">PASS ${f + 1} OF 10</div><div class="mn-big">${M.score}</div><div class="mn-s">How many cones fell down?</div>
+      <div class="mn-pins">${[...Array(M.pins + 1)].map((_, n) => `<button onclick="miniBowl(${n})">${n === M.pins ? '💥 ' : ''}${n}</button>`).join('')}</div>
+      <div class="mn-frames">${[...Array(10)].map((_, i) => `<i class="${i < f ? (M.frames[i] === M.pins ? 'x' : 'on') : ''}">${i < f ? (M.frames[i] === M.pins ? 'X' : M.frames[i]) : ''}</i>`).join('')}</div>
+      <div class="mn-s" style="font-size:12px">Stand the cones back up after each pass.</div>`; }
+  else if (M.step === 'count') b = `<div class="mn-ico">${g.ico}</div><div class="mn-t">TIME!</div><div class="mn-s">How many did you get?</div>
+    <div class="mn-big">${M.score}</div><div class="mn-step"><button onclick="M.score=Math.max(0,M.score-5);paintMini()">−5</button><button onclick="M.score=Math.max(0,M.score-1);paintMini()">−1</button><button onclick="M.score++;paintMini()">+1</button><button onclick="M.score+=5;paintMini()">+5</button></div>
+    <button class="mn-go" onclick="miniDone()">✓ THAT'S MY SCORE</button>`;
+  else if (M.step === 'stars') b = `<div class="mn-ico">${g.ico}</div><div class="mn-t">NICE WORK!</div><div class="mn-s">Did you keep the beat?</div>
+    <div class="mn-chips big">${[1,2,3].map(n => `<button onclick="M.score=${n};miniDone()">${'⭐'.repeat(n)}</button>`).join('')}</div>`;
+  else if (M.step === 'run') b = `<div class="mn-call" id="mnCall">${M.call || 'GET READY'}</div><div class="mn-big" id="mnClock">${M.left}</div><button class="mn-stop" onclick="miniFinish()">DONE EARLY</button>`;
+  else if (M.step === 'end') { const pb = M.pb;
+    b = `<div class="mn-ico">${pb ? '🏆' : '🎉'}</div><div class="mn-t">${pb ? 'NEW BEST!' : 'GREAT GAME!'}</div><div class="mn-big">${M.k === 'toes' ? '⭐'.repeat(M.score) : M.score}</div>
+      <div class="mn-s">+${M.xp} XP · ${M.touches} touches${M.streak ? ' · streak ✓' : ''}</div>
+      <button class="mn-go" onclick="openMini('${M.k}')">🔁 PLAY AGAIN</button><button class="mn-back" onclick="closeMini()">Back home</button>`; }
+  el.className = 'open ' + (M.step === 'run' ? 'run ' + (M.light || '') : '');
+  el.innerHTML = `<button class="mn-x" onclick="closeMini()">✕</button><div class="mn-body">${b}</div>`;
+}
+function miniStart() {
+  if (M.k === 'bowling') { M.step = 'bowl'; say('Pass one. Knock them down!'); return paintMini(); }
+  M.step = 'run'; M.left = M.k === 'lights' ? 60 : 30; M.call = '3'; paintMini(); let c = 3;
+  const cd = setInterval(() => { c--; beep(c ? 660 : 990, .15); if (c > 0) { M.call = String(c); paintMini(); return; }
+    clearInterval(cd); M.call = 'GO!'; say('Go!'); paintMini(); miniRun(); }, 900); beep(660, .15); mTimer = cd;
+}
+function miniRun() {
+  const t0 = Date.now(), total = M.left; let nextLight = 0, beat = 0;
+  if (M.k === 'lights') miniLight('green');
+  mTimer = setInterval(() => {
+    const el = Date.now() - t0, left = Math.max(0, total - Math.floor(el / 1000));
+    if (left !== M.left) { M.left = left; const c = document.getElementById('mnClock'); if (c) c.textContent = left; if (left <= 3 && left > 0) beep(500, .08); }
+    if (M.k === 'toes' && el >= beat) { beat += 600; beep(1200, .05, .12); M.beats = (M.beats || 0) + 1; }
+    if (M.k === 'lights' && el >= nextLight) { const r = Math.random(), L = M.light === 'green' ? (r < .6 ? 'red' : 'yellow') : 'green';
+      if (nextLight) miniLight(L); nextLight = el + (M.light === 'red' ? 2000 + Math.random() * 1500 : 2500 + Math.random() * 3000); }
+    if (left <= 0) miniFinish();
+  }, 50);
+}
+function miniLight(L) { M.light = L; M.call = L === 'green' ? '🟢 GREEN LIGHT! DRIBBLE' : L === 'yellow' ? '🟡 YELLOW! GO SLOW' : '🔴 RED LIGHT! FOOT ON THE BALL';
+  say(L === 'green' ? 'Green light!' : L === 'yellow' ? 'Yellow light, slow!' : 'Red light!'); beep(L === 'red' ? 300 : 900, .2); M.lights = (M.lights || 0) + (L === 'red' ? 1 : 0); paintMini(); }
+function miniFinish() { clearInterval(mTimer); M.secs = (M.k === 'lights' ? 60 : 30) - (M.left || 0); beep(990, .4); say('Time!');
+  if (M.k === 'wall') { M.step = 'count'; M.score = 0; } else if (M.k === 'toes') M.step = 'stars'; else { M.score = M.lights || 0; return miniDone(); }
+  paintMini(); }
+function miniBowl(n) { M.frames.push(n); M.score += n; if (n === M.pins) { say('Strike!'); try { confetti(); } catch(e) {} } else if (n) beep(880, .1);
+  if (M.frames.length >= 10) return miniDone(); paintMini(); }
+function miniDone() {
+  const p = currentPlayer, today = localDate(), k = M.k, g = MINI[k];
+  const touches = capTouches(p, k === 'bowling' ? 30 : k === 'wall' ? M.score * 2 : k === 'toes' ? (M.beats || 0) : Math.round((M.secs || 0) * 2), today);
+  const pbs = jget(`sfc_minipb_${p.id}`, {}), pb = k !== 'toes' && M.score > (pbs[k] || 0) && (pbs[k] || 0) > 0; if (k !== 'toes' && M.score > (pbs[k] || 0)) { pbs[k] = M.score; localStorage.setItem(`sfc_minipb_${p.id}`, JSON.stringify(pbs)); }
+  const played = jget(`sfc_mini_${p.id}_${today}`, []), first = !played.includes(k);
+  const xp = capDailyXP(p.id, today, first ? g.xp + (pb ? 10 : 0) : 5);
+  const had = localStorage.getItem(`sfc_lastlog_${p.id}`) === today;
+  if (touches > 0) applyStreak(p, today);
+  addHistory(p.id, today, touches); addDay(`sfc_xpdays_${p.id}`, today, xp);
+  p.xp = (p.xp||0) + xp; p.total_touches = (p.total_touches||0) + touches; p.sessions = (p.sessions||0) + 1;
+  if (first) localStorage.setItem(`sfc_mini_${p.id}_${today}`, JSON.stringify([...played, k]));
+  localStorage.setItem('sfc_player', JSON.stringify(p)); localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p)); recordSeason(p); checkBadges();
+  if (deviceToken()) callOrQueue('sfc_log_session', {p_token:deviceToken(), p_player:p.id, p_state:playerState(p),
+    p_session:{date:today, touches, mode:'mini', full_session:false, xp_earned:xp, bm_skills:[], mv_skills:[], rounds:[{mini:{game:k, score:M.score, pins:k === 'bowling' ? M.pins : undefined, frames:k === 'bowling' ? M.frames : undefined}}]}});
+  Object.assign(M, {step:'end', xp, touches, pb, streak: !had && touches > 0}); paintMini(); if (pb) try { confetti(); } catch(e) {}
+}
 function startLightPrework() { setDifficulty('limited'); window.scrollTo({top:0,behavior:'smooth'}); showToast('Light session: wake up your feet, save your legs', 'success'); }
 function progXP(p, xp, mode, rounds) {
   const today = localDate();
@@ -4301,6 +4437,7 @@ function submitForm() {
   if (d.step < F.steps.length - 1) { d.step++; return paintEpa(); }
   closeModal('epaModal'); try { localStorage.removeItem(formKey()); } catch(e) {}
   const v = JSON.parse(JSON.stringify(d.v)), today = localDate();
+  if (Array.isArray(v.hurt)) { v.hurt = hurtFold(v); delete v.side; delete v.where; }
   if (d.kind === 'journal') { const key = 'wk_' + weekDates(0)[0]; if ((epaLog(p.id)[key]||{}).weekly) return; setEpaLog(p.id, key, 'weekly', v); progXP(p, F.xp, 'weekly', [{weekly:v}]); }
   else if (d.kind === 'film') { if ((epaLog(p.id)[today]||{}).film) return showToast('One game analysis per day'); setEpaLog(p.id, today, 'film', v); progXP(p, F.xp, 'film', [{film:v}]); }
   else if (d.kind === 'pregame') { if ((epaLog(p.id)[today]||{}).pregame) return; setEpaLog(p.id, today, 'pregame', v); progXP(p, F.xp, 'pregame', [{pregame:v}]); }
