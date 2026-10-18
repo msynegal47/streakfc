@@ -52,6 +52,21 @@ body.cobrand .side .brand{font-size:15px;opacity:.75}
 .trend{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px}.tr-h{font-size:11px;letter-spacing:1px;color:var(--sub);font-weight:800;display:flex;gap:8px;align-items:baseline}.tr-h b{font-size:18px;color:var(--text)}.tr-h span{font-size:11px}
 .tr-bars{display:flex;gap:4px;align-items:flex-end;height:46px;margin-top:6px}.tr-bars i{flex:1;background:var(--accent);opacity:.75;border-radius:3px 3px 0 0}.tr-bars i:last-child{opacity:1}
 details.wk summary{cursor:pointer;display:flex;gap:12px;align-items:center;flex-wrap:wrap;list-style:none}details.wk summary::-webkit-details-marker{display:none}details.wk summary b{font-size:15px}details.wk[open] summary{margin-bottom:10px}
+#kiosk{position:fixed;inset:0;z-index:50;background:radial-gradient(900px 600px at 85% 0%,#0b4a4f,transparent 60%),#021214;color:#fff;padding:28px 34px;overflow:auto;display:none}#kiosk.open{display:block}
+.k-load{font-size:24px;padding:40px}.k-top{display:flex;align-items:center;gap:24px;margin-bottom:22px}.k-brand{display:flex;gap:14px;align-items:center;flex:1}.k-brand img{width:58px}.k-brand b{display:block;font-size:26px;font-weight:900;letter-spacing:1px}.k-brand span{font-size:14px;letter-spacing:2px;color:#7fc7cc;font-weight:800}
+.k-count{display:flex;gap:12px}.k-count div{background:#06292c;border:1px solid #14434b;border-radius:14px;padding:10px 18px;text-align:center;min-width:96px}.k-count b{font-size:32px;font-weight:900;display:block;color:#3fe0e8}.k-count span{font-size:11px;letter-spacing:2px;color:#7fc7cc;font-weight:800}
+.k-exit{background:none;border:1px solid #14434b;color:#7fc7cc;border-radius:10px;padding:10px 14px;font-weight:800}
+.k-h{font-size:18px;font-weight:900;letter-spacing:2px;margin:6px 0 14px;color:#cdeff1}.k-h.small{font-size:13px;margin-top:26px;color:#7fc7cc}
+.k-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.k-tile{background:#072a2e;border:2px solid #14434b;border-radius:18px;padding:22px 14px;color:#fff;text-align:center;cursor:pointer;transition:transform .1s}.k-tile:active{transform:scale(.97)}.k-tile b{display:block;font-size:24px;font-weight:900}.k-tile span{display:block;margin-top:6px;font-size:12px;letter-spacing:1.5px;color:#7fc7cc;font-weight:800}
+.k-tile.way{border-color:#0caab5;box-shadow:0 0 0 3px rgba(12,170,181,.25)}.k-tile.way span{color:#3fe0e8}
+.k-here{display:flex;flex-wrap:wrap;gap:8px}.k-here button{background:#0caab522;border:1px solid #0caab566;color:#bff4f7;border-radius:99px;padding:8px 14px;font-weight:800;font-size:14px}
+.k-done{font-size:28px;font-weight:900;padding:30px 0;color:#3fe0e8}.k-note{margin-top:24px;color:#7fc7cc;font-size:12px}
+#kSheet{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:51}.k-sheet{background:#06292c;border:1px solid #14434b;border-radius:24px;padding:30px;width:min(620px,92vw)}
+.k-hi{font-size:34px;font-weight:900;margin-bottom:10px}.k-sub{font-size:18px;color:#bfe3e5;margin:10px 0 20px}.k-lbl{font-size:13px;letter-spacing:2px;font-weight:900;color:#7fc7cc;margin:18px 0 10px}
+.k-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.k-row button{background:#0a3337;border:2px solid #14434b;border-radius:16px;font-size:38px;padding:12px 0;color:#fff;display:flex;flex-direction:column;align-items:center;gap:4px}.k-row button small{font-size:12px;font-weight:800;letter-spacing:1px}.k-row button.sel,.k-chips button.sel{border-color:#3fe0e8;background:#0caab533}
+.k-chips{display:flex;flex-wrap:wrap;gap:8px}.k-chips button{background:#0a3337;border:2px solid #14434b;border-radius:99px;color:#fff;padding:8px 14px;font-weight:800;text-transform:uppercase;font-size:13px}
+.k-go{width:100%;margin-top:24px;padding:20px;border:0;border-radius:16px;background:#0caab5;color:#021416;font-size:22px;font-weight:900;letter-spacing:1px}.k-go:disabled{opacity:.35}.k-cancel{width:100%;margin-top:10px;background:none;border:0;color:#7fc7cc;font-weight:800;padding:10px}
 .note-row{border-left:2px solid var(--accent);padding:4px 0 4px 10px;margin:8px 0;font-size:13px}.note-row span{display:block;font-size:10px;color:var(--sub);letter-spacing:1px;font-weight:800}
 .sep{font-size:10px;letter-spacing:2px;color:#41526d;font-weight:800;margin:16px 12px 6px}
 .side-foot{margin-top:auto;font-size:11px;color:var(--sub);padding:0 10px}
@@ -467,6 +482,68 @@ async function playerNote(pid) {
   r.notes = [...r.notes, {date:localDate(), by:myStaffName(), text:t}]; render(); openKid(pid); toast('Note saved');
 }
 
+// ── CHECK-IN BOARD: coach's iPad at the field. Kids tap their name on arrival. Parents see "Arrived".
+let KIOSK = null;
+function kioskPlayers() { return (KIOSK.players || []).filter(p => (p.programs||[]).some(e => e.id === 'epa')); }
+function kioskState(p) {
+  const t = localDate(), S = (KIOSK.sessions || []).filter(s => s.player_id === p.id && s.date === t);
+  const here = S.find(s => s.source === 'kiosk' || s.mode === 'epa'), way = S.find(s => s.mode === 'checkin' && s.source !== 'kiosk');
+  return here ? 'here' : way ? 'way' : 'no';
+}
+async function kioskLoad() {
+  if (D && D.mock) { if (KIOSK && KIOSK.mock) return; const t = localDate(), ps = D.players.filter(p => (p.programs||[]).some(e => e.id === 'epa')); KIOSK = {mock:true, players:ps, sessions:ps.slice(0, 4).map(p => ({player_id:p.id, date:t, mode:'checkin', source:'kid', rounds:[{ready:{arrive:1}}]})).concat(ps.slice(4, 9).map(p => ({player_id:p.id, date:t, mode:'checkin', source:'kiosk', rounds:[{ready:{arrive:2}}]})))}; return; }
+  try { const c = await rpc('sfc_coach_data', {p_program:'epa', p_days:1}); KIOSK = {players:c.players, sessions:c.sessions}; } catch(e) { KIOSK = KIOSK || {players:[], sessions:[]}; toast('Could not refresh: ' + e.message); }
+}
+async function openKiosk() {
+  if (KIOSK && !KIOSK.mock) KIOSK = null; if (KIOSK && KIOSK.mock && !(D && D.mock)) KIOSK = null;
+  let k = $('kiosk'); if (!k) { k = document.createElement('div'); k.id = 'kiosk'; document.body.appendChild(k); }
+  k.innerHTML = '<div class="k-load">Loading…</div>'; k.classList.add('open'); document.body.style.overflow = 'hidden';
+  if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
+  await kioskLoad(); paintKiosk(); clearInterval(KIOSK._t); KIOSK._t = setInterval(async () => { if (!$('kSheet')) { await kioskLoad(); paintKiosk(); } }, 20000);
+}
+function closeKiosk() { if (!confirm('Exit the check-in board?')) return; clearInterval(KIOSK && KIOSK._t); $('kiosk').classList.remove('open'); document.body.style.overflow = ''; if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); render(); }
+function paintKiosk() {
+  const P = kioskPlayers().slice().sort((a,b) => a.nickname.localeCompare(b.nickname)), st = Object.fromEntries(P.map(p => [p.id, kioskState(p)]));
+  const here = P.filter(p => st[p.id] === 'here'), not = P.filter(p => st[p.id] !== 'here'), way = not.filter(p => st[p.id] === 'way').length, b = (ORG && ORG.brand) || {};
+  const now = new Date(), clock = now.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+  const tile = p => `<button class="k-tile ${st[p.id]}" onclick="kioskTap('${p.id}')"><b>${esc(p.nickname)}</b><span>${st[p.id] === 'way' ? '🚌 on the way' : esc((epaOf(p).group || '').toUpperCase())}</span></button>`;
+  $('kiosk').innerHTML = `<div class="k-top"><div class="k-brand">${b.logo ? `<img src="${esc(b.logo)}">` : ''}<div><b>${esc(ORG ? (ORG.short || ORG.name) : '')} EPA CHECK-IN</b><span>${fmtDay(localDate()).toUpperCase()} · ${clock}</span></div></div>
+      <div class="k-count"><div><b>${here.length}</b><span>HERE</span></div><div><b>${way}</b><span>ON THE WAY</span></div><div><b>${not.length - way}</b><span>NOT YET</span></div></div>
+      <button class="k-exit" onclick="closeKiosk()">Exit</button></div>
+    <div class="k-h">TAP YOUR NAME WHEN YOU GET HERE 👇</div>
+    <div class="k-grid">${not.map(tile).join('') || '<div class="k-done">Everyone is here 🔥</div>'}</div>
+    ${here.length ? `<div class="k-h small">HERE · ${here.length}</div><div class="k-here">${here.map(p => `<button onclick="kioskUndo('${p.id}')">✅ ${esc(p.nickname)}</button>`).join('')}</div>` : ''}
+    ${KIOSK.mock ? '<div class="k-note">Sandbox: sample players, nothing saved.</div>' : ''}`;
+}
+let kDraft = null;
+const K_EN = ['😴','😕','😐','🙂','🔥'], K_BODY = [['Fresh','💪'],['Good','👍'],['Tight','😬'],['Sore','🤕'],['Hurt','🚑']], K_WHERE = ['ankle','foot','knee','shin','quad','hamstring','groin','hip','back','other'];
+function kioskTap(id) {
+  const p = kioskPlayers().find(x => x.id === id); if (!p) return;
+  const way = (KIOSK.sessions || []).find(s => s.player_id === id && s.date === localDate() && s.mode === 'checkin' && s.source !== 'kiosk');
+  kDraft = {id, name:p.nickname, energy:0, body:'', hurt:[], had: !!way};
+  paintKSheet();
+}
+function paintKSheet() {
+  const d = kDraft, needWhere = d.body === 'Sore' || d.body === 'Hurt', ok = d.had || (d.energy && d.body && (!needWhere || d.hurt.length));
+  let s = $('kSheet'); if (!s) { s = document.createElement('div'); s.id = 'kSheet'; $('kiosk').appendChild(s); }
+  s.innerHTML = `<div class="k-sheet"><div class="k-hi">Hey ${esc(d.name)}! 👋</div>
+    ${d.had ? '<div class="k-sub">You already checked in on the way. Tap below to say you made it.</div>' : `<div class="k-lbl">ENERGY</div><div class="k-row">${K_EN.map((e,i) => `<button class="${d.energy===i+1?'sel':''}" onclick="kDraft.energy=${i+1};paintKSheet()">${e}</button>`).join('')}</div>
+    <div class="k-lbl">BODY</div><div class="k-row">${K_BODY.map(([b,ic]) => `<button class="${d.body===b?'sel':''}" onclick="kDraft.body='${b}';${b==='Sore'||b==='Hurt'?'':'kDraft.hurt=[];'}paintKSheet()">${ic}<small>${b}</small></button>`).join('')}</div>
+    ${needWhere ? `<div class="k-lbl">WHERE?</div><div class="k-chips">${K_WHERE.map(x => `<button class="${d.hurt.includes(x)?'sel':''}" onclick="kDraft.hurt=kDraft.hurt.includes('${x}')?kDraft.hurt.filter(y=>y!=='${x}'):[...kDraft.hurt,'${x}'];paintKSheet()">${x}</button>`).join('')}</div>` : ''}`}
+    <button class="k-go" ${ok ? '' : 'disabled'} onclick="kioskSave()">I'M HERE ✓</button><button class="k-cancel" onclick="$('kSheet').remove()">Not me</button></div>`;
+}
+async function kioskSave() {
+  const d = kDraft, t = localDate(), bs = {Fresh:5, Good:4, Tight:3, Sore:2, Hurt:1}[d.body], ready = d.had ? {} : {energy:d.energy, body:d.body, hurt:d.hurt, legs:bs, score:Math.round((d.energy + bs) / 2 * 10) / 10};
+  if (!KIOSK.mock) { try { await rpc('sfc_coach_checkin', {p_program:'epa', p_player:d.id, p_date:t, p_ready:ready}); } catch(e) { return toast('Did not save: ' + e.message); } }
+  KIOSK.sessions.push({player_id:d.id, date:t, mode:'checkin', source:'kiosk', rounds:[{ready:{...ready, arrive:2}}], created_at:new Date().toISOString()});
+  if (REAL && REAL.byId && REAL.byId[d.id]) { const row = KIOSK.sessions[KIOSK.sessions.length-1]; REAL.byId[d.id].sess.unshift(row); }
+  $('kSheet').remove(); paintKiosk(); toast(`✅ ${d.name} is checked in`);
+}
+async function kioskUndo(id) {
+  const p = kioskPlayers().find(x => x.id === id); if (!p || !confirm(`Undo check-in for ${p.nickname}?`)) return;
+  if (!KIOSK.mock) { try { await rpc('sfc_coach_checkin_undo', {p_program:'epa', p_player:id, p_date:localDate()}); } catch(e) { return toast('Failed: ' + e.message); } }
+  KIOSK.sessions = KIOSK.sessions.filter(s => !(s.player_id === id && s.date === localDate() && s.source === 'kiosk')); paintKiosk();
+}
 // ── derived ──
 function liveStreak(p) { return (p.last_log === localDate() || p.last_log === daysAgo(1)) ? (p.streak||0) : 0; }
 function lastActive(p) { return p.sess.length ? p.sess[0].date : p.last_log; }
@@ -751,7 +828,7 @@ function vEPA() {
   const body = epaTab === 'today' ? epaToday() : epaTab === 'games' ? epaGames() : epaTab === 'testing' ? epaTesting() : epaTab === 'plans' ? epaPlans() : epaTab === 'calendar' ? epaCalendar() : epaTab === 'journals' ? epaJournals(['weekly','goalsheet']) : epaTab === 'film' ? epaJournals(['film']) : epaTab === 'library' ? epaLibrary() : epaRoster();
   return `${asCoach && ROLE === 'admin' ? `<div class="sandbox-banner" style="border-color:#f9731688;color:#fdba74">👁 <b>COACH PREVIEW</b> · this is exactly what an EPA coach sees. No admin pages, no parent emails, only EPA players.</div>` : ''}${D.mixed ? `<div class="sandbox-banner">Players tagged <b>REAL</b> are live StreakFC players in EPA. The 24 tagged <b>DEMO</b> are sample data so the dashboard looks full. Turn them off bottom left.</div>` : ''}${D.mock ? `<div class="sandbox-banner">🧪 <b>SANDBOX EPA</b> · 24 fake players, 4 weeks of logs. Switch DATA to LIVE for Caysen and Emmitt.</div>` : ''}
   <div class="hdr"><div><h2>${esc(PROGRAMS.epa.brand.short)} · EPA <span class="chip c-teal">BETA</span></h2><div class="s">Tue · Wed · Thu · ${PROGRAMS.epa.mins} min · ${E.length} players${nextOff?` · next break: ${nextOff[2]} (${nextOff[0].slice(5).replace('-','/')})`:''}</div></div>
-    <div style="display:flex;gap:8px">${ROLE === 'admin' && !asCoach ? `<button class="btn ghost" onclick="openCoaches()">🧢 COACHES</button>` : ''}<button class="btn ghost" onclick="openReportPick()">📄 REPORT</button><button class="btn add-btn" onclick="openAddPlayer()">＋ ADD PLAYER</button></div></div>
+    <div style="display:flex;gap:8px">${ROLE === 'admin' && !asCoach ? `<button class="btn ghost" onclick="openCoaches()">🧢 COACHES</button>` : ''}<button class="btn ghost" onclick="openKiosk()">📺 CHECK-IN BOARD</button><button class="btn ghost" onclick="openReportPick()">📄 REPORT</button><button class="btn add-btn" onclick="openAddPlayer()">＋ ADD PLAYER</button></div></div>
   <div class="kpis kpis-sm">
     <div class="kpi"><b>${wkLogs.length}/${E.length * due.length || 0}</b><span>EPA LOGS THIS WEEK</span></div>
     <div class="kpi"><b>${avg(ready7)}</b><span>AVG READINESS 7D</span></div>

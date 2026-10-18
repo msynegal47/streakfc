@@ -248,6 +248,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .today-strip{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:12px 14px;margin-bottom:12px}
 .today-strip .ts-h{font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:900;margin-bottom:8px}
 .ts-row{display:flex;gap:8px}.ts-kid{flex:1;border-radius:12px;padding:8px 10px;background:#ffffff08;border:1px solid var(--border)}
+.ts-arr{display:block;margin-top:4px;font-style:normal;font-size:11px;font-weight:800;color:var(--sub)}.ts-arr.way{color:#1ab3bd}.ts-arr.here{color:var(--green)}
 .ts-kid.on{border-color:var(--green);background:#22c55e14}.ts-kid b{display:block;font-size:13px}.ts-kid span{font-size:11px;color:var(--sub);font-weight:700}
 .modal-sub{font-size:12px;color:var(--sub);margin-bottom:20px}
 
@@ -1844,7 +1845,7 @@ async function loadParent() {
     const rows = await sb('sfc_players?select=*&archived=eq.false&order=created_at');
     if (!rows.length) return showOnboard('players');
     const since = new Date(); since.setDate(since.getDate()-120);
-    const sess = await sb(`sfc_sessions?select=player_id,date,touches,xp_earned,rounds,mode&date=gte.${localDate(since)}`);
+    const sess = await sb(`sfc_sessions?select=player_id,date,touches,xp_earned,rounds,mode,source,created_at&date=gte.${localDate(since)}`);
     const hist = {}, xpd = {}, pbd = {}, add = (o, id, d, n) => { o[id] = o[id] || {}; o[id][d] = (o[id][d]||0) + n; };
     sess.forEach(x => { add(hist, x.player_id, x.date, x.touches||0); add(xpd, x.player_id, x.date, x.xp_earned||0);
       const n = Array.isArray(x.rounds) ? x.rounds.filter(r => r && r.pb).length : 0; if (n) add(pbd, x.player_id, x.date, n); });
@@ -2015,7 +2016,11 @@ function showParentPortal() {
 function todayStrip() {
   const t = localDate(), el = document.createElement('div'); el.className = 'today-strip';
   const kids = players.map(p => ({p, n: jget(`sfc_history_${p.id}`, {})[t] || 0})), done = kids.filter(k => k.n).length;
-  el.innerHTML = `<div class="ts-h">TODAY · ${done === kids.length ? 'EVERYONE TRAINED 🔥' : `${done} OF ${kids.length} TRAINED`}</div><div class="ts-row">${kids.map(k => `<div class="ts-kid ${k.n?'on':''}"><b>${k.n?'✅':'⏳'} ${esc(k.p.name)}</b><span>${k.n ? fmtK(k.n) + ' touches' : 'Not yet'}</span></div>`).join('')}</div>`;
+  const tm = x => x && x.created_at ? new Date(x.created_at).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : '';
+  const arr = p => { const es = epaState(p, t); if (!es || es.kind !== 'day') return ''; const R = (progRows[p.id] || []).filter(x => x.date === t && (x.mode === 'checkin' || x.mode === 'epa'));
+    const here = R.find(x => x.source === 'kiosk' || x.mode === 'epa'), way = R.find(x => x.mode === 'checkin' && x.source !== 'kiosk');
+    return here ? `<em class="ts-arr here">✅ Arrived at EPA ${tm(here)}</em>` : way ? `<em class="ts-arr way">🚌 On the way ${tm(way)}</em>` : `<em class="ts-arr">EPA today · not checked in yet</em>`; };
+  el.innerHTML = `<div class="ts-h">TODAY · ${done === kids.length ? 'EVERYONE TRAINED 🔥' : `${done} OF ${kids.length} TRAINED`}<a href="#" onclick="loadParent();return false" style="float:right;color:var(--accent);text-decoration:none">↻</a></div><div class="ts-row">${kids.map(k => `<div class="ts-kid ${k.n?'on':''}"><b>${k.n?'✅':'⏳'} ${esc(k.p.name)}</b><span>${k.n ? fmtK(k.n) + ' touches' : 'Not yet'}</span>${arr(k.p)}</div>`).join('')}</div>`;
   return el;
 }
 async function openAddParent() {
