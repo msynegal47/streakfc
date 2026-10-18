@@ -3930,10 +3930,14 @@ const FORMS = {
     {h:'Before the game', sub:'30 seconds. Set your mind.', f:[{k:'energy', t:'scale', n:5, l:'Energy · 1 = drained · 5 = ready to go', req:1}, {k:'nerves', t:'chips', o:['Calm','A little nervous','Very nervous','Excited'], l:'How do you feel?', req:1},
       {k:'body', t:'chips', o:['Fresh','Good','Tight','Sore'], l:'Body', req:1}, {k:'goal', t:'text', l:'One thing I will do today', ph:'e.g. take my player on 1v1'}]}]},
   game: {title:'Game log', xp:GAME_XP, steps:[
-    {h:'The game', f:[{k:'date', t:'date', l:'Game date', req:1}, {k:'opp', t:'text', l:'Opponent (optional)'}, {k:'result', t:'chips', o:['Won','Tied','Lost','Skip'], l:'Result', req:1},
-      {k:'mins', t:'chips', o:['0-15','15-30','30-45','45-60','60+'], l:'Minutes you played', req:1}, {k:'pos', t:'chips', o:['GK','Defense','Midfield','Attack'], l:'Where you played'}]},
-    {h:'How it went', f:[{k:'rate', t:'scale', n:10, l:'Rate your game · 1 = rough · 10 = best ever', req:1}, {k:'effort', t:'scale', n:5, l:'Effort ⭐', req:1},
-      {k:'well', t:'text', l:'What went well?', req:1}, {k:'work', t:'text', l:'What do you want to work on?', req:1}]},
+    {h:'The game', sub:'Logging an older game? Pick the day.', f:[{k:'date', t:'day', l:'When was it?', req:1}, {k:'result', t:'chips', o:['Won','Tied','Lost','Skip'], l:'Result', req:1},
+      {k:'mins', t:'chips', o:['0-15','15-30','30-45','45-60','60+'], l:'Minutes you played', req:1}, {k:'pos', t:'chips', multi:1, o:['GK','Defender','Midfield','Winger','Striker'], l:'Positions you played', req:1}, {k:'opp', t:'text', l:'Opponent'}]},
+    {h:'Your game', sub:'Tap fast. No wrong answers.', f:[{k:'goals', t:'chips', o:['0','1','2','3+'], l:'⚽ Goals', req:1}, {k:'assists', t:'chips', o:['0','1','2','3+'], l:'🅰️ Assists', req:1},
+      {k:'chances', t:'chips', o:['None','A few','Lots'], l:'Did you create chances for your team?', req:1}, {k:'rate', t:'scale', n:10, l:'Rate your game · 1 = rough · 10 = best ever', req:1}]},
+    {h:'How you showed up', sub:'This matters more than goals.', f:[{k:'effort', t:'scale', n:5, l:'💪 Effort · 1 = low · 5 = gave everything', req:1}, {k:'confidence', t:'scale', n:5, l:'😎 Confidence', req:1},
+      {k:'teammate', t:'scale', n:5, l:'🤝 Good teammate (talked, helped, stayed positive)', req:1}]},
+    {h:'Think about it', sub:'Talk-to-text works great here.', f:[{k:'well', t:'text', l:'👍 Something you did well', req:1}, {k:'work', t:'text', l:'🛠 Something to do better next time', req:1},
+      {k:'coachSaid', t:'text', l:'💬 Did your coach tell you anything?'}]},
     {h:'Body + film', f:[{k:'body', t:'chips', o:['Fresh','Tired','Sore','Hurt'], l:'How does your body feel now?', req:1}, {k:'hurt', t:'chips', multi:1, o:HURT, none:'Nothing 👍', l:'Anything hurting?'},
       {k:'link', t:'text', l:'Game film link (you or your coach can add it later)', ph:'https://'}]}]},
   sheet: {title:'Goal worksheet', xp:SHEET_XP, steps:[
@@ -3958,6 +3962,8 @@ function formField(f, v) {
   if (f.t === 'scale') return lbl + `<div class="epa-nums ${f.n === 5 ? 'five' : ''}">${[...Array(f.n)].map((_,i) => `<button class="${val===i+1?'sel':''}" onclick="formSet('${f.k}',${i+1})">${i+1}</button>`).join('')}</div>`;
   if (f.t === 'chips') return lbl + `<div class="hurt-chips">${f.none ? `<button class="none ${Array.isArray(val)&&!val.length?'sel':''}" onclick="formSet('${f.k}',[])">${f.none}</button>` : ''}${f.o.map(o => { const on = f.multi ? (val||[]).includes(o) : val === o;
     return `<button class="${on?'sel '+(f.k==='hurt'||(f.k==='mental'&&/Stressed|talk/.test(o))?'':'good'):''}" onclick="formPick('${f.k}',${JSON.stringify(o).replace(/"/g,'&quot;')},${f.multi?1:0})">${esc(o.toUpperCase())}</button>`; }).join('')}</div>`;
+  if (f.t === 'day') { const opts = [0,1,2,3,4,5,6].map(n => { const d = new Date(); d.setDate(d.getDate()-n); return [localDate(d), n === 0 ? 'Today' : n === 1 ? 'Yesterday' : d.toLocaleDateString('en-US',{weekday:'short'}) + ' ' + (d.getMonth()+1) + '/' + d.getDate()]; });
+    return lbl + `<div class="hurt-chips">${opts.map(([v2,l]) => `<button class="${val===v2?'sel good':''}" onclick="formSet('${f.k}','${v2}')">${esc(l.toUpperCase())}</button>`).join('')}</div>`; }
   if (f.t === 'date') return lbl + `<input class="auth-input" type="date" value="${esc(val||'')}" oninput="formSet('${f.k}',this.value,1)">`;
   if (f.t === 'num') return lbl + `<input class="auth-input" type="number" inputmode="numeric" min="0" max="120" value="${esc(val ?? '')}" oninput="formSet('${f.k}',this.value===''?'':+this.value,1)">`;
   return lbl + `<input class="auth-input" maxlength="${f.k==='link'?300:160}" ${f.ph?`placeholder="${f.ph}"`:''} value="${esc(val||'')}" oninput="formSet('${f.k}',this.value,1)">`;
