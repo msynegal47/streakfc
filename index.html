@@ -996,6 +996,21 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .crew-tabs{display:flex;gap:6px;margin-bottom:10px}
 .crew-tabs button{flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:var(--bg2);color:var(--sub);font-size:11px;font-weight:900;letter-spacing:1px;cursor:pointer}
 .crew-tabs button.sel{color:#fff;border-color:var(--tabc,var(--accent));background:color-mix(in srgb,var(--tabc,var(--accent)) 25%,var(--bg2))}
+
+.epa-btn.due,.pt-btn.due{background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#1a1405;border:0;font-weight:900}
+.gw{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-top:8px}
+.gw-h{font-size:10px;font-weight:900;letter-spacing:1.2px;color:var(--sub);margin-bottom:6px}
+.gw-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:1px solid var(--border);font-size:12px}
+.gw-row button{background:none;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 8px;font-size:11px;font-weight:800;cursor:pointer}
+.gw-ok{font-size:12px;color:var(--green);font-weight:800}
+.gw-sub{font-size:10px;color:var(--sub);margin-top:6px}
+.gl{border-top:1px solid var(--border);padding:8px 0}
+.gl summary{display:flex;gap:8px;align-items:center;font-size:12px;cursor:pointer;list-style:none}
+.gl summary span{color:var(--sub);flex:1}
+.gl-b{font-size:12px;padding:8px 0 2px;display:flex;flex-direction:column;gap:5px}
+.gl-b div span{display:block;font-size:9px;font-weight:900;letter-spacing:.8px;color:var(--sub);text-transform:uppercase}
+.gl-b a{color:var(--accent);font-weight:800;font-size:12px}
+.gl-foot{font-size:11px;color:var(--sub);margin-top:8px;line-height:1.4}
 </style>
 </head>
 <body>
@@ -1372,6 +1387,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
         <div class="week-labels" id="weekLabels" style="display:flex;margin-top:6px"></div>
       </div>
       <div class="badges-card" id="goalsCard" style="display:none"></div>
+      <div class="badges-card" id="gamesCard" style="display:none"></div>
       <div class="badges-card" id="speedCard"></div>
       <div class="badges-card" id="trophyCard"></div>
       <div class="badges-card">
@@ -1553,6 +1569,7 @@ function hydratePlayer(data) {
   if (data.xp_days) mergeDays(`sfc_xpdays_${id}`, data.xp_days);
   if (data.pb_days) set(`sfc_pbdays_${id}`, data.pb_days);
   if (Array.isArray(data.speed)) mergeSpeed(id, data.speed);
+  if (Array.isArray(data.logs)) mergeLogs(id, data.logs);
   if (p.seasons && typeof p.seasons === 'object') { const loc = jget(`sfc_seasons_${id}`, {}); Object.entries(p.seasons).forEach(([n,v]) => { if (!loc[n] || (v.xp||0) > (loc[n].xp||0)) loc[n] = v; }); set(`sfc_seasons_${id}`, loc); }
   if (p.pbs) { const loc = JSON.parse(localStorage.getItem(`sfc_pbs_${id}`)||'{}'); const m = {...p.pbs};
     Object.entries(loc).forEach(([k,v]) => { if (!m[k] || v > m[k]) m[k] = v; }); set(`sfc_pbs_${id}`, m); }
@@ -2406,12 +2423,15 @@ function cycleDay(d) {
 function renderProgToday() {
   const p = currentPlayer, el = document.getElementById('progToday'); if (!p || !el) return;
   const today = localDate(), pr = progDaysOn(p, today), es = epaState(p), L = epaLog(p.id), T = L[today] || {}, miss = es && es.kind !== 'offseason' ? missedEpa(p)[0] : null;
-  if (!pr.length && !miss) { el.innerHTML = ''; return; }
+  const wkKey = 'wk_' + weekDates(0)[0], dow = new Date().getDay(), due = es && es.kind !== 'offseason' && (dow >= 4 || dow === 0) && !((L[wkKey] || {}).weekly);
+  const dueBtn = due ? `<button class="pt-btn due" style="width:100%;margin-top:8px" onclick="openForm('journal')">📝 EPA WEEKLY JOURNAL · ${dow === 0 ? 'DUE TODAY' : 'DUE SUNDAY'} +${JOURNAL_XP}</button>` : '';
+  if (!pr.length && !miss && !due) { el.innerHTML = ''; return; }
   const epa = pr.find(x => x.id === 'epa'), c = (pr[0] || {color:'#2dd4bf'}).color;
   const acts = epa ? (T.epa ? `<span class="pt-done">✓ EPA logged</span>` : `${T.ready ? '<span class="pt-done">✓ Checked in</span>' : `<button class="pt-btn ghost" onclick="openCheckin()">🚌 CHECK IN</button>`}<button class="pt-btn" onclick="openEpaLog()">🏟 LOG EPA +${EPA_XP}</button>`) : '';
   el.innerHTML = `<div class="prog-today" style="border-color:${c}88">
     ${pr.length ? `<div class="pt-top"><div><div class="pt-h" style="color:${c}">${epa ? '<img class="epa-crest" src="/brand/msa-shield.png" alt="">' : '🏟'} ${pr.map(x => x.label).join(' + ')} TODAY</div><div class="pt-sub">${epa ? 'MSA East · ' + PROGRAMS.epa.mins + ' min' : ''}</div></div><a class="pt-more" onclick="switchTab('teams')">TEAMS ›</a></div><div class="pt-acts">${acts}</div>` : ''}
-    ${miss ? `<button class="pt-btn ghost" style="width:100%;margin-top:${pr.length ? 8 : 0}px" onclick="openEpaLog('${miss}')">⏪ Forgot ${DAY_NAMES[wdOf(miss)]}'s EPA? Log it +${EPA_XP} XP</button>` : ''}</div>`;
+    ${!pr.length && due ? `<div class="pt-top"><div class="pt-h" style="color:#2dd4bf"><img class="epa-crest" src="/brand/msa-shield.png" alt=""> MSA EPA</div><a class="pt-more" onclick="switchTab('teams')">TEAMS ›</a></div>` : ''}${dueBtn}
+    ${miss ? `<button class="pt-btn ghost" style="width:100%;margin-top:8px" onclick="openEpaLog('${miss}')">⏪ Forgot ${DAY_NAMES[wdOf(miss)]}'s EPA? Log it +${EPA_XP} XP</button>` : ''}</div>`;
 }
 function renderTeamsNav() {
   const p = currentPlayer, on = !!(p && (p.programs || []).length);
@@ -2591,11 +2611,25 @@ async function goTrainAs(playerId) {
 }
 
 // ─── PROFILE ──────────────────────────────────────────
+function renderGamesCard(p) {
+  const el = document.getElementById('gamesCard'); if (!el) return; const gs = gamesOf(p.id).slice(0, 12), sw = sharedWith(p), L = epaLog(p.id);
+  el.style.display = 'block';
+  el.innerHTML = `<div class="badges-title" style="display:flex;justify-content:space-between"><span>⚽ MY GAMES</span><span class="road-all" onclick="openForm('game')">+ LOG</span></div>
+    ${gs.length ? gs.map(({d, g}) => `<details class="gl"><summary><b>${new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'numeric',day:'numeric'}).toUpperCase()}</b>
+      <span>${esc([g.result !== 'Skip' ? g.result : '', g.opp ? 'vs ' + g.opp : '', g.rate ? g.rate + '/10' : ''].filter(Boolean).join(' · '))}</span>${(L[d]||{}).film ? '<i>🎥</i>' : ''}</summary>
+      <div class="gl-b">${[['Played', [g.mins ? g.mins + ' min' : '', [].concat(g.pos || []).join(', ')].filter(Boolean).join(' · ')], ['⚽ / 🅰️', g.goals != null ? `${g.goals} goals · ${g.assists ?? 0} assists · chances: ${g.chances || '-'}` : ''],
+        ['Effort · confidence · teammate', g.effort ? `${g.effort} · ${g.confidence ?? '-'} · ${g.teammate ?? '-'} (out of 5)` : ''], ['👍 Did well', g.well], ['🛠 Do better', g.work], ['💬 Coach said', g.coachSaid],
+        ['Body', [g.body, (g.hurt || []).join(', ')].filter(Boolean).join(' · ')]].filter(([, v]) => v).map(([k, v]) => `<div><span>${k}</span>${esc(v)}</div>`).join('')}
+      ${/^https:\/\//.test(g.link || '') ? `<a href="${esc(g.link)}" target="_blank" rel="noopener">▶ Game film</a>` : ''}</div></details>`).join('')
+      : '<div class="tr-life">No games logged yet. After your next game, tap + LOG.</div>'}
+    <div class="gl-foot">${sw.length ? `🔗 Your coaches at ${esc(sw.join(', '))} can see these. Log once, everyone's in the loop.` : 'Only you and your parents see these.'}</div>`;
+}
 function renderProfile() {
   const p = currentPlayer;
   const colors = {};
   const color = p.color || colors[p.id] || '#4fc3f7';
   paintAvatar(document.getElementById('profileAvatar'), p, color);
+  renderGamesCard(p);
   document.getElementById('editAvBtn').style.display = hasUnlock(p.id,'avatar') ? 'inline-block' : 'none';
   document.getElementById('profileName').textContent = p.name.toUpperCase();
   document.getElementById('profileClub').textContent = [(p.club||'').toUpperCase(), [p.pos1, p.pos2].filter(Boolean).join(' / ')].filter(Boolean).join(' · ');
@@ -3986,6 +4020,24 @@ function epaState(p, date) {
   return {e, kind: P.days.includes(wdOf(date)) ? 'day' : 'rest'};
 }
 function epaLog(id) { return jget(`sfc_epalog_${id}`, {}); }
+// Server copy of journals / game logs / check-ins: they follow the kid to any device
+function mergeLogs(id, logs) {
+  const L = jget(`sfc_epalog_${id}`, {}), games = {};
+  logs.forEach(x => { const r = x.r || {}, d = x.date; if (!d) return;
+    if (x.mode === 'game' && r.game) { const gd = r.game.date || d; (games[gd] = games[gd] || []).push(r.game); return; }
+    const k = x.mode === 'weekly' ? 'wk_' + weekMon(d) : d, slot = L[k] = L[k] || {};
+    if (x.mode === 'epa' && r.epa && !slot.epa) slot.epa = r.epa;
+    else if (x.mode === 'checkin' && r.ready) { if (r.ready.score && !slot.ready) slot.ready = r.ready; if (x.source === 'kiosk' || r.ready.arrive) slot.arrived = 1; }
+    else if (x.mode === 'weekly' && r.weekly && !slot.weekly) slot.weekly = r.weekly;
+    else if (x.mode === 'film' && r.film && !slot.film) slot.film = r.film;
+    else if (x.mode === 'pregame' && r.pregame && !slot.pregame) slot.pregame = r.pregame; });
+  Object.entries(games).forEach(([d, g]) => { const slot = L[d] = L[d] || {}; if (g.length > (slot.games || []).length) slot.games = g; });
+  localStorage.setItem(`sfc_epalog_${id}`, JSON.stringify(L));
+}
+// Everything game-related in one list (newest first): [{d, g}]
+function gamesOf(id, since) { const L = epaLog(id); return Object.keys(L).filter(d => /^\d{4}-/.test(d) && (!since || d >= since)).sort().reverse().flatMap(d => (L[d].games || []).map(g => ({d, g}))); }
+function sharedWith(p) { const O = p.orgs || {}, ids = (p.programs || []).map(e => e.id); const n = [...new Set(ids.map(id => O[id] ? (O[id].short || O[id].org_name) + ' ' + (id === 'epa' ? 'EPA' : O[id].program.replace(/^MSA · /, '')) : id.toUpperCase()))]; return n; }
+function bodyCovered(T) { return !!(T.ready || T.pregame || (T.games || []).length); }
 function setEpaLog(id, key, field, val) { const L = epaLog(id); L[key] = {...(L[key]||{}), [field]:val}; localStorage.setItem(`sfc_epalog_${id}`, JSON.stringify(L)); }
 function epaWeek(wk) { return wk.filter(d => PROGRAMS.epa.days.includes(wdOf(d)) && !epaOff(d)); }
 
@@ -4010,6 +4062,7 @@ function renderEPA() {
     const late = !done && missedEpa(p).includes(d);
     return `<div class="epa-d ${done?'on':''} ${d===today?'today':''} ${off?'off':''}" ${late?`style="cursor:pointer;border-style:dashed" onclick="openEpaLog('${d}')"`:''}><b>${['MON','TUE','WED','THU','FRI','SAT','SUN'][i]}</b><span>${off?'OFF':done?'✓':late?'+ log':d<today?'missed':''}</span></div>`; }).join('');
   const ready = T.ready ? `<div class="epa-done">✓ Checked in · ready ${T.ready.score}/5</div>`
+    : es.kind !== 'day' && bodyCovered(T) ? `<div class="epa-done">✓ Body checked in your ${(T.games||[]).length ? 'game log' : 'pre-game check-in'}</div>`
     : `<button class="epa-btn ghost" onclick="openCheckin()">${es.kind === 'day' ? '🚌 HEADING TO EPA? CHECK IN' : "💬 HOW'S YOUR BODY?"} <b>+${CHECKIN_XP} XP</b></button>`;
   let main = '';
   if (es.kind === 'day') main = T.epa ? `<div class="epa-done">✓ EPA logged · ${FOCUS[T.epa.focus].name} · effort ${T.epa.effort} · ~${FOCUS[T.epa.focus].touches.toLocaleString()} touches</div>`
@@ -4019,9 +4072,9 @@ function renderEPA() {
   else main = `<div class="epa-sub">EPA is off for the season.</div>`;
   const miss = missedEpa(p)[0]; if (miss && es.kind !== 'offseason') main += `<button class="epa-btn ghost" onclick="openEpaLog('${miss}')">⏪ FORGOT ${['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'][wdOf(miss)]}? LOG IT <b>+${EPA_XP} XP</b></button><div class="epa-sub">XP counts. Streak only counts on-time logs.</div>`;
   const wkKey = 'wk_' + wk[0], dow = wdOf(today), loggedWk = epaWeek(wk).some(d => L[d] && L[d].epa);
-  const weekly = (dow >= 4 || dow === 0) ? (L[wkKey] && L[wkKey].weekly ? `<div class="epa-done">✓ Weekly journal done</div>` : `<button class="epa-btn ghost" onclick="openForm('journal')">📝 WEEKLY JOURNAL <b>+${JOURNAL_XP} XP</b></button>`) : '';
+  const weekly = (dow >= 4 || dow === 0) ? (L[wkKey] && L[wkKey].weekly ? `<div class="epa-done">✓ Weekly journal done</div>` : `<button class="epa-btn due" onclick="openForm('journal')">📝 WEEKLY JOURNAL · ${dow === 0 ? 'DUE TODAY' : 'DUE SUNDAY'} <b>+${JOURNAL_XP} XP</b></button>`) : '';
   const sheet = (p.goals||{}).sheet ? '' : `<button class="epa-btn ghost" onclick="openForm('sheet')">🎯 GOAL WORKSHEET <b>+${SHEET_XP} XP</b></button>`;
-  const film = T.film ? `<div class="epa-done">✓ Game analysis saved</div>` : `<button class="epa-btn ghost" onclick="openForm('film')">🎥 GAME ANALYSIS <span style="opacity:.6">OPTIONAL</span> <b>+${FILM_XP} XP</b></button>`;
+  const film = gamesWeekHTML(p, wk);
   el.innerHTML = `<div class="q-top"><div><div class="today-title"><img class="epa-crest" src="/brand/msa-shield.png" alt="">MSA EAST · EPA</div><div class="epa-org">McGHEE SOCCER ACADEMY</div></div><div class="recap-sub">${(es.e.group||'younger').toUpperCase()} GROUP</div></div>
     ${(() => { const pl = planToday(p); if (!pl) return ''; const dn = (pl.days||{})[String(wdOf(today))];
       return `<div class="epa-plan"><div class="epa-plan-h">COACH PLAN · THIS WEEK${pl.focus ? ' · ' + esc(pl.focus.toUpperCase()) : ''}</div>
@@ -4030,8 +4083,18 @@ function renderEPA() {
     ${f || es.e.note ? `<div class="epa-coach">${f?`<b>THIS WEEK:</b> ${f.ico} ${f.name}`:''}${es.e.note?`<div>${esc(es.e.note)}</div>`:''}</div>` : ''}
     ${nextSessionHTML(p)}
     ${idpHTML(p)}
-    <div class="epa-strip">${strip}</div>${main}${ready}${sheet}${weekly}${film}<button class="epa-btn ghost" onclick="openSpeed()">⚡ SPEED TEST <span style="opacity:.6">OPTIONAL</span> <b>+${SPEED_XP} XP</b></button>`;
+    <div class="epa-strip">${strip}</div>${weekly}${main}${ready}${sheet}${film}<button class="epa-btn ghost" onclick="openSpeed()">⚡ SPEED TEST <span style="opacity:.6">OPTIONAL</span> <b>+${SPEED_XP} XP</b></button>`;
 }
+// This week's game logs inside the program card: no re-asking, film breakdown hangs off a logged game
+function gamesWeekHTML(p, wk) {
+  const gs = gamesOf(p.id, wk[0]), L = epaLog(p.id), sw = sharedWith(p);
+  if (!gs.length) return `<button class="epa-btn ghost" onclick="openForm('game')">⚽ PLAYED A GAME? LOG IT <b>+${GAME_XP} XP</b></button>`;
+  return `<div class="gw"><div class="gw-h">⚽ GAMES THIS WEEK · ${gs.length} LOGGED</div>${gs.map(({d, g}) => `<div class="gw-row"><div><b>${new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short'}).toUpperCase()}</b> ${esc(g.result && g.result !== 'Skip' ? g.result : '')}${g.rate ? ' · ' + g.rate + '/10' : ''}${g.pos ? ' · ' + esc([].concat(g.pos).join('/')) : ''}</div>
+    ${(L[d] || {}).film ? '<span class="gw-ok">🎥 ✓</span>' : `<button onclick="openFilm('${d}')">🎥 Film +${FILM_XP}</button>`}</div>`).join('')}
+    <div class="gw-sub">Shared with ${esc(sw.join(', ') || 'your coaches')} · no need to log it twice</div></div>`;
+}
+function openFilm(d) { const g = (gamesOf(currentPlayer.id, d).find(x => x.d === d) || {}).g || {};
+  epaDraft = {kind:'film', step:0, v:{date:d, ...(/^https:\/\//.test(g.link || '') ? {link:g.link} : {})}}; paintEpa(); openEpaModal(FORMS.film.title, ''); }
 function esc(s) { return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 // Modals
@@ -4155,7 +4218,7 @@ const FORMS = {
     {h:'Think about it', sub:'Talk-to-text works great here.', f:[{k:'well', t:'text', l:'👍 Something you did well', req:1}, {k:'work', t:'text', l:'🛠 Something to do better next time', req:1},
       {k:'coachSaid', t:'text', l:'💬 Did your coach tell you anything?'}]},
     {h:'Body + film', f:[{k:'body', t:'chips', o:['Fresh','Tired','Sore','Hurt'], l:'How does your body feel now?', req:1}, {k:'hurt', t:'chips', multi:1, o:HURT, none:'Nothing 👍', l:'Anything hurting?'},
-      {k:'link', t:'text', l:'Game film link (you or your coach can add it later)', ph:'https://'}]}]},
+      {k:'link', t:'text', l:'Game film link (paste a https:// link, or skip. Your coach can add it later)', ph:'https://'}]}]},
   sheet: {title:'Goal worksheet', xp:SHEET_XP, steps:[
     {h:'My dream goal', sub:'Perfect world. No judgment. Nothing is too big.', f:[{k:'dream', t:'text', l:'If nothing could stop you, what is the biggest thing you want to achieve in soccer?', req:1}]},
     {h:'My goal ladder', sub:'Short steps that build to the big goal.', f:[{k:'season', t:'text', l:'This season, I want to:', req:1}, {k:'month', t:'text', l:'This month, I want to:'}, {k:'week', t:'text', l:'This week, I will:'}]},
