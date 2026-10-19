@@ -3269,6 +3269,7 @@ let audioCtx = null;
 // iOS mutes Web Audio when the ring/silent switch is on. Mark the page as media playback so beeps + voice use the speaker.
 function audioUnlock() {
   try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch(e) {}
+  try { if (!window._speechOk && window.speechSynthesis) { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); window._speechOk = 1; } } catch(e) {}
   try { audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume();
     const b = audioCtx.createBuffer(1, 1, 22050), src = audioCtx.createBufferSource(); src.buffer = b; src.connect(audioCtx.destination); src.start(0); } catch(e) {}
   try { if (!window._silentEl) { const a = window._silentEl = new Audio('data:audio/mp4;base64,AAAAHGZ0eXBNNEEgAAAAAE00QSBpc29tbXA0MgAAAAFtZGF0AAAAAAAAAAA='); a.loop = true; a.setAttribute('playsinline', ''); a.volume = 0.01; } window._silentEl.play().catch(() => {}); } catch(e) {}
@@ -3638,7 +3639,10 @@ function updateSessTop() {
 async function keepAwake(on) {
   try { if (on && 'wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); else if (!on && wakeLock) { wakeLock.release(); wakeLock = null; } } catch(e) {}
 }
-function say(text) { try { const u = new SpeechSynthesisUtterance(text); u.rate = 1.05; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch(e) {} }
+// iOS Safari: cancel() right before speak() can swallow the line, and utterances get garbage-collected mid-word. Keep a ref, wait a beat after cancel.
+function say(text) { try { const ss = window.speechSynthesis; if (!ss || !text) return; const busy = ss.speaking || ss.pending; if (busy) ss.cancel();
+  const u = new SpeechSynthesisUtterance(text); u.rate = 1.05; u.volume = 1; u.lang = 'en-US'; (window._utts = window._utts || []).push(u); if (window._utts.length > 5) window._utts.shift();
+  setTimeout(() => { try { ss.resume(); ss.speak(u); } catch(e) {} }, busy ? 80 : 0); } catch(e) {} }
 function beep(freq=880, dur=.12, vol=.15) {
   try { audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)(); if (audioCtx.state==='suspended') audioCtx.resume();
     const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination);
@@ -4516,8 +4520,9 @@ function paintMini() {
 function miniStart() {
   if (M.k === 'bowling') { M.step = 'bowl'; say('Pass one. Knock them down!'); return paintMini(); }
   M.step = 'run'; M.left = M.k === 'lights' ? 60 : 30; M.call = '3'; paintMini(); let c = 3;
+  say(M.k === 'lights' ? 'Listen for the call!' : 'Three');
   const cd = setInterval(() => { c--; beep(c ? 660 : 990, .15); if (c > 0) { M.call = String(c); paintMini(); return; }
-    clearInterval(cd); M.call = 'GO!'; say('Go!'); paintMini(); miniRun(); }, 900); beep(660, .15); mTimer = cd;
+    clearInterval(cd); M.call = 'GO!'; if (M.k !== 'lights') say('Go!'); paintMini(); miniRun(); }, M.k === 'lights' ? 1100 : 900); beep(660, .15); mTimer = cd;
 }
 function miniRun() {
   const t0 = Date.now(), total = M.left; let nextLight = 0, beat = 0;
@@ -4532,7 +4537,7 @@ function miniRun() {
   }, 50);
 }
 function miniLight(L) { M.light = L; M.call = L === 'green' ? '🟢 GREEN LIGHT! DRIBBLE' : L === 'yellow' ? '🟡 YELLOW! GO SLOW' : '🔴 RED LIGHT! FOOT ON THE BALL';
-  say(L === 'green' ? 'Green light!' : L === 'yellow' ? 'Yellow light, slow!' : 'Red light!'); beep(L === 'red' ? 300 : 900, .2); M.lights = (M.lights || 0) + (L === 'red' ? 1 : 0); paintMini(); }
+  say(L === 'green' ? 'Green light! Go!' : L === 'yellow' ? 'Yellow light. Slow.' : 'Red light! Stop!'); beep(L === 'red' ? 300 : 900, .2); M.lights = (M.lights || 0) + (L === 'red' ? 1 : 0); paintMini(); }
 function miniFinish() { clearInterval(mTimer); M.secs = (M.k === 'lights' ? 60 : 30) - (M.left || 0); beep(990, .4); say('Time!');
   if (M.k === 'wall') { M.step = 'count'; M.score = 0; } else if (M.k === 'toes') M.step = 'stars'; else { M.score = M.lights || 0; return miniDone(); }
   paintMini(); }
