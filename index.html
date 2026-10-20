@@ -786,6 +786,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .vid-wrap{width:100%;max-width:520px}.vid-top{display:flex;justify-content:space-between;align-items:center;color:#fff;margin-bottom:10px;font-size:15px}
 .vid-top button{background:#ffffff22;border:0;color:#fff;border-radius:50%;width:34px;height:34px;font-size:16px;cursor:pointer}
 .vid-wrap iframe{width:100%;border:0;border-radius:12px;background:#000;display:block}
+.lesson-kid{margin-top:8px;border:1px solid;border-radius:12px;padding:10px 12px;color:var(--text)}.lk-h{font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:800}.lk-row{display:flex;gap:10px;align-items:baseline;margin-top:4px;font-size:14px}.lk-row span{font-weight:700}
+.lk-t{font-size:13px;margin-top:4px;line-height:1.4}.lk-hw{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:10px;font-size:13px;line-height:1.4}.lk-hw .pt-btn{white-space:nowrap}
+.lv-bars{display:flex;gap:4px;align-items:flex-end;height:28px;margin-top:8px}.lv-bars i{width:12px;background:#a78bfa;border-radius:3px 3px 1px 1px}
 .coach-org{display:flex;align-items:center;gap:10px;margin-top:12px}.coach-org img{width:30px}.coach-org .ini{width:30px;height:30px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-weight:900}
 .coach-org b{font-size:13px;display:block}.coach-org span{font-size:10px;letter-spacing:1px;color:var(--sub);font-weight:800}
 .coach-prog{margin:6px 0 0 40px;font-size:12px;color:var(--sub)}.coach-prog details summary{cursor:pointer;color:var(--accent);font-weight:800;margin-top:4px}
@@ -1970,8 +1973,9 @@ async function init() {
   }
   flushQueue();
   const hash = window.location.hash;
-  { const j = /join=([A-Za-z0-9]+)/.exec(hash), k = /kid=([A-Za-z0-9]+)/.exec(hash);
-    if (j || k) window.history.replaceState({}, '', window.location.pathname);
+  { const j = /join=([A-Za-z0-9]+)/.exec(hash), k = /kid=([A-Za-z0-9]+)/.exec(hash), c = /claim=(P-[A-Za-z0-9]+)/i.exec(hash);
+    if (j || k || c) window.history.replaceState({}, '', window.location.pathname);
+    if (c) { localStorage.setItem('sfc_claim', c[1].toUpperCase()); localStorage.removeItem('sfc_mode'); if (!localStorage.getItem('sfc_session')) return openClaim(c[1].toUpperCase()); }
     if (k) return openKidLink(k[1].toUpperCase());
     if (j) { localStorage.setItem('sfc_join', j[1].toUpperCase()); if (!localStorage.getItem('sfc_session')) return openJoin(j[1].toUpperCase()); } }
   if (hash.includes('access_token')) {
@@ -2011,6 +2015,37 @@ async function openJoin(code) {
   document.getElementById('authDesc').textContent = "Tap Send Code. We'll email you a 6-digit code, type it here and you're in. Takes about 5 minutes to add your kids.";
   try { const i = await rpc('sfc_signup_invite_info', {p_code:code}); if (i && i.email) document.getElementById('emailInput').value = i.email; } catch(e) {}
 }
+// Trainer connect link: a coach logged sessions for a kid before the family was on StreakFC
+let CLAIM = null;
+async function claimInfo() { const c = localStorage.getItem('sfc_claim'); if (!c) return null;
+  if (CLAIM && CLAIM.code === c) return CLAIM;
+  try { const i = await rpc('sfc_claim_info', {p_code:c}); if (!i) { localStorage.removeItem('sfc_claim'); showToast('That connect link was already used or is no longer valid'); return null; } CLAIM = {...i, code:c}; return CLAIM; } catch(e) { return null; } }
+async function openClaim(code) {
+  showScreen('auth-screen'); const i = await claimInfo();
+  document.getElementById('authEyebrow').textContent = i ? `${i.short || i.org_name} · ${i.program_name}` : 'Connect to your coach';
+  document.getElementById('authTitle').textContent = i ? `Connect ${i.nickname}` : 'Connect your player';
+  document.getElementById('authDesc').textContent = `Sign in with your email. Already on StreakFC? You'll pick which kid this is. New? Add your kids in 2 minutes first.${i && i.lessons ? ` ${i.lessons} session${i.lessons > 1 ? 's' : ''} logged so far.` : ''}`;
+}
+async function claimPrompt() {
+  const i = await claimInfo(); if (!i || !players.length) return;
+  let m = document.getElementById('claimModal');
+  if (!m) { m = document.createElement('div'); m.className = 'modal-overlay'; m.id = 'claimModal'; document.body.appendChild(m); }
+  m.innerHTML = `<div class="modal-sheet"><div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;gap:12px">${i.logo ? `<img src="${esc(i.logo)}" alt="" style="width:46px;height:46px">` : ''}<div><div class="modal-title" style="margin:0">Connect to ${esc(i.short || i.org_name)}</div><div class="modal-sub" style="margin:2px 0 0">${esc(i.org_name)} · ${esc(i.program_name)}</div></div></div>
+    <div class="modal-sub" style="margin-top:14px">Your coach added <b>${esc(i.nickname)}</b>${i.age_group ? ' (' + esc(i.age_group) + ')' : ''}. Which of your players is this? Their session notes and homework move onto that player. You can disconnect anytime.</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">${players.map(p => `<button class="opt-btn" style="width:100%;text-align:left;padding:14px;font-weight:800" onclick="doClaim('${p.id}')"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${p.color};margin-right:8px"></span>${esc(p.name)} <span style="color:var(--sub);font-weight:600">${esc(p.age_group||'')}</span></button>`).join('')}
+    <button class="opt-btn" style="width:100%" onclick="claimNewKid()">➕ Not listed, add ${esc(i.nickname)}</button>
+    <button class="opt-btn" style="width:100%;opacity:.7" onclick="document.getElementById('claimModal').classList.remove('open')">Not now</button></div></div>`;
+  m.classList.add('open');
+}
+async function doClaim(pid) {
+  const c = localStorage.getItem('sfc_claim'), i = CLAIM; if (!c) return;
+  try { await rpc('sfc_join_program', {p_player:pid, p_code:c}); } catch(e) { return showToast(String(e.message).includes('code_invalid') ? 'That link was already used' : 'Could not connect: ' + e.message, 'error'); }
+  localStorage.removeItem('sfc_claim'); CLAIM = null; document.getElementById('claimModal').classList.remove('open');
+  showToast(`Connected to ${i ? i.short || i.org_name : 'your coach'}. Sessions and homework show on their app.`, 'success'); loadParent();
+}
+function claimNewKid() { document.getElementById('claimModal').classList.remove('open'); showOnboard('players'); const n = document.getElementById('obNick'); if (n && CLAIM) { n.value = CLAIM.nickname; const a = document.getElementById('obAge'); if (a && CLAIM.age_group && [...a.options].some(o => o.value === CLAIM.age_group)) a.value = CLAIM.age_group; } }
+
 // Kid link: Android / home-screen app pairs right away; iPhone Safari first gets home screen steps
 const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const IS_STANDALONE = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
@@ -2069,7 +2104,8 @@ async function loadParent() {
       const n = Array.isArray(x.rounds) ? x.rounds.filter(r => r && r.pb).length : 0; if (n) add(pbd, x.player_id, x.date, n); });
     players = rows.map(r => hydratePlayer({player:r, history:hist[r.id]||{}, xp_days:xpd[r.id]||{}, pb_days:pbd[r.id]||{}}));
     try { const sp = await sb('sfc_sessions?select=player_id,date,rounds,created_at&mode=eq.speed&order=date,created_at'); const by = {}; sp.forEach(x => { const v = ((x.rounds||[])[0]||{}).speed; if (v) (by[x.player_id] = by[x.player_id] || []).push({date:x.date, test:v.test, val:Number(v.val), by:v.by}); }); rows.forEach(r => mergeSpeed(r.id, by[r.id] || [])); } catch(e) {}
-    progRows = {}; sess.filter(x => ['epa','checkin','weekly'].includes(x.mode)).forEach(x => { (progRows[x.player_id] = progRows[x.player_id] || []).push(x); });
+    try { LESSONS = await rpc('sfc_family_lessons') || {}; } catch(e) { LESSONS = {}; }
+    progRows = {}; sess.filter(x => ['epa','checkin','weekly','homework'].includes(x.mode)).forEach(x => { (progRows[x.player_id] = progRows[x.player_id] || []).push(x); });
     localStorage.setItem('sfc_parent_cache', JSON.stringify(players));
   } catch(e) {
     // Offline: show last known dashboard
@@ -2162,6 +2198,7 @@ function showOnboard(step) {
       </div>
       <button class="auth-btn" id="obDoneBtn" style="background:var(--green);display:${players.length?'block':'none'}" onclick="showOnboard('kids')">NEXT → GET YOUR KIDS ON</button>`;
     obRenderList();
+    if (!players.length && localStorage.getItem('sfc_claim')) claimInfo().then(i => { const n = document.getElementById('obNick'); if (i && n && !n.value) { n.value = i.nickname; const a = document.getElementById('obAge'); if (i.age_group && [...a.options].some(o => o.value === i.age_group)) a.value = i.age_group; } });
   }
 }
 let kidLinkCode = null;
@@ -2283,6 +2320,7 @@ async function ensureDevice() {
 function showParentPortal() {
   showScreen('parent-portal');
   renderParentPortal();
+  if (localStorage.getItem('sfc_claim')) setTimeout(claimPrompt, 400);
 }
 
 function todayStrip() {
@@ -2341,7 +2379,7 @@ function renderParentPortal() {
         <div class="kid-stat"><div class="kid-stat-val">${w.pbs}</div><div class="kid-stat-lbl">PBs THIS WK</div></div>
         <div class="kid-stat"><div class="kid-stat-val">${fmtK(w.xp)}</div><div class="kid-stat-lbl">XP THIS WK</div></div>
       </div>
-      ${epaParentLine(p)}
+      ${epaParentLine(p)}${lessonParentLine(p)}
       ${speedParentLine(p)}
       ${statusLine(p)}
       ${rewardLine(p)}
@@ -2609,13 +2647,14 @@ function renderProgToday() {
   const today = localDate(), pr = progDaysOn(p, today), es = epaState(p), L = epaLog(p.id), T = L[today] || {}, miss = es && es.kind !== 'offseason' ? missedEpa(p)[0] : null;
   const wkKey = 'wk_' + weekDates(0)[0], dow = new Date().getDay(), due = es && es.kind !== 'offseason' && (dow >= 4 || dow === 0) && !((L[wkKey] || {}).weekly);
   const dueBtn = due ? `<button class="pt-btn due" style="width:100%;margin-top:8px" onclick="openForm('journal')">📝 EPA WEEKLY JOURNAL · ${dow === 0 ? 'DUE TODAY' : 'DUE SUNDAY'} +${JOURNAL_XP}</button>` : '';
-  if (!pr.length && !miss && !due) { el.innerHTML = ''; return; }
+  const hwOpen = openHomework(p), hwBtn = hwOpen.map(h => `<button class="pt-btn" style="width:100%;margin-top:8px;background:${(h.brand||{}).accent || '#a78bfa'};color:#0b0616" onclick="switchTab('teams')">📋 ${esc(h.short || h.org_name)} HOMEWORK: ${esc(h.hw.length > 34 ? h.hw.slice(0, 34) + '…' : h.hw)}</button>`).join('');
+  if (!pr.length && !miss && !due) { el.innerHTML = hwBtn ? `<div class="prog-today">${hwBtn}</div>` : ''; return; }
   const epa = pr.find(x => x.id === 'epa'), c = (pr[0] || {color:'#2dd4bf'}).color;
   const acts = epa ? (T.epa ? `<span class="pt-done">✓ EPA logged</span>` : `${T.ready ? '<span class="pt-done">✓ Checked in</span>' : `<button class="pt-btn ghost" onclick="openCheckin()">🚌 CHECK IN</button>`}<button class="pt-btn" onclick="openEpaLog()">🏟 LOG EPA +${EPA_XP}</button>`) : '';
   el.innerHTML = `<div class="prog-today" style="border-color:${c}88">
     ${pr.length ? `<div class="pt-top"><div><div class="pt-h" style="color:${c}">${epa ? '<img class="epa-crest" src="/brand/msa-shield.png" alt="">' : '🏟'} ${pr.map(x => x.label).join(' + ')} TODAY</div><div class="pt-sub">${epa ? 'MSA East · ' + PROGRAMS.epa.mins + ' min' : ''}</div></div><a class="pt-more" onclick="switchTab('teams')">TEAMS ›</a></div><div class="pt-acts">${acts}</div>` : ''}
     ${!pr.length && due ? `<div class="pt-top"><div class="pt-h" style="color:#2dd4bf"><img class="epa-crest" src="/brand/msa-shield.png" alt=""> MSA EPA</div><a class="pt-more" onclick="switchTab('teams')">TEAMS ›</a></div>` : ''}${dueBtn}
-    ${miss ? `<button class="pt-btn ghost" style="width:100%;margin-top:8px" onclick="openEpaLog('${miss}')">⏪ Forgot ${DAY_NAMES[wdOf(miss)]}'s EPA? Log it +${EPA_XP} XP</button>` : ''}</div>`;
+    ${miss ? `<button class="pt-btn ghost" style="width:100%;margin-top:8px" onclick="openEpaLog('${miss}')">⏪ Forgot ${DAY_NAMES[wdOf(miss)]}'s EPA? Log it +${EPA_XP} XP</button>` : ''}${hwBtn}</div>`;
 }
 function renderTeamsNav() {
   const p = currentPlayer, on = !!(p && (p.programs || []).length);
@@ -4263,7 +4302,7 @@ function renderCoaches() {
   const KL = {cohort:'Program', group:'Group training', clinic:'Clinic', private:'Private 1:1', team:'Team'}, OK = {academy:'ACADEMY', club:'CLUB', trainer:'TRAINER'};
   el.style.display = 'block';
   el.innerHTML = `<div class="badges-title">🧢 MY TEAMS + COACHES</div>` + Object.values(by).map(({o, progs}) => `<div class="coach-org">${(o.brand||{}).logo ? `<img src="${esc(o.brand.logo)}" alt="">` : `<div class="ini">${esc((o.short||o.org_name||'?')[0])}</div>`}<div><b>${esc(o.org_name)}</b><span>${OK[o.org_kind]||''}</span></div></div>
-    ${progs.map(id => { const d = (p.idps||{})[id]; return `<div class="coach-prog">${esc(O[id].program)}${KL[O[id].kind] && KL[O[id].kind] !== O[id].program ? ' · ' + KL[O[id].kind] : ''}${d && (d.ratings || d.focus) ? `<details><summary>🎯 IDP${d.coach ? ' · ' + esc(d.coach) : ''}${d.date ? ' · ' + esc(d.date) : ''}</summary>${idpHTML(p, d)}</details>` : ''}</div>`; }).join('')}`).join('');
+    ${progs.map(id => { const d = (p.idps||{})[id]; return `<div class="coach-prog">${esc(O[id].program)}${KL[O[id].kind] && KL[O[id].kind] !== O[id].program ? ' · ' + KL[O[id].kind] : ''}${d && (d.ratings || d.focus) ? `<details><summary>🎯 IDP${d.coach ? ' · ' + esc(d.coach) : ''}${d.date ? ' · ' + esc(d.date) : ''}</summary>${idpHTML(p, d)}</details>` : ''}${kidLessonHTML(p, id, O[id])}</div>`; }).join('')}`).join('');
 }
 function progOf(p, id='epa') { return (p && Array.isArray(p.programs) ? p.programs : []).find(x => x && x.id === id); }
 function epaOff(date) { return PROGRAMS.epa.off.find(([a,b]) => date >= a && date <= b); }
@@ -4300,18 +4339,19 @@ function epaWeek(wk) { return wk.filter(d => PROGRAMS.epa.days.includes(wdOf(d))
 // Coach plans (this week + next), fetched for enrolled kids
 let plansAt = 0;
 function planToday(p) { const wk = weekDates(0)[0]; return (p.plans || []).find(x => x.week_start === wk) || null; }
+let plansFor = null;
 async function loadPlans() {
-  const p = currentPlayer; if (!p || !(p.programs||[]).length || !deviceToken() || Date.now() - plansAt < 5 * 60e3) return;
-  plansAt = Date.now();
+  const p = currentPlayer; if (!p || !(p.programs||[]).length || !deviceToken() || (plansFor === p.id && Date.now() - plansAt < 5 * 60e3)) return;
+  plansAt = Date.now(); plansFor = p.id;
   try { p.plans = await rpc('sfc_player_plans', {p_token:deviceToken(), p_player:p.id}) || []; localStorage.setItem('sfc_player', JSON.stringify(p)); renderEPA(); renderToday(); } catch(e) {}
-  try { const x = await rpc('sfc_player_extras', {p_token:deviceToken(), p_player:p.id}) || {}; localStorage.setItem('sfc_media', JSON.stringify(x.media || {})); p.idps = x.idp || {}; p.idp = p.idps.epa || Object.values(p.idps)[0] || null; p.orgs = x.orgs || {}; p.days = x.days || [];
+  try { const x = await rpc('sfc_player_extras', {p_token:deviceToken(), p_player:p.id}) || {}; localStorage.setItem('sfc_media', JSON.stringify(x.media || {})); p.idps = x.idp || {}; p.idp = p.idps.epa || Object.values(p.idps)[0] || null; p.orgs = x.orgs || {}; p.days = x.days || []; p.lessons = x.lessons || [];
     localStorage.setItem('sfc_player', JSON.stringify(p)); localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p)); renderEPA(); renderCoaches(); renderMyWeek(); renderProgToday(); } catch(e) {}
 }
 // Home card (only for enrolled kids)
 function renderEPA() {
   const p = currentPlayer, el = document.getElementById('epaCard'); if (!el) return;
-  const es = epaState(p); if (!es) { el.style.display = 'none'; return; }
   loadPlans();
+  const es = epaState(p); if (!es) { el.style.display = 'none'; return; }
   el.style.display = 'block';
   const today = localDate(), L = epaLog(p.id), T = L[today] || {}, wk = weekDates(0), f = FOCUS[es.e.focus] || null;
   const strip = wk.map((d,i) => { if (!PROGRAMS.epa.days.includes(wdOf(d))) return ''; const off = epaOff(d), done = L[d] && L[d].epa;
@@ -4865,6 +4905,43 @@ async function saveSpeed() {
   if (speedFor) { speedFor = null; renderParentPortal(); } else { renderProfile(); renderHome(); }
   if (pb && prev) { confetti(); sfx('pop'); showToast(`⚡ NEW PB! ${t.name} ${val}${spU(t)}${again ? '' : ` (+${SPEED_XP + SPEED_PB_XP} XP)`}`, 'success'); }
   else showToast(again ? `${t.name} saved (XP already earned today)` : `+${SPEED_XP} XP · ${t.name} saved`, 'success');
+}
+
+// ── Trainer sessions (e.g. PFA): level 1-5, how they did, worked on, homework. Kid checks off homework, parent sees growth.
+let LESSONS = {};
+const RATE_L = ['', 'Rough day', 'Struggled', 'Solid', 'Strong', 'Crushed it'], HW_XP = 25;
+function lastLessons(L) { const by = {}; (L || []).forEach(l => { by[l.program] = l; }); return Object.values(by); }
+function hwDoneKey(p, prog) { return `sfc_hwdone_${p.id}_${prog}`; }
+function hwDone(p, l, rows) { if (!l || !l.hw) return true; if ((localStorage.getItem(hwDoneKey(p, l.program)) || '') >= l.date) return true;
+  return (rows || []).some(r => r.mode === 'homework' && r.date >= l.date && (((r.rounds||[])[0]||{}).homework||{}).program === l.program); }
+function openHomework(p) { return lastLessons(p.lessons).filter(l => l.hw && !hwDone(p, l)); }
+function levelBars(L, kid) { if (L.length < 2) return ''; return `<div class="lv-bars">${L.slice(-10).map(l => `<i style="height:${l.diff * 20}%;opacity:${kid ? 1 : .45 + l.rate * .11}"></i>`).join('')}</div>`; }
+// Kids never see a rating or a level number. Only direction: leveling up, locking it in, first one.
+function kidTrend(L) { const l = L[L.length - 1], prev = L[L.length - 2];
+  if (!prev) return ['🚀', 'First session logged'];
+  if (l.diff > prev.diff) return ['📈', 'Leveled up! Harder drills than last time'];
+  const up = L.filter((x, i) => i && x.diff > L[i - 1].diff).length;
+  return up ? ['🔒', `Locking it in · leveled up ${up}x so far`] : ['🔒', 'Locking it in. Next level is close']; }
+function kidLessonHTML(p, prog, o) {
+  const L = (p.lessons || []).filter(l => l.program === prog); if (!L.length) return '';
+  const l = L[L.length - 1], done = hwDone(p, l), acc = (o.brand||{}).accent || '#a78bfa';
+  return `<div class="lesson-kid" style="border-color:${acc}66"><div class="lk-h">LAST SESSION · ${esc(String(l.date).slice(5).replace('-','/'))}${l.by ? ' · ' + esc(l.by) : ''}</div>
+    <div class="lk-row"><b style="color:${acc}">${kidTrend(L)[0]} ${esc(kidTrend(L)[1])}</b></div>
+    ${l.work ? `<div class="lk-t">Worked on: ${esc(l.work)}</div>` : ''}${levelBars(L, true)}
+    ${l.hw ? `<div class="lk-hw"><div>📋 <b>HOMEWORK</b><br>${esc(l.hw)}</div>${done ? '<span class="pt-done">✓ Done</span>' : `<button class="pt-btn" style="background:${acc};color:#0b0616" onclick="markHomework('${prog}')">✓ DID IT +${HW_XP}</button>`}</div>` : ''}</div>`;
+}
+function markHomework(prog) {
+  const p = currentPlayer, l = lastLessons(p.lessons).find(x => x.program === prog); if (!l || hwDone(p, l)) return;
+  localStorage.setItem(hwDoneKey(p, prog), localDate());
+  progXP(p, HW_XP, 'homework', [{homework:{program:prog, lesson:l.date, hw:l.hw}}]);
+  confetti(); sfx('pop'); showToast(`+${HW_XP} XP · homework done. Your coach will see it.`, 'success'); renderCoaches(); renderHome();
+}
+function lessonParentLine(p) {
+  const L = LESSONS[p.id] || []; if (!L.length) return '';
+  return lastLessons(L).map(l => { const all = L.filter(x => x.program === l.program), acc = (l.brand||{}).accent || '#a78bfa', done = hwDone(p, l, progRows[p.id]);
+    return `<div class="epa-parent" style="border-color:${acc}55"><b>${(l.brand||{}).logo ? `<img src="${esc(l.brand.logo)}" alt="" style="width:16px;height:16px;vertical-align:-3px;margin-right:4px">` : '🧑‍🏫 '}${esc(l.short || l.org_name)} · ${esc(l.program_name)}</b> ${all.length} session${all.length > 1 ? 's' : ''}
+      <div>Last: ${esc(String(l.date).slice(5).replace('-','/'))}${l.by ? ' with ' + esc(l.by) : ''} · <b style="color:${acc}">level ${l.diff}</b> · ${esc(RATE_L[l.rate] || '')}</div>
+      ${l.work ? `<div>Worked on: ${esc(l.work)}</div>` : ''}${l.hw ? `<div>📋 Homework: ${esc(l.hw)} ${done ? '<span style="color:var(--green)">✓ done</span>' : '<span style="color:var(--amber)">not yet</span>'}</div>` : ''}${levelBars(all)}</div>`; }).join('');
 }
 
 // Parent: EPA line on the kid card, from synced sessions

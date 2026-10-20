@@ -69,6 +69,8 @@ details.wk summary{cursor:pointer;display:flex;gap:12px;align-items:center;flex-
 .k-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.k-row button{background:#0a3337;border:2px solid #14434b;border-radius:16px;font-size:38px;padding:12px 0;color:#fff;display:flex;flex-direction:column;align-items:center;gap:4px}.k-row button small{font-size:12px;font-weight:800;letter-spacing:1px}.k-row button.sel,.k-chips button.sel{border-color:#3fe0e8;background:#0caab533}
 .k-chips{display:flex;flex-wrap:wrap;gap:8px}.k-chips button{background:#0a3337;border:2px solid #14434b;border-radius:99px;color:#fff;padding:8px 14px;font-weight:800;text-transform:uppercase;font-size:13px}
 .k-go{width:100%;margin-top:24px;padding:20px;border:0;border-radius:16px;background:#0caab5;color:#021416;font-size:22px;font-weight:900;letter-spacing:1px}.k-go:disabled{opacity:.35}.k-cancel{width:100%;margin-top:10px;background:none;border:0;color:#7fc7cc;font-weight:800;padding:10px}
+.lz{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.lz button{flex:1;min-width:44px;padding:9px 0;border-radius:10px;border:1px solid var(--line,#2a3a55);background:transparent;color:var(--text);font-weight:900;cursor:pointer}.lz button.on{background:var(--accent);color:#05070b;border-color:var(--accent)}.lz-l{display:flex;justify-content:space-between;font-size:10px;color:var(--sub);margin-top:4px;letter-spacing:.5px}
+.gl{display:flex;align-items:flex-end;gap:5px;height:64px;margin:10px 0 4px}.gl div{flex:1;max-width:26px;border-radius:5px 5px 2px 2px;background:var(--accent);position:relative}.gl div i{position:absolute;top:-15px;left:0;right:0;text-align:center;font-style:normal;font-size:9px;color:var(--sub)}
 .note-row{border-left:2px solid var(--accent);padding:4px 0 4px 10px;margin:8px 0;font-size:13px}.note-row span{display:block;font-size:10px;color:var(--sub);letter-spacing:1px;font-weight:800}
 .sep{font-size:10px;letter-spacing:2px;color:#41526d;font-weight:800;margin:16px 12px 6px}
 .side-foot{margin-top:auto;font-size:11px;color:var(--sub);padding:0 10px}
@@ -423,16 +425,16 @@ function vProgram(id) {
   if (D.loading) return '<div class="muted">Loading…</div>';
   if (D.error) return `<div class="card">Couldn't load: ${esc(D.error)}</div>`;
   const R = D.roster || [], waiting = R.filter(r => !r.player_id), notesOf = pid => ((R.find(r => r.player_id === pid)||{}).notes||[]);
-  const desc = {cohort:'Fixed roster, set days.', group:'Group sessions. Families join with the code.', clinic:'Drop-in. Add walk-ins as "not on StreakFC yet" and hand them the code.', private:'1:1 clients. Booked through your site? Add them here, log lesson notes, hand the parent the code to connect.', team:'Club team.'}[P.kind] || '';
+  const desc = {cohort:'Fixed roster, set days.', group:'Group sessions. Families join with the code.', clinic:'Drop-in. Add walk-ins as "not on StreakFC yet" and hand them the code.', private:'1:1 clients. Add a player, log each session in 30 seconds (level, how they did, homework), text the parent the connect link.', team:'Club team.'}[P.kind] || '';
   return `<div class="hdr"><div><h2>${ic} ${esc(P.name)}</h2><div class="s">${esc(kl)} · ${D.players.length} on StreakFC${waiting.length ? ` · ${waiting.length} not yet` : ''}</div><div class="legend" style="margin-top:4px;max-width:560px">${esc(desc)}</div></div>
     <div style="display:flex;gap:8px;align-items:center"><div class="kpi" style="padding:8px 14px;white-space:nowrap"><span class="legend">JOIN CODE</span> <b style="color:var(--accent);letter-spacing:3px;font-size:18px">${esc(D.code||'-')}</b></div><button class="btn add-btn" style="white-space:nowrap" onclick="openAddRoster('${id}')">＋ ADD PLAYER</button></div></div>
     ${D.mock ? `<div class="sandbox-banner">🧪 <b>SANDBOX</b> · sample players and notes.</div>` : ''}
     <div class="card" style="padding:6px 14px"><div class="card-h" style="margin:10px 0 4px">ON STREAKFC <span class="legend">click for profile, IDP, lesson notes</span></div>
-      ${D.players.length ? `<table class="tight"><tr><th>PLAYER</th><th>AGE</th><th class="num">STREAK</th><th class="num">HOME 7D</th><th>LAST ACTIVE</th><th>IDP</th><th>NOTES</th></tr>
-      ${D.players.map(p => { const i = (D.idps||{})[p.id], n = notesOf(p.id); return `<tr class="click" onclick="openKid('${p.id}')"><td>${kidCell(p)}</td><td class="muted small">${esc(p.age_group||'')}</td><td class="num">${liveStreak(p)}🔥</td><td class="num">${fmtK(sumT(p,7))}</td><td class="small muted">${esc(lastActive(p)||'-')}</td><td>${i ? `<span class="chip c-teal">${esc(i.date||'set')}</span>` : '<span class="muted small">-</span>'}</td><td class="small">${n.length ? `📝 ${n.length} · <span class="muted">${esc(n[n.length-1].by||'')}</span>` : '<span class="muted">-</span>'}</td></tr>`; }).join('')}</table>`
+      ${D.players.length ? `<table class="tight"><tr><th>PLAYER</th><th>AGE</th><th class="num">STREAK</th><th class="num">HOME 7D</th><th>LAST ACTIVE</th><th>IDP</th><th>LESSONS</th></tr>
+      ${D.players.map(p => { const i = (D.idps||{})[p.id], n = notesOf(p.id); return `<tr class="click" onclick="openKid('${p.id}')"><td>${kidCell(p)}</td><td class="muted small">${esc(p.age_group||'')}</td><td class="num">${liveStreak(p)}🔥</td><td class="num">${fmtK(sumT(p,7))}</td><td class="small muted">${esc(lastActive(p)||'-')}</td><td>${i ? `<span class="chip c-teal">${esc(i.date||'set')}</span>` : '<span class="muted small">-</span>'}</td><td class="small">${lessonCell(R.find(r => r.player_id === p.id))}</td></tr>`; }).join('')}</table>`
       : '<div class="muted small" style="padding:8px 0 12px">No one yet. Give families the join code.</div>'}</div>
     <div class="card" style="padding:6px 14px"><div class="card-h" style="margin:10px 0 4px">NOT ON STREAKFC YET <span class="legend">nickname + age group only. Parent connects with the code</span></div>
-      ${waiting.length ? `<table class="tight"><tr><th>PLAYER</th><th>AGE</th><th>LESSON NOTES</th><th>PARENT CODE</th><th></th></tr>${waiting.map(r => `<tr class="click" onclick="openRoster('${id}','${r.id}')"><td><b>${esc(r.nickname)}</b></td><td class="muted small">${esc(r.age_group||'')}</td><td class="small">${r.notes.length ? `📝 ${r.notes.length} · <span class="muted">${esc(r.notes[r.notes.length-1].text.slice(0,50))}…</span>` : '<span class="muted">-</span>'}</td><td><span class="chip c-sub" style="letter-spacing:1.5px">${esc(r.claim_code)}</span></td><td class="num"><span class="small" style="color:var(--accent)">Open</span></td></tr>`).join('')}</table>`
+      ${waiting.length ? `<table class="tight"><tr><th>PLAYER</th><th>AGE</th><th>LESSONS</th><th>PARENT CODE</th><th></th></tr>${waiting.map(r => `<tr class="click" onclick="openRoster('${id}','${r.id}')"><td><b>${esc(r.nickname)}</b></td><td class="muted small">${esc(r.age_group||'')}</td><td class="small">${lessonCell(r)}</td><td><span class="chip c-sub" style="letter-spacing:1.5px">${esc(r.claim_code)}</span></td><td class="num"><span class="small" style="color:var(--accent)">Open</span></td></tr>`).join('')}</table>`
       : '<div class="muted small" style="padding:8px 0 12px">Booked a lesson outside StreakFC? ＋ ADD PLAYER, log notes now, connect later.</div>'}</div>`;
 }
 function openAddRoster(id) {
@@ -451,20 +453,62 @@ async function addRoster(id) {
 }
 function openRoster(id, rid) {
   const r = (D.roster||[]).find(x => x.id === rid); if (!r) return;
-  const msg = `${r.nickname}'s training notes from ${ORG ? ORG.short || ORG.name : 'us'} live in StreakFC. Download it at ${location.origin}, add your player, then tap Join a program and enter ${r.claim_code}.`;
+  const link = `${location.origin}/#claim=${r.claim_code}`, who = ORG ? ORG.short || ORG.name : 'us';
+  const msg = `${r.nickname}'s session notes and homework from ${who} are on StreakFC. Tap to connect (takes a minute, free): ${link}`;
   $('drawer').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:20px;font-weight:900">${esc(r.nickname)} <span class="muted small">${esc(r.age_group||'')}</span></div><button class="btn ghost sm" onclick="$('drawer').classList.remove('open')">Close</button></div>
     <div class="muted small" style="margin:6px 0 14px">${esc(progName(id))} · not on StreakFC yet</div>
+    ${lessonBlock(r, `saveLesson('${id}','${rid}',null)`)}
     ${notesBlock(r.notes, `rosterNote('${id}','${rid}')`)}
-    <div class="card"><div class="card-h">CONNECT THE PARENT</div><div style="font-size:26px;font-weight:900;letter-spacing:4px;color:var(--accent)">${esc(r.claim_code)}</div>
+    <div class="card"><div class="card-h">CONNECT THE PARENT <span class="legend">code ${esc(r.claim_code)}</span></div><div class="small muted">Parent taps the link, signs in (or sets up in 2 min) and picks which kid it is. Your lessons move onto that kid. Already on StreakFC? Nothing gets duplicated.</div>
       <div class="pf"><label>TEXT THE PARENT</label><textarea id="rMsg" rows="3" style="width:100%">${esc(msg)}</textarea></div><button class="btn ghost sm" style="margin-top:6px" onclick="navigator.clipboard.writeText($('rMsg').value).then(()=>toast('Copied'))">COPY</button>
-      <div class="legend" style="margin-top:8px">When they join, the notes move onto their profile automatically.</div></div>
+      <div class="legend" style="margin-top:8px">You never see the parent's contact info. They can disconnect anytime.</div></div>
     <a href="#" class="small muted" onclick="removeRoster('${id}','${rid}');return false">Remove from list</a>`;
   $('drawer').classList.add('open');
 }
 function notesBlock(notes, onAdd) {
-  return `<div class="card" id="notesCard"><div class="card-h">LESSON NOTES <span class="legend">staff only · stays with ${esc(ORG ? ORG.short || ORG.name : 'the academy')}</span></div>
-    ${(notes||[]).slice().reverse().map(n => `<div class="note-row"><span>${esc(String(n.date||'').slice(5).replace('-','/'))} · ${esc(n.by||'Coach')}</span>${esc(n.text)}</div>`).join('') || '<div class="muted small">No notes yet.</div>'}
-    <textarea id="newNote" rows="2" style="width:100%;margin-top:10px" maxlength="1000" placeholder="What you worked on, what's next"></textarea><button class="btn sm" style="margin-top:6px" onclick="${onAdd}">ADD NOTE</button></div>`;
+  return `<div class="card" id="notesCard"><div class="card-h">HISTORY <span class="legend">🔒 notes are staff only · stays with ${esc(ORG ? ORG.short || ORG.name : 'the academy')}</span></div>
+    ${(notes||[]).slice().reverse().map(n => `<div class="note-row"><span>${esc(String(n.date||'').slice(5).replace('-','/'))} · ${esc(n.by||'Coach')}${n.kind === 'lesson' ? ` · LEVEL ${n.diff} · ${esc(RATE_L[n.rate]||'')}` : ''}</span>${n.kind === 'lesson' ? `${n.work ? `<b>Worked on:</b> ${esc(n.work)}<br>` : ''}${n.hw ? `<b>Homework:</b> ${esc(n.hw)}<br>` : ''}${n.text ? `<span style="display:inline;font-size:12px;letter-spacing:0;font-weight:600">🔒 ${esc(n.text)}</span>` : ''}` : esc(n.text)}</div>`).join('') || '<div class="muted small">No notes yet.</div>'}
+    <textarea id="newNote" rows="2" style="width:100%;margin-top:10px" maxlength="1000" placeholder="Quick staff-only note (optional)"></textarea><button class="btn ghost sm" style="margin-top:6px" onclick="${onAdd}">ADD STAFF NOTE</button></div>`;
+}
+// ── Lesson log: 30 seconds after a session. Level = how hard the session was (1-5). Family sees level, how they did, worked on, homework.
+const RATE_L = ['', 'Rough day', 'Struggled', 'Solid', 'Strong', 'Crushed it'];
+let LF = {diff:0, rate:0};
+function lessonsOf(r) { return ((r && r.notes) || []).filter(n => n.kind === 'lesson'); }
+function lessonCell(r) {
+  const L = lessonsOf(r); if (!L.length) return '<span class="muted">-</span>';
+  const l = L[L.length - 1], hw = l.hw ? (r.hw_done && r.hw_done >= l.date ? ' · <span style="color:var(--green)">HW ✓</span>' : ' · <span class="muted">HW open</span>') : '';
+  return `${L.length} · <b>L${l.diff}</b> ${esc(RATE_L[l.rate]||'')} <span class="muted">${esc(String(l.date).slice(5).replace('-','/'))}</span>${hw}`;
+}
+function growthLine(L) {
+  if (L.length < 2) return '';
+  return `<div class="legend" style="margin-top:12px">SESSION LEVEL OVER TIME</div><div class="gl">${L.slice(-12).map(l => `<div style="height:${l.diff * 20}%;opacity:${.45 + l.rate * .11}" title="${esc(l.date)} · level ${l.diff} · ${esc(RATE_L[l.rate])}"><i>${l.diff}</i></div>`).join('')}</div><div class="legend">Brighter = they handled it better</div>`;
+}
+function lzRow(k, labels) { return `<div class="lz">${[1,2,3,4,5].map(v => `<button type="button" class="${LF[k]===v?'on':''}" onclick="LF.${k}=${v};this.parentNode.querySelectorAll('button').forEach((b,i)=>b.classList.toggle('on',i===${v-1}))">${v}</button>`).join('')}</div><div class="lz-l"><span>${labels[0]}</span><span>${labels[1]}</span></div>`; }
+function lessonBlock(r, onSave) {
+  LF = {diff:0, rate:0}; const L = lessonsOf(r), last = L[L.length - 1];
+  return `<div class="card"><div class="card-h">LOG TODAY'S SESSION <span class="legend">30 sec · kids never see ratings</span></div>
+    <div class="pf"><label>DATE</label><input id="lfDate" type="date" value="${localDate()}"></div>
+    <div class="pf"><label>SESSION LEVEL</label>${lzRow('diff', ['1 · intro', '5 · hardest version'])}</div>
+    <div class="pf"><label>HOW THEY DID</label>${lzRow('rate', ['1 · rough day', '5 · crushed it'])}</div>
+    <div class="pf"><label>WORKED ON</label><input id="lfWork" maxlength="300" placeholder="e.g. Receiving across the body, scanning before the ball"></div>
+    <div class="pf"><label>HOMEWORK UNTIL NEXT SESSION</label><input id="lfHw" maxlength="300" placeholder="${last && last.hw ? esc(last.hw) : 'e.g. 200 wall passes, 2 touch, check shoulder every rep'}"></div>
+    <div class="pf"><label>🔒 STAFF-ONLY NOTE (OPTIONAL)</label><input id="lfPriv" maxlength="1000" placeholder="Only you and your staff see this"></div>
+    <button class="btn" style="margin-top:12px" onclick="${onSave}">SAVE SESSION</button>
+    ${growthLine(L)}</div>`;
+}
+async function saveLesson(id, rid, pid) {
+  if (!LF.diff || !LF.rate) return toast('Pick a session level and how they did');
+  const v = {date:$('lfDate').value || localDate(), diff:LF.diff, rate:LF.rate, work:$('lfWork').value.trim(), hw:$('lfHw').value.trim(), text:$('lfPriv').value.trim()};
+  let r = rid ? (D.roster||[]).find(x => x.id === rid) : (D.roster||[]).find(x => x.player_id === pid);
+  if (!D.mock) { try {
+    let realId = r && !String(r.id).startsWith('loc') ? r.id : await rpc('sfc_roster_ensure', {p_program:id, p_player:pid});
+    await rpc('sfc_roster_lesson', {p_id:realId, p_date:v.date, p_diff:v.diff, p_rate:v.rate, p_work:v.work, p_hw:v.hw, p_private:v.text});
+    if (r) r.id = realId; else { r = {id:realId, player_id:pid, notes:[]}; D.roster = [...(D.roster||[]), r]; }
+  } catch(e) { return toast('Failed: ' + e.message); } }
+  else if (!r) { r = {id:'loc' + pid, player_id:pid, notes:[]}; D.roster = [...(D.roster||[]), r]; }
+  r.notes = [...(r.notes||[]), {kind:'lesson', by:myStaffName(), ...v}]; render();
+  if (rid) openRoster(id, r.id); else openKid(pid);
+  toast(v.hw ? 'Saved. Homework is on their app.' : 'Session saved');
 }
 function myStaffName() { const S = ORG && ORGD[ORG.id], me = S && S.staff.find(s => s.me); return me ? me.name : 'Coach'; }
 async function rosterNote(id, rid) {
@@ -475,7 +519,8 @@ async function rosterNote(id, rid) {
 async function removeRoster(id, rid) { if (!confirm('Remove from the list? Their notes go too.')) return; if (!D.mock) { try { await rpc('sfc_roster_remove', {p_id:rid}); } catch(e) { return toast('Failed: ' + e.message); } } D.roster = D.roster.filter(x => x.id !== rid); $('drawer').classList.remove('open'); render(); }
 function progNotesCard(p) {
   const id = CURP(); if (id === 'epa' || !(p.programs||[]).some(e => e.id === id)) return '';
-  return notesBlock(((D.roster||[]).find(r => r.player_id === p.id)||{}).notes, `playerNote('${p.id}')`);
+  const r = (D.roster||[]).find(x => x.player_id === p.id) || {id:'loc' + p.id, player_id:p.id, notes:[]};
+  return lessonBlock(r, `saveLesson('${id}',null,'${p.id}')`) + notesBlock(r.notes, `playerNote('${p.id}')`);
 }
 async function playerNote(pid) {
   const t = $('newNote').value.trim(), id = CURP(); if (!t) return;
