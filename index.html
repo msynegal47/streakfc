@@ -1089,6 +1089,13 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .rt-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .rt-row button{background:var(--bg3);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:12px;font-weight:900;padding:10px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
 .rt-row button span{font-size:10px;color:var(--sub);font-weight:700}
+
+.a2hs{display:flex;flex-direction:column;gap:10px;text-align:left;margin-top:6px}.a2hs div{font-size:14px;line-height:1.5;color:var(--text);display:block;position:relative;padding-left:34px;min-height:24px}.a2hs b{color:var(--text)}
+.a2hs div>b:first-child{position:absolute;left:0;top:0;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px}
+.a2hs .shr{display:inline-block;border:1px solid var(--border);border-radius:6px;padding:0 5px}
+.kid-code{font-size:40px;font-weight:900;letter-spacing:10px;color:var(--accent);margin:8px 0;text-align:center}
+.day-chips{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.day-chips button{padding:9px 0;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--sub);font-size:12px;font-weight:800;cursor:pointer}.day-chips button.sel{background:#3b82f6;border-color:#3b82f6;color:#fff}
+#obGame button.sel{background:#facc15;border-color:#facc15;color:#000}
 </style>
 </head>
 <body>
@@ -1249,8 +1256,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
   </div>
   <div class="auth-card">
     <div class="auth-logo">STREAKFC</div>
-    <div class="auth-eyebrow">Parent / Coach</div>
-    <div class="auth-title">Welcome back</div>
+    <div class="auth-eyebrow" id="authEyebrow">Parent / Coach</div>
+    <div class="auth-title" id="authTitle">Welcome back</div>
     <div class="auth-desc" id="authDesc">Enter your email. We'll send a sign-in code. Type it here - don't tap the link in the email.</div>
     <input class="auth-input" id="emailInput" type="email" inputmode="email" placeholder="your@email.com" autocomplete="email"
       onkeydown="if(event.key==='Enter')sendMagicLink()">
@@ -1285,6 +1292,23 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
       oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')" onkeydown="if(event.key==='Enter')pairDevice()">
     <button class="auth-btn" id="pairBtn" onclick="pairDevice()">CONNECT</button>
     <div class="auth-status" id="pairStatus"></div>
+  </div>
+</div>
+
+<!-- ─────────────── KID LINK: ADD TO HOME SCREEN ─────────────── -->
+<div class="screen" id="kid-install">
+  <div class="auth-card" style="gap:14px">
+    <img src="/logo.png" alt="" style="width:86px;margin:0 auto">
+    <div class="auth-eyebrow">You're invited to train</div>
+    <div class="auth-title">Put StreakFC on your home screen</div>
+    <div class="a2hs">
+      <div><b>1</b>Tap the <b>Share</b> button <span class="shr">⬆︎</span> at the bottom of Safari (top right on iPad).</div>
+      <div><b>2</b>Scroll down and tap <b>Add to Home Screen</b>. (Don't see it? Tap <b>More</b> first.)</div>
+      <div><b>3</b>Tap <b>Add</b>. Then open <b>StreakFC</b> from your home screen.</div>
+      <div><b>4</b>Type this code, pick your name, enter your PIN:</div>
+    </div>
+    <div class="kid-code" id="kidCode">------</div>
+    <button class="opt-btn" style="width:100%" onclick="kidUseBrowser()">Skip, just use it in the browser</button>
   </div>
 </div>
 
@@ -1946,6 +1970,10 @@ async function init() {
   }
   flushQueue();
   const hash = window.location.hash;
+  { const j = /join=([A-Za-z0-9]+)/.exec(hash), k = /kid=([A-Za-z0-9]+)/.exec(hash);
+    if (j || k) window.history.replaceState({}, '', window.location.pathname);
+    if (k) return openKidLink(k[1].toUpperCase());
+    if (j) { localStorage.setItem('sfc_join', j[1].toUpperCase()); if (!localStorage.getItem('sfc_session')) return openJoin(j[1].toUpperCase()); } }
   if (hash.includes('access_token')) {
     const params = new URLSearchParams(hash.slice(1));
     saveSession({access_token: params.get('access_token'), refresh_token: params.get('refresh_token'), expires_in: params.get('expires_in')});
@@ -1975,6 +2003,24 @@ async function init() {
   showScreen('landing');
 }
 
+// Founding-family invite: email is already known, go straight to the code step
+async function openJoin(code) {
+  showScreen('auth-screen');
+  document.getElementById('authEyebrow').textContent = "You're invited";
+  document.getElementById('authTitle').textContent = 'Set up your crew';
+  document.getElementById('authDesc').textContent = "Tap Send Code. We'll email you a 6-digit code, type it here and you're in. Takes about 5 minutes to add your kids.";
+  try { const i = await rpc('sfc_signup_invite_info', {p_code:code}); if (i && i.email) document.getElementById('emailInput').value = i.email; } catch(e) {}
+}
+// Kid link: Android / home-screen app pairs right away; iPhone Safari first gets home screen steps
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IS_STANDALONE = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+function openKidLink(code) {
+  localStorage.setItem('sfc_kidcode', code);
+  if (deviceToken()) return showPlayerPinEntry();
+  if (IS_IOS && !IS_STANDALONE) { document.getElementById('kidCode').textContent = code; return showScreen('kid-install'); }
+  kidUseBrowser();
+}
+function kidUseBrowser() { const c = localStorage.getItem('sfc_kidcode') || ''; showScreen('pair-screen'); document.getElementById('pairInput').value = c; if (c.length === 6) pairDevice(); }
 async function resumeKid() {
   const sp = localStorage.getItem('sfc_player');
   if (sp && deviceToken()) {
@@ -2009,6 +2055,7 @@ window.addEventListener('online', flushQueue);
 let family = null;
 async function loadParent() {
   localStorage.setItem('sfc_mode', 'parent');
+  { const j = localStorage.getItem('sfc_join'); if (j && currentUser) { rpc('sfc_signup_invite_claim', {p_code:j}).catch(() => {}); localStorage.removeItem('sfc_join'); } }
   try {
     const fams = await sb('sfc_families?select=*');
     family = fams && fams[0];
@@ -2052,6 +2099,21 @@ function showOnboard(step) {
       <button class="auth-btn" onclick="obSaveFamily()">CONTINUE</button>
       <div class="auth-status" id="obStatus"></div>
       <button class="opt-btn" style="width:100%;margin-top:12px" onclick="joinFamily()">👥 JOINING A FAMILY? ENTER CODE</button></div>`;
+  } else if (step === 'kids') {
+    stepEl.textContent = 'LAST STEP'; title.textContent = 'GET YOUR KIDS ON';
+    document.getElementById('onboardBack').style.display = 'block';
+    body.innerHTML = `<div class="ob-card" style="text-align:center">
+      <div style="font-size:15px;font-weight:800">Send this to your kids' phone or iPad</div>
+      <div class="kid-code" id="obKidCode">······</div>
+      <div style="font-size:12px;color:var(--sub);line-height:1.5">Works on up to 5 devices for 7 days. Each kid still needs their own PIN to get in.</div>
+      <button class="auth-btn" onclick="shareKidLink()">📲 SEND THE KID LINK</button>
+      <button class="opt-btn" style="width:100%" onclick="copyKidLink()">Copy link</button></div>
+      <div class="ob-card"><div style="font-size:14px;font-weight:800">What your kid does</div>
+      <div class="a2hs"><div><b>1</b>Open the link on their phone or iPad.</div><div><b>2</b>iPhone/iPad: tap <b>Share</b> ⬆︎, then <b>Add to Home Screen</b>, then <b>Add</b>.</div>
+      <div><b>3</b>Open <b>StreakFC</b> from the home screen, type the code, pick their name, enter their PIN.</div></div>
+      <div style="font-size:12px;color:var(--sub);line-height:1.5;margin-top:8px">Tip: add StreakFC to <b>your</b> home screen too. You'll sign in once more with your email there.</div></div>
+      <button class="auth-btn" style="background:var(--green)" onclick="loadParent()">DONE → GO TO DASHBOARD</button>`;
+    makeKidLink();
   } else if (step === 'passcode') {
     stepEl.textContent = 'STEP 2 OF 3'; title.textContent = 'PARENT PASSCODE';
     body.innerHTML = `<div class="ob-card">
@@ -2085,15 +2147,27 @@ function showOnboard(step) {
           <div><div class="field-lbl">4-DIGIT PIN</div><input class="auth-input" id="obPin1" type="password" inputmode="numeric" maxlength="4" placeholder="••••" style="text-align:center;letter-spacing:6px;margin-top:6px"></div>
           <div><div class="field-lbl">CONFIRM PIN</div><input class="auth-input" id="obPin2" type="password" inputmode="numeric" maxlength="4" placeholder="••••" style="text-align:center;letter-spacing:6px;margin-top:6px"></div>
         </div>
+        <div class="field-lbl">TEAM PRACTICE DAYS <span style="opacity:.6">(OPTIONAL)</span></div>
+        <div class="day-chips" id="obPrac">${['Su','M','Tu','W','Th','F','Sa'].map((d,i)=>`<button type="button" data-d="${i}" onclick="this.classList.toggle('sel')">${d}</button>`).join('')}</div>
+        <div class="field-lbl">USUAL GAME DAYS <span style="opacity:.6">(OPTIONAL)</span></div>
+        <div class="day-chips" id="obGame">${['Su','M','Tu','W','Th','F','Sa'].map((d,i)=>`<button type="button" data-d="${i}" onclick="this.classList.toggle('sel')">${d}</button>`).join('')}</div>
+        <div style="font-size:11px;color:var(--sub);line-height:1.4;margin-top:-4px">StreakFC goes lighter on practice days and suggests recovery after games. Kids can tweak it in My Week.</div>
         <div class="field-lbl">DAILY JUGGLE MINIMUM (TOTAL)</div>
         <input class="auth-input" id="obJug" type="text" inputmode="numeric" maxlength="3" value="${defaultJuggleMin('U10')}">
         <button class="auth-btn" id="obAddBtn" onclick="obAddPlayer()">ADD PLAYER</button>
         <div class="auth-status" id="obStatus"></div>
       </div>
-      <button class="auth-btn" id="obDoneBtn" style="background:var(--green);display:${players.length?'block':'none'}" onclick="loadParent()">DONE → GO TO DASHBOARD</button>`;
+      <button class="auth-btn" id="obDoneBtn" style="background:var(--green);display:${players.length?'block':'none'}" onclick="showOnboard('kids')">NEXT → GET YOUR KIDS ON</button>`;
     obRenderList();
   }
 }
+let kidLinkCode = null;
+async function makeKidLink() { const el = document.getElementById('obKidCode');
+  try { kidLinkCode = await rpc('sfc_create_kid_link'); if (el) el.textContent = kidLinkCode; } catch(e) { if (el) el.textContent = 'ERROR'; showToast('Could not make the link: ' + e.message, 'error'); } }
+function kidLinkUrl() { return `${location.origin}/#kid=${kidLinkCode}`; }
+function kidLinkText() { return `Your StreakFC is ready ⚽🔥 Open this on your phone or iPad: ${kidLinkUrl()}\nIf it asks, your code is ${kidLinkCode}. Pick your name and use your PIN.`; }
+async function shareKidLink() { if (!kidLinkCode) return; try { if (navigator.share) return await navigator.share({title:'StreakFC', text:kidLinkText()}); } catch(e) { return; } copyKidLink(); }
+function copyKidLink() { if (!kidLinkCode) return; navigator.clipboard.writeText(kidLinkText()).then(() => showToast('Copied. Paste it in a text to your kid.', 'success')).catch(() => prompt('Copy this:', kidLinkText())); }
 function obRenderList() {
   const el = document.getElementById('obList'); if (!el) return;
   el.innerHTML = players.map(p => `<div class="ob-player"><div class="pin-set-avatar" style="background:${p.color}">${p.name[0]}</div>
@@ -2125,7 +2199,8 @@ async function obAddPlayer() {
   const btn = document.getElementById('obAddBtn'); btn.disabled = true;
   try {
     const fams = family ? [family] : await sb('sfc_families?select=id'); family = family || fams[0];
-    const rows = await sb('sfc_players', {method:'POST', body:JSON.stringify({family_id:family.id, nickname:nick, age_group:age, color:obColor, juggle_min:jug, skill_level:document.getElementById('obLevel').value})});
+    const days = id => [...document.querySelectorAll(`#${id} button.sel`)].map(b => +b.dataset.d);
+    const rows = await sb('sfc_players', {method:'POST', body:JSON.stringify({family_id:family.id, nickname:nick, age_group:age, color:obColor, juggle_min:jug, skill_level:document.getElementById('obLevel').value, schedule:{practice:days('obPrac'), game:days('obGame'), dates:{}}})});
     await rpc('sfc_set_pin', {p_player: rows[0].id, p_pin: p1});
     players.push(hydratePlayer({player:rows[0], history:{}}));
     showOnboard('players');
@@ -2255,7 +2330,7 @@ function renderParentPortal() {
     <button class="kid-action-btn" style="flex:1;padding:14px" onclick="showPairCode()">📱 ADD KID DEVICE</button>`;
   const actions2 = document.createElement('div');
   actions2.style.cssText = 'display:flex;gap:10px';
-  actions2.innerHTML = `<button class="kid-action-btn" style="flex:1;padding:14px" onclick="openPinModal()">🔐 PINs + JUGGLE MINIMUMS</button><button class="kid-action-btn" style="flex:1;padding:14px" onclick="openAddParent()">👥 ADD A PARENT</button>`;
+  actions2.innerHTML = `<button class="kid-action-btn" style="flex:1;padding:14px" onclick="openPinModal()">🔐 PINs + JUGGLE MINIMUMS</button><button class="kid-action-btn" style="flex:1;padding:14px" onclick="openAddParent()">👥 ADD A PARENT</button><button class="kid-action-btn" style="flex:1;padding:14px" onclick="showOnboard('kids')">📲 KID LINK</button>`;
   body.appendChild(actions);
   body.appendChild(actions2);
   if (localStorage.getItem('sfc_beta') === '1') body.appendChild(testPanel());

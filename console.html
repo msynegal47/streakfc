@@ -616,8 +616,29 @@ function kidsTable() {
 }
 function vKids() { return `<div class="hdr"><div><h2>Kids</h2><div class="s">Nicknames and age groups only. Click a kid for their last 60 days.</div></div></div>${kidsTable()}`; }
 
+// Founding families: invite links with the parent's email baked in
+let INV = null;
+async function loadInvites() { try { INV = await rpc('sfc_admin_signup_invites') || []; } catch(e) { INV = []; } if (view === 'families') render(); }
+async function newInvite() {
+  const email = ($('invEmail').value || '').trim(), label = ($('invLabel').value || '').trim();
+  try { const code = await rpc('sfc_admin_signup_invite', {p_email:email, p_label:label}); const link = `${location.origin}/#join=${code}`;
+    try { await navigator.clipboard.writeText(inviteText(label, link)); toast('Invite made. Text copied.'); } catch(e) { toast('Invite made'); }
+    INV = null; loadInvites(); }
+  catch(e) { toast(/bad_email/.test(e.message) ? 'Check the email' : 'Could not make invite: ' + e.message); }
+}
+function inviteText(label, link) { return `Hey${label ? ' ' + label.split(' ')[0] : ''}! Here's your StreakFC invite ⚽🔥 Tap it on your phone, it already knows your email. Takes about 5 min to add the kids: ${link}`; }
+function copyInvite(code, label) { navigator.clipboard.writeText(inviteText(label, `${location.origin}/#join=${code}`)).then(() => toast('Invite text copied')); }
+function invitesCard() {
+  if (INV === null) { loadInvites(); return '<div class="card"><div class="card-h">FOUNDING FAMILIES</div><div class="muted small">Loading…</div></div>'; }
+  return `<div class="card"><div class="card-h">FOUNDING FAMILIES · INVITE LINKS</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"><input id="invEmail" type="email" placeholder="parent@email.com" style="flex:2;min-width:200px"><input id="invLabel" placeholder="Name (e.g. Jordan, Rivera family)" style="flex:2;min-width:160px"><button class="btn" onclick="newInvite()">+ CREATE INVITE</button></div>
+    <div class="muted small" style="margin-bottom:8px">The link opens StreakFC with their email filled in. They confirm a 6-digit code, add kids, set PINs, then get a kid link. Copied text is ready to paste in a message.</div>
+    ${INV.length ? `<table><tr><th>FAMILY</th><th>EMAIL</th><th>STATUS</th><th class="num">KIDS</th><th class="num">ACTIVE 7D</th><th></th></tr>${INV.map(i => `<tr><td><b>${esc(i.family || i.label || '')}</b></td><td class="muted">${esc(i.email)}</td>
+      <td>${i.used_at ? `<span class="chip c-green">JOINED ${esc(i.used_at.slice(5,10).replace('-','/'))}</span>` : '<span class="chip c-amber">INVITED</span>'}</td><td class="num">${i.kids ?? 0}</td><td class="num">${i.active ?? 0}</td>
+      <td>${i.used_at ? '' : `<a href="#" onclick="copyInvite('${i.code}','${esc(i.label||'').replace(/'/g,'')}');return false">Copy text</a>`}</td></tr>`).join('')}</table>` : '<div class="muted small">No invites yet.</div>'}</div>`;
+}
 function vFamilies() {
-  return `<div class="hdr"><div><h2>Families</h2><div class="s">Feature flags turn beta features on per family. Nobody else sees them.</div></div></div>
+  return `<div class="hdr"><div><h2>Families</h2><div class="s">Feature flags turn beta features on per family. Nobody else sees them.</div></div></div>${invitesCard()}
   <div class="card"><table><tr><th>PARENT</th><th>EMAIL</th><th>JOINED</th><th>KIDS</th><th class="num">SESSIONS 7D</th><th>PROGRAMS (BETA)</th></tr>
   ${D.families.map(f => { const kids = D.players.filter(p => p.family_id === f.id), lo = daysAgo(6);
     return `<tr><td><b>${esc(f.parent_name||'(no name)')}</b></td><td class="muted">${esc(f.email||'')}</td><td class="muted">${esc((f.created_at||'').slice(0,10))}</td>
