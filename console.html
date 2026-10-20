@@ -38,6 +38,9 @@ body.cobrand .cal-d.epa{border-left-color:#0caab5}body.cobrand .chip.c-teal{back
 body.cobrand .cob{display:flex}.cob img{width:34px;height:auto}.cob b{display:block;font-size:12px;letter-spacing:.5px;line-height:1.15}.cob span{font-size:9px;letter-spacing:1.5px;color:#3fd3dc;font-weight:800}
 .cob-login{display:none;width:220px;margin:0 auto 18px}body.cobrand .cob-login{display:block}
 body.cobrand .side .brand{font-size:15px;opacity:.75}
+.org-row{display:flex;align-items:center;gap:10px}.org-row img,.org-row .oi{width:24px;height:24px;border-radius:6px;flex:none;object-fit:contain}.org-row .oi{background:var(--bg3,#1a2234);display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:12px}
+.org-row .on-n{flex:1;display:flex;flex-direction:column;line-height:1.1}.org-row small{font-size:9px;letter-spacing:1.5px;color:var(--sub);font-weight:800;text-transform:uppercase}.org-row.open{background:#ffffff0a}
+.org-sub{margin:2px 0 8px 22px;padding-left:8px;border-left:2px solid}.org-sub .nav{padding-top:7px;padding-bottom:7px;font-size:13px}
 .cob select{margin-top:6px;width:100%;font-size:11px;padding:4px 6px}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-bottom:16px}
 .pcard{background:var(--bg2);border:1px solid var(--border);border-top:3px solid var(--accent);border-radius:16px;padding:16px;cursor:pointer;transition:transform .12s}.pcard:hover{transform:translateY(-2px);border-color:var(--accent)}
@@ -141,6 +144,7 @@ textarea{font:inherit;background:var(--bg3);color:var(--text);border:1px solid v
 .kt span{color:var(--sub);font-size:11px}.kt.hot{border-left-color:var(--green)}.kt.warm{border-left-color:var(--amber)}.kt.cold{border-left-color:var(--red)}.kt.invited{opacity:.5;border-left-style:dashed}
 .spark{display:flex;align-items:flex-end;gap:2px;height:26px}.spark i{flex:1;background:#1ab3bd;border-radius:2px}.spark i.z{background:var(--border)}
 .meter{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;min-width:120px}.meter div{height:6px;background:#1ab3bd}
+@media (max-width:700px){.hdr{flex-direction:column;align-items:stretch}.hdr>div:last-child{flex-wrap:wrap}.card{overflow-x:auto}.card-h{flex-wrap:wrap;gap:4px}.card-h .legend{letter-spacing:.5px}#drawer{padding:16px}table.tight th:nth-child(4),table.tight td:nth-child(4),table.tight th:nth-child(5),table.tight td:nth-child(5),table.tight th:nth-child(6),table.tight td:nth-child(6){display:none}#orgHead .cob{width:100%}}
 @media (max-width:900px){.side{position:static;width:auto;flex-direction:row;flex-wrap:wrap;padding:12px}.side-foot,.sep,.brand-sub{display:none}.main{margin-left:0;padding:16px}.grid2{grid-template-columns:1fr}}
 </style></head>
 <body>
@@ -163,13 +167,13 @@ textarea{font:inherit;background:var(--bg3);color:var(--text);border:1px solid v
     <div class="nav adm" data-v="families">🏠 Families <span class="n" id="nFams"></span></div>
     <div class="nav adm" data-v="activity">⚡ Activity</div>
     <div id="orgNav"></div>
-    <div class="sep adm">DEMOS <span class="chip c-teal" style="margin-left:4px">SANDBOX</span></div>
+    <div class="sep adm">③ DEMOS · FAKE DATA</div>
     <div class="nav adm" data-v="club">🏆 Club</div>
     <div class="nav adm" data-v="teams">👥 Teams</div>
     <div class="nav adm" data-v="coaches">🧢 Coaches</div>
     <div class="nav adm" data-v="seats">🎟 Seats + billing</div>
     <div class="nav adm" data-v="trainer">🎯 1:1 Trainer</div>
-    <div class="side-foot"><div id="coachFoot" style="margin-bottom:10px;font-size:12px"></div><div class="mode"><span>DATA</span><button class="mode-btn" data-m="live" onclick="setMode('live')">LIVE</button><button class="mode-btn" data-m="sandbox" onclick="setMode('sandbox')">SANDBOX</button></div><div id="who"></div><div style="margin-top:6px"><a href="#" onclick="refresh();return false">Refresh</a> · <a href="#" onclick="signOut();return false">Sign out</a></div><div style="margin-top:6px"><a href="/">Open app</a></div></div>
+    <div class="side-foot"><div id="coachFoot" style="margin-bottom:10px;font-size:12px"></div><div class="legend" style="margin-bottom:4px">ACADEMY SCREENS SHOW</div><div class="mode"><button class="mode-btn" data-m="live" onclick="setMode('live')">REAL KIDS</button><button class="mode-btn" data-m="sandbox" onclick="setMode('sandbox')">SAMPLE</button></div><div id="who"></div><div style="margin-top:6px"><a href="#" onclick="refresh();return false">Refresh</a> · <a href="#" onclick="signOut();return false">Sign out</a></div><div style="margin-top:6px"><a href="/">Open app</a></div></div>
   </aside>
   <main class="main" id="view"></main>
 </div>
@@ -282,7 +286,7 @@ async function refresh(silent) {
 document.querySelectorAll('.nav').forEach(n => n.onclick = () => go(n.dataset.v));
 function paintBrand() { const b = (ORG && ORG.brand) || {}, on = !!localStorage.getItem('sfc_invite') && $('app').style.display !== 'block' || (!!b.accent && (coachView() || isOrgView())); document.body.classList.toggle('cobrand', on); if (on && b.accent) document.body.style.setProperty('--accent', b.accent); else document.body.style.removeProperty('--accent'); }
 function isOrgView() { return ['org','staff','epa'].includes(view) || String(view).startsWith('prog:'); }
-function go(v) { if (v !== 'coaches' && v !== 'teams' && v !== 'club') coachLens = null; view = v; location.hash = v; document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.v === v)); paintBrand(); render(); }
+function go(v) { if (v !== 'coaches' && v !== 'teams' && v !== 'club') coachLens = null; view = v; location.hash = v; if (ORG && !coachView()) paintOrg(); document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.v === v)); paintBrand(); render(); }
 function daysAhead(n) { const d = new Date(); d.setDate(d.getDate()+n); return localDate(d); }
 async function loadCoachExtras() { let media = {}, idps = {}, days = {}; try { days = await rpc('sfc_epa_days_list', {p_program:'epa', p_from:daysAgo(45), p_to:daysAhead(90)}) || {}; } catch(e) {} try { media = await rpc('sfc_media_list', {p_program:'epa'}) || {}; } catch(e) {} try { idps = await rpc('sfc_idps', {p_program:'epa'}) || {}; } catch(e) {} return {media, idps, days}; }
 function mixedD() {
@@ -312,6 +316,18 @@ function paintOrg() {
   const L = (ROLES && ROLES.orgs) || [];
   if (!ORG) { $('orgHead').innerHTML = ''; $('orgNav').innerHTML = hasProg('epa') ? `<div class="sep">PROGRAMS</div><div class="nav" data-v="epa" onclick="go('epa')">🏟 EPA</div>` : ''; return; }
   const b = ORG.brand || {};
+  if (!coachView()) {   // Admin: academies as a clean list, the open one expands to its programs
+    $('orgHead').innerHTML = '';
+    const open = isOrgView(), KI = {academy:'Academy', club:'Club', trainer:'Trainer'};
+    $('orgNav').innerHTML = `<div class="sep adm">② ACADEMIES + TRAINERS</div>` + L.map(o => { const on = o.id === ORG.id && open, ob = o.brand || {};
+      return `<div class="nav org-row ${on ? 'open' : ''}" data-v="${on ? 'org' : 'orgpick:' + o.id}" onclick="switchOrg('${o.id}')">${ob.logo ? `<img src="${esc(ob.logo)}" alt="">` : `<span class="oi">${esc((o.short||o.name)[0])}</span>`}<span class="on-n">${esc(o.short || o.name)}<small>${esc(KI[o.kind]||'')}</small></span><span class="n">${on ? '▾' : '▸'}</span></div>`
+        + (on ? `<div class="org-sub" style="border-color:${esc(ob.accent || 'var(--border)')}">
+          <div class="nav" data-v="org" onclick="go('org')">🏠 Home</div>
+          ${(o.programs||[]).map(p => `<div class="nav" data-v="${p.id === 'epa' ? 'epa' : 'prog:' + p.id}" onclick="go('${p.id === 'epa' ? 'epa' : 'prog:' + p.id}')">${(KIND[p.kind]||['•'])[0]} ${esc(p.name.replace(/^MSA East /,''))}</div>`).join('')}
+          <div class="nav" data-v="staff" onclick="go('staff')">🧢 Staff</div></div>` : ''); }).join('');
+    document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.v === view));
+    return;
+  }
   $('orgHead').innerHTML = `<div class="cob" style="display:flex">${b.logo ? `<img src="${esc(b.logo)}" alt="">` : `<div class="av">${esc((ORG.short||ORG.name)[0])}</div>`}<div style="min-width:0;flex:1"><b>${esc(ORG.name.toUpperCase())}</b><span>${esc(ROLE_L[myOrgRole()]||'')} · ${esc(ORG_KIND[ORG.kind]||'')}</span>
     ${L.length > 1 ? `<select onchange="switchOrg(this.value)">${L.map(o => `<option value="${o.id}" ${o.id===ORG.id?'selected':''}>${esc(o.name)}</option>`).join('')}</select>` : ''}</div></div>`;
   $('orgNav').innerHTML = `<div class="sep">${coachView() ? '' : '② '}${esc((ORG_KIND[ORG.kind]||'Academy').toUpperCase())} · ${esc((ORG.short||ORG.name).toUpperCase())}</div>
@@ -1260,12 +1276,13 @@ function openKid(id) {
   const days = [...Array(14)].map((_,i) => daysAgo(13-i)), per = days.map(d => p.sess.filter(s => s.date === d).reduce((a,s) => a + (s.touches||0), 0)), mx = Math.max(1, ...per);
   dr.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div class="kid" style="font-size:20px"><span class="dot" style="width:36px;height:36px;background:${esc(p.color||'#4fc3f7')}">${esc(p.nickname[0])}</span>${esc(p.nickname)}</div><button class="btn ghost sm" onclick="$('drawer').classList.remove('open')">Close</button></div>
     <div class="muted small" style="margin:6px 0 14px">${esc(p.age_group)} · ${esc(p.skill_level||'')} · ${coachView() ? '' : esc(p.fam.parent_name||'') + ' family'}</div>
+    ${progNotesCard(p)}
     <div class="kpis"><div class="kpi"><b>${liveStreak(p)}</b><span>STREAK</span></div><div class="kpi"><b>${p.best_streak||0}</b><span>BEST</span></div><div class="kpi"><b>${fmtK(p.total_touches)}</b><span>LIFETIME</span></div><div class="kpi"><b>${fmt(p.xp)}</b><span>XP</span></div></div>
     <div class="card"><div class="card-h">TOUCHES · LAST 14 DAYS</div><div class="bars" style="height:90px">${per.map((n,i) => `<div class="bar ${n?'':'zero'}" style="height:${n/mx*100}%" title="${days[i]}: ${n}"></div>`).join('')}</div></div>
     ${localOnly(p) ? '<div class="sandbox-banner">🧪 Demo player. Edits stay on this screen.</div>' : ''}
     <div class="card"><div class="card-h">PLAYER PROFILE</div>
       <div class="form-row"><span class="small muted" style="width:90px">Preferred</span>${posSel(p,'pos1')}<span class="small muted">Secondary</span>${posSel(p,'pos2')}</div></div>
-    ${idpCard(p)}${progNotesCard(p)}
+    ${idpCard(p)}
     <div class="card"><div class="card-h">GOAL WORKSHEET <span class="legend">kid fills it in the app</span></div>
       ${(p.goals||{}).sheet ? (() => { const g = p.goals.sheet; return `<div style="font-size:16px;font-weight:900;margin-bottom:8px">🎯 ${esc(g.dream)}</div>
         ${[['season','This season'],['month','This month'],['week','This week'],['obstacle','Could get in the way'],['overcome','How I will overcome it'],['takes','What I think it takes']].filter(([k]) => g[k]).map(([k,l]) => `<div class="feed-row"><span class="muted small" style="width:150px;flex:none">${l}</span><span>${esc(g[k])}</span></div>`).join('')}
