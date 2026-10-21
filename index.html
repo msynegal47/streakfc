@@ -789,6 +789,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .lesson-kid{margin-top:8px;border:1px solid;border-radius:12px;padding:10px 12px;color:var(--text)}.lk-h{font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:800}.lk-row{display:flex;gap:10px;align-items:baseline;margin-top:4px;font-size:14px}.lk-row span{font-weight:700}
 .lk-t{font-size:13px;margin-top:4px;line-height:1.4}.lk-hw{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:10px;font-size:13px;line-height:1.4}.lk-hw .pt-btn{white-space:nowrap}
 .lv-bars{display:flex;gap:4px;align-items:flex-end;height:28px;margin-top:8px}.lv-bars i{width:12px;background:#a78bfa;border-radius:3px 3px 1px 1px}
+.demo-link{margin-top:18px;background:none;border:1px dashed #ffffff33;color:var(--sub);font:800 13px/1 inherit;padding:12px 16px;border-radius:12px;cursor:pointer;width:100%;max-width:420px}
+body.demo-on .top-bar::before{content:"👀 DEMO PLAYER · NOTHING SAVES · TAP EXIT TO LEAVE";position:absolute;top:env(safe-area-inset-top,0px);left:0;right:0;background:#f97316;color:#1a0b00;font:900 10px/1 sans-serif;letter-spacing:1.5px;text-align:center;padding:5px 0}
+body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top,20px) + 30px)}
 .coach-org{display:flex;align-items:center;gap:10px;margin-top:12px}.coach-org img{width:30px}.coach-org .ini{width:30px;height:30px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-weight:900}
 .coach-org b{font-size:13px;display:block}.coach-org span{font-size:10px;letter-spacing:1px;color:var(--sub);font-weight:800}
 .coach-prog{margin:6px 0 0 40px;font-size:12px;color:var(--sub)}.coach-prog details summary{cursor:pointer;color:var(--accent);font-weight:800;margin-top:4px}
@@ -1211,6 +1214,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
     <div class="path-card-title">PARENT / COACH</div>
     <div class="path-card-desc">New here? Start here. Create your family, add players, set PINs, and track progress.</div>
   </div>
+  <button class="demo-link" onclick="startDemo()">👀 Just looking? Try the demo player</button>
 </div>
 
 <!-- ─────────────── PLAYER PIN ENTRY (direct from landing) ─────────────── -->
@@ -1629,7 +1633,47 @@ let blocksCollapsed = {bm:false, mv:false};
 let logModalState = {player:null, bmDone:new Set(), mvDone:new Set(), diff:'consistent', juggle:0};
 
 // ─── SUPABASE HELPER ──────────────────────────────────
+// ─── DEMO PLAYER: show the app to friends. Fake kid, nothing touches the server, nothing saves. ───
+let DEMO = false;
+const DEMO_ID = 'demo-alex';
+function demoPlayerData() {
+  const t = new Date(), d = n => { const x = new Date(t); x.setDate(x.getDate() - n); return localDate(x); };
+  const history = {}, xp_days = {};
+  for (let i = 1; i <= 26; i++) { if (i % 7 === 0) continue; history[d(i)] = 700 + ((i * 137) % 900); xp_days[d(i)] = 240 + ((i * 53) % 260); }
+  const lessons = [[20, 2, 3, 'First touch out of feet', '100 toe taps a day'], [13, 2, 4, 'Receiving on the half turn', '150 wall passes, 2 touch'], [6, 3, 4, 'Scanning before the ball', '200 wall passes, check shoulder every rep']]
+    .map(([n, diff, rate, work, hw]) => ({program:'demo-trainer', program_name:'Private 1:1', org:'demo', org_name:'Your Trainer', short:'Trainer', brand:{accent:'#a78bfa'}, date:d(n), by:'Coach', diff, rate, work, hw}));
+  return {lessons, data:{player:{id:DEMO_ID, nickname:'Alex', color:'#22c55e', age_group:'U10', skill_level:'developing', xp:4200, streak:12, best_streak:14, total_touches:26400, sessions:31,
+    juggle_pb:38, juggle_min:100, created_at:d(40), last_log:d(1), unlocks:['avatar','first_touch'], avatar:{primary:'#22c55e', trim:'#0b0f17', number:'10', pattern:'stripes', kit:'custom'},
+    reward:{name:'Pizza night', kind:'touches', target:7500, start:d(t.getDay() === 0 ? 6 : t.getDay() - 1), end:d(-3)},
+    schedule:{practice:[2,4], game:[6], dates:{}}, programs:[{id:'demo-trainer', name:'Trainer · Private 1:1', share:'all'}]}, history, xp_days}};
+}
+function startDemo() {
+  try { sessionStorage.setItem('sfc_demo_back', JSON.stringify({player:localStorage.getItem('sfc_player'), mode:localStorage.getItem('sfc_mode')})); } catch(e) {}
+  Object.keys(localStorage).filter(k => k.includes(DEMO_ID)).forEach(k => localStorage.removeItem(k));
+  DEMO = true; try { sessionStorage.setItem('sfc_demo', '1'); } catch(e) {}
+  const {data, lessons} = demoPlayerData();
+  currentPlayer = hydratePlayer(data);
+  currentPlayer.lessons = lessons;
+  currentPlayer.orgs = {'demo-trainer':{program:'Private 1:1', kind:'private', org:'demo', org_name:'Your Trainer', short:'Trainer', org_kind:'trainer', brand:{accent:'#a78bfa'}}};
+  document.body.classList.add('demo-on');
+  launchApp();
+  showToast('Demo player: tap around, nothing saves', 'success');
+}
+function exitDemo() {
+  DEMO = false; document.body.classList.remove('demo-on');
+  let back = {}; try { back = JSON.parse(sessionStorage.getItem('sfc_demo_back') || '{}'); sessionStorage.removeItem('sfc_demo'); sessionStorage.removeItem('sfc_demo_back'); } catch(e) {}
+  if (back.player) localStorage.setItem('sfc_player', back.player); else localStorage.removeItem('sfc_player');
+  if (back.mode) localStorage.setItem('sfc_mode', back.mode); else localStorage.removeItem('sfc_mode');
+  Object.keys(localStorage).filter(k => k.includes(DEMO_ID)).forEach(k => localStorage.removeItem(k));
+  location.reload();
+}
+// A reload mid-demo: put the real kid back, start clean
+try { if (sessionStorage.getItem('sfc_demo')) { const back = JSON.parse(sessionStorage.getItem('sfc_demo_back') || '{}');
+  if (back.player) localStorage.setItem('sfc_player', back.player); else localStorage.removeItem('sfc_player');
+  if (back.mode) localStorage.setItem('sfc_mode', back.mode); else localStorage.removeItem('sfc_mode');
+  sessionStorage.removeItem('sfc_demo'); sessionStorage.removeItem('sfc_demo_back'); } } catch(e) {}
 async function sb(path, opts={}) {
+  if (DEMO) throw new Error('demo');
   const headers = {
     'apikey': SB_KEY,
     'Content-Type': 'application/json',
@@ -1650,6 +1694,7 @@ async function sb(path, opts={}) {
 
 // RPC call (database function). Uses parent login if present, otherwise public key + device token.
 async function rpc(fn, args={}) {
+  if (DEMO) throw new Error('demo');
   const res = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, {
     method:'POST',
     headers:{'apikey':SB_KEY,'Content-Type':'application/json','Authorization':`Bearer ${currentUser?.access_token || SB_KEY}`},
@@ -1659,7 +1704,7 @@ async function rpc(fn, args={}) {
   if (!res.ok) { let m = 'error_'+res.status; try { m = JSON.parse(text).message || m; } catch(e) {} throw new Error(m); }
   return text ? JSON.parse(text) : null;
 }
-function deviceToken() { return localStorage.getItem('sfc_device'); }
+function deviceToken() { return DEMO ? null : localStorage.getItem('sfc_device'); }
 
 // Server player row -> local caches the rest of the app reads
 function hydratePlayer(data) {
@@ -2394,8 +2439,10 @@ function renderParentPortal() {
   const actions2 = document.createElement('div');
   actions2.style.cssText = 'display:flex;gap:10px';
   actions2.innerHTML = `<button class="kid-action-btn" style="flex:1;padding:14px" onclick="openPinModal()">🔐 PINs + JUGGLE MINIMUMS</button><button class="kid-action-btn" style="flex:1;padding:14px" onclick="openAddParent()">👥 ADD A PARENT</button><button class="kid-action-btn" style="flex:1;padding:14px" onclick="showOnboard('kids')">📲 KID LINK</button>`;
+  const actions3 = document.createElement('div'); actions3.style.cssText = 'display:flex;gap:10px';
+  actions3.innerHTML = `<button class="kid-action-btn" style="flex:1;padding:14px" onclick="startDemo()">👀 SHOW SOMEONE THE APP (DEMO PLAYER)</button>`;
   body.appendChild(actions);
-  body.appendChild(actions2);
+  body.appendChild(actions2); body.appendChild(actions3);
   if (localStorage.getItem('sfc_beta') === '1') body.appendChild(testPanel());
 }
 
@@ -2459,6 +2506,7 @@ document.addEventListener('keydown', e => {
 });
 
 function exitToPlayerSelect() {
+  if (DEMO) return exitDemo();
   if (currentUser) { rpc('sfc_has_passcode').then(h => h ? showPasscode() : loadParent()).catch(() => showPasscode()); return; }   // parent signed in on this device: passcode (if set) to get back to dashboard
   localStorage.removeItem('sfc_player');
   currentPlayer = null;
