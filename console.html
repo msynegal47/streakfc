@@ -149,7 +149,7 @@ textarea{font:inherit;background:var(--bg3);color:var(--text);border:1px solid v
 </style></head>
 <body>
 <div id="login">
-  <img class="cob-login" src="/brand/msa-logo-light.png" alt="">
+  <img class="cob-login" alt="">
   <h1>STREAK<span style="color:var(--accent)">FC</span> CONSOLE</h1>
   <p>Admin and coach access. Same email you use for StreakFC.</p>
   <input id="email" type="email" placeholder="you@email.com" autocomplete="email">
@@ -238,7 +238,7 @@ async function verify() {
 }
 function signOut() { localStorage.removeItem('sfc_session'); location.reload(); }
 function showLogin(msg) {
-  if (localStorage.getItem('sfc_invite')) { $('login').querySelector('p').textContent = "You've been invited to join a coaching staff on StreakFC. Sign in with your email to accept."; } $('app').style.display = 'none'; $('login').style.display = 'block'; paintBrand(); if (msg) $('loginStatus').textContent = msg; }
+  if (localStorage.getItem('sfc_invite')) { $('login').querySelector('p').textContent = "You've been invited to join a coaching staff on StreakFC. Sign in with your email to accept.";  if (!INVB) loadInviteBrand(); } $('app').style.display = 'none'; $('login').style.display = 'block'; paintBrand(); if (msg) $('loginStatus').textContent = msg; }
 
 async function boot() {
   try { session = JSON.parse(localStorage.getItem('sfc_session')||'null'); } catch(e) {}
@@ -284,7 +284,13 @@ async function refresh(silent) {
   if (!silent) { render(); toast('Refreshed'); }
 }
 document.querySelectorAll('.nav').forEach(n => n.onclick = () => go(n.dataset.v));
-function paintBrand() { const b = (ORG && ORG.brand) || {}, on = !!localStorage.getItem('sfc_invite') && $('app').style.display !== 'block' || (!!b.accent && (coachView() || isOrgView())); document.body.classList.toggle('cobrand', on); if (on && b.accent) document.body.style.setProperty('--accent', b.accent); else document.body.style.removeProperty('--accent'); }
+let INVB = null;
+async function loadInviteBrand() { try { const b = await rpc('sfc_invite_brand', {p_code: localStorage.getItem('sfc_invite')}); if (!b || !b.brand) return; INVB = b; const br = b.brand, img = document.querySelector('.cob-login');
+  img.src = br.lockup || br.logo; img.style.width = br.lockup ? '220px' : '110px';
+  $('login').querySelector('p').textContent = `You've been invited to join the ${b.name} coaching staff on StreakFC. Sign in with your email to accept.`; paintBrand(); } catch(e) {} }
+function paintBrand() { const loginB = INVB && $('app').style.display !== 'block', b = loginB ? INVB.brand : ((ORG && ORG.brand) || {}), on = !!loginB || (!!b.accent && (coachView() || isOrgView()));
+  const st = document.body.style, deep = loginB && b.deep; ['--bg','--bg2','--bg3','--border'].forEach(k => st.removeProperty(k));
+  if (deep) { st.setProperty('--bg', deep); st.setProperty('--bg2', `color-mix(in srgb, ${deep}, #fff 5%)`); st.setProperty('--bg3', `color-mix(in srgb, ${deep}, #fff 9%)`); st.setProperty('--border', `color-mix(in srgb, ${b.accent}, transparent 65%)`); } document.body.classList.toggle('cobrand', on); if (on && b.accent) document.body.style.setProperty('--accent', b.accent); else document.body.style.removeProperty('--accent'); }
 function isOrgView() { return ['org','staff','epa'].includes(view) || String(view).startsWith('prog:'); }
 function go(v) { if (v !== 'coaches' && v !== 'teams' && v !== 'club') coachLens = null; view = v; location.hash = v; if (ORG && !coachView()) paintOrg(); document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.v === v)); paintBrand(); render(); }
 function daysAhead(n) { const d = new Date(); d.setDate(d.getDate()+n); return localDate(d); }
