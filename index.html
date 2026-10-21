@@ -2215,7 +2215,7 @@ function showOnboard(step) {
       <div class="ob-card">
         <div style="font-size:15px;font-weight:800">Add a player</div>
         <div class="field-lbl">FIRST NAME OR NICKNAME</div>
-        <input class="auth-input" id="obNick" maxlength="20" placeholder="First name or nickname" autocomplete="off">
+        <input class="auth-input" id="obNick" name="sfc-player-${Date.now()}" maxlength="20" placeholder="First name or nickname" autocomplete="off" autocorrect="off" data-lpignore="true" data-1p-ignore>
         <div class="field-lbl">AGE GROUP (SCHOOL-YEAR, AUG 1 CUTOFF)</div>
         <select class="ob-select" id="obAge" onchange="document.getElementById('obJug').value=defaultJuggleMin(this.value)">
           ${AGE_GROUPS.map(g=>`<option ${g==='U10'?'selected':''}>${g}</option>`).join('')}</select>
@@ -2228,8 +2228,8 @@ function showOnboard(step) {
         <div class="field-lbl">COLOR</div>
         <div class="swatches" id="obSw">${KIT_COLORS.map(c=>`<div class="swatch ${c===obColor?'sel':''}" style="background:${c}" onclick="obColor='${c}';document.querySelectorAll('#obSw .swatch').forEach(x=>x.classList.toggle('sel',x.style.background===this.style.background))"></div>`).join('')}</div>
         <div class="ob-row">
-          <div><div class="field-lbl">4-DIGIT PIN</div><input class="auth-input" id="obPin1" type="password" inputmode="numeric" maxlength="4" placeholder="••••" style="text-align:center;letter-spacing:6px;margin-top:6px"></div>
-          <div><div class="field-lbl">CONFIRM PIN</div><input class="auth-input" id="obPin2" type="password" inputmode="numeric" maxlength="4" placeholder="••••" style="text-align:center;letter-spacing:6px;margin-top:6px"></div>
+          <div><div class="field-lbl">4-DIGIT PIN</div><input class="auth-input" id="obPin1" type="password" inputmode="numeric" autocomplete="new-password" name="sfc-pin1-${Date.now()}" data-lpignore="true" data-1p-ignore maxlength="4" placeholder="••••" style="text-align:center;letter-spacing:6px;margin-top:6px"></div>
+          <div><div class="field-lbl">CONFIRM PIN</div><input class="auth-input" id="obPin2" type="password" inputmode="numeric" autocomplete="new-password" name="sfc-pin2-${Date.now()}" data-lpignore="true" data-1p-ignore maxlength="4" placeholder="••••" style="text-align:center;letter-spacing:6px;margin-top:6px"></div>
         </div>
         <div class="field-lbl">TEAM PRACTICE DAYS <span style="opacity:.6">(OPTIONAL)</span></div>
         <div class="day-chips" id="obPrac">${['Su','M','Tu','W','Th','F','Sa'].map((d,i)=>`<button type="button" data-d="${i}" onclick="this.classList.toggle('sel')">${d}</button>`).join('')}</div>
@@ -2311,7 +2311,8 @@ async function obAddPlayer() {
     await rpc('sfc_set_pin', {p_player: rows[0].id, p_pin: p1});
     players.push(hydratePlayer({player:rows[0], history:{}}));
     showOnboard('players');
-    const st = document.getElementById('obStatus'); st.style.color = 'var(--green)'; st.textContent = `✓ ${nick} added. Add another or tap Done.`;
+    const clr = () => ['obNick','obPin1','obPin2'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; }); clr(); setTimeout(clr, 60); setTimeout(clr, 500);
+    const st = document.getElementById('obStatus'); st.style.color = 'var(--green)'; st.textContent = `✓ ${nick} added. Add another below, or tap Next.`;
   } catch(e) { obErr('Could not add: ' + e.message); btn.disabled = false; }
 }
 
