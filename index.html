@@ -1647,7 +1647,9 @@ function demoPlayerData() {
     reward:{name:'Pizza night', kind:'touches', target:7500, start:d(t.getDay() === 0 ? 6 : t.getDay() - 1), end:d(-3)},
     schedule:{practice:[2,4], game:[6], dates:{}}, programs:[{id:'demo-trainer', name:'Trainer · Private 1:1', share:'all'}]}, history, xp_days}};
 }
-function startDemo() {
+const DEMO_ORGS = {msa:{id:'demo-msa', program:'EPA', org_name:'McGhee Soccer Academy', short:'MSA East', accent:'#0caab5', kind:'group', org_kind:'academy'},
+  pfa:{id:'demo-pfa', program:'Private 1:1', org_name:'Precision Futebol Academy', short:'PFA', accent:'#a78bfa', kind:'private', org_kind:'academy'}};
+function startDemo(orgKey) {
   try { sessionStorage.setItem('sfc_demo_back', JSON.stringify({player:localStorage.getItem('sfc_player'), mode:localStorage.getItem('sfc_mode')})); } catch(e) {}
   Object.keys(localStorage).filter(k => k.includes(DEMO_ID)).forEach(k => localStorage.removeItem(k));
   DEMO = true; try { sessionStorage.setItem('sfc_demo', '1'); } catch(e) {}
@@ -1655,6 +1657,10 @@ function startDemo() {
   currentPlayer = hydratePlayer(data);
   currentPlayer.lessons = lessons;
   currentPlayer.orgs = {'demo-trainer':{program:'Private 1:1', kind:'private', org:'demo', org_name:'Your Trainer', short:'Trainer', org_kind:'trainer', brand:{accent:'#a78bfa'}}};
+  const O = DEMO_ORGS[String(orgKey || '').toLowerCase()];
+  if (O) { currentPlayer.programs = [{id:O.id, name:`${O.short} · ${O.program}`, share:'all'}];
+    currentPlayer.lessons = lessons.map(l => ({...l, program:O.id, program_name:O.program, org:O.id, org_name:O.org_name, short:O.short, brand:{accent:O.accent}}));
+    currentPlayer.orgs = {[O.id]:{program:O.program, kind:O.kind, org:O.id, org_name:O.org_name, short:O.short, org_kind:O.org_kind, brand:{accent:O.accent}}}; }
   document.body.classList.add('demo-on');
   launchApp();
   showToast('Demo player: tap around, nothing saves', 'success');
@@ -2023,6 +2029,7 @@ async function init() {
     if (c) { localStorage.setItem('sfc_claim', c[1].toUpperCase()); localStorage.removeItem('sfc_mode'); if (!localStorage.getItem('sfc_session')) return openClaim(c[1].toUpperCase()); }
     if (k) return openKidLink(k[1].toUpperCase());
     if (j) { localStorage.setItem('sfc_join', j[1].toUpperCase()); if (!localStorage.getItem('sfc_session')) return openJoin(j[1].toUpperCase()); } }
+  { const dm = /^#demo(?:=([a-z]+))?$/i.exec(hash); if (dm) { window.history.replaceState({}, '', window.location.pathname); return startDemo(dm[1]); } }
   if (hash.includes('access_token')) {
     const params = new URLSearchParams(hash.slice(1));
     saveSession({access_token: params.get('access_token'), refresh_token: params.get('refresh_token'), expires_in: params.get('expires_in')});
@@ -3005,7 +3012,10 @@ function crewTabs() {
     return `<button class="${crewScope === e.id ? 'sel' : ''}" style="--tabc:${c}" onclick="crewScope='${e.id}';renderCrew()">${esc(progLabel(p, e.id))}</button>`; }).join('')}</div>`;
 }
 async function loadBoard(prog) {
-  const p = currentPlayer, ss = seasonOf(); if (!p || (!deviceToken() && !currentUser)) return;
+  const p = currentPlayer, ss = seasonOf();
+  if (DEMO) { const R = [['Mateo','#f97316',1840,9],['Alex','#22c55e',1520,12],['Gabi','#a78bfa',1310,6],['Leo','#38bdf8',980,3],['Sofia','#facc15',720,4],['Kai','#ef4444',410,1]];
+    BOARD[prog] = {at:Date.now(), ok:true, rows:R.map(([n,c,w,st]) => ({id:'demo-'+n, nickname:n, color:c, streak:st, last_log:localDate(), me:n === 'Alex', week_xp:w, season_xp:w * 6, has_avatar:false}))}; setTimeout(() => { if (crewScope === prog) renderCrew(); }, 0); return; }
+  if (!p || (!deviceToken() && !currentUser)) return;
   BOARD[prog] = {...(BOARD[prog] || {rows:[]}), at:Date.now()};
   try { const rows = await rpc('sfc_program_board', {p_token:deviceToken() || null, p_player:p.id, p_program:prog, p_week:weekDates(0)[0], p_since:ss.start && ss.start > localDate(new Date(Date.now() - 119 * 864e5)) ? ss.start : weekDates(0)[0]});
     BOARD[prog] = {at:Date.now(), rows:rows || [], ok:true}; if (crewScope === prog) renderCrew(); }

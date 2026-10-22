@@ -173,7 +173,7 @@ textarea{font:inherit;background:var(--bg3);color:var(--text);border:1px solid v
     <div class="nav adm" data-v="coaches">🧢 Coaches</div>
     <div class="nav adm" data-v="seats">🎟 Seats + billing</div>
     <div class="nav adm" data-v="trainer">🎯 1:1 Trainer</div>
-    <div class="side-foot"><div id="coachFoot" style="margin-bottom:10px;font-size:12px"></div><div class="legend" style="margin-bottom:4px">ACADEMY SCREENS SHOW</div><div class="mode"><button class="mode-btn" data-m="live" onclick="setMode('live')">REAL KIDS</button><button class="mode-btn" data-m="sandbox" onclick="setMode('sandbox')">SAMPLE</button></div><div id="who"></div><div style="margin-top:6px"><a href="#" onclick="refresh();return false">Refresh</a> · <a href="#" onclick="signOut();return false">Sign out</a></div><div style="margin-top:6px"><a href="/">Open app</a></div></div>
+    <div class="side-foot"><div id="coachFoot" style="margin-bottom:10px;font-size:12px"></div><div class="legend" style="margin-bottom:4px">ACADEMY SCREENS SHOW</div><div class="mode"><button class="mode-btn" data-m="live" onclick="setMode('live')">REAL KIDS</button><button class="mode-btn" data-m="sandbox" onclick="setMode('sandbox')">SAMPLE</button></div><div id="who"></div><div style="margin-top:6px"><a href="#" onclick="refresh();return false">Refresh</a> · <a href="#" onclick="signOut();return false">Sign out</a></div><div style="margin-top:6px"><a href="/">Open app</a> · <a href="#" onclick="openPlayerDemo();return false">👀 Player view (demo)</a></div></div>
   </aside>
   <main class="main" id="view"></main>
 </div>
@@ -291,6 +291,7 @@ async function loadInviteBrand() { try { const b = await rpc('sfc_invite_brand',
 function paintBrand() { const loginB = INVB && $('app').style.display !== 'block', b = loginB ? INVB.brand : ((ORG && ORG.brand) || {}), on = !!loginB || (!!b.accent && (coachView() || isOrgView()));
   const st = document.body.style, deep = loginB && b.deep; ['--bg','--bg2','--bg3','--border'].forEach(k => st.removeProperty(k));
   if (deep) { st.setProperty('--bg', deep); st.setProperty('--bg2', `color-mix(in srgb, ${deep}, #fff 5%)`); st.setProperty('--bg3', `color-mix(in srgb, ${deep}, #fff 9%)`); st.setProperty('--border', `color-mix(in srgb, ${b.accent}, transparent 65%)`); } document.body.classList.toggle('cobrand', on); if (on && b.accent) document.body.style.setProperty('--accent', b.accent); else document.body.style.removeProperty('--accent'); }
+function openPlayerDemo() { const k = ORG && ['msa','pfa'].includes(ORG.id) ? '=' + ORG.id : ''; window.open('/#demo' + k, '_blank', 'noopener'); }
 function isOrgView() { return ['org','staff','epa'].includes(view) || String(view).startsWith('prog:'); }
 function go(v) { if (v !== 'coaches' && v !== 'teams' && v !== 'club') coachLens = null; view = v; location.hash = v; if (ORG && !coachView()) paintOrg(); document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.v === v)); paintBrand(); render(); }
 function daysAhead(n) { const d = new Date(); d.setDate(d.getDate()+n); return localDate(d); }
