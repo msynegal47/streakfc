@@ -951,6 +951,17 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
 .home-tease{font-size:11px;color:var(--sub);margin-top:5px;cursor:pointer;line-height:1.35}
 .home-tease b{color:var(--accent)}
 .snap-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.snap-row.snap-line{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;font-weight:700;color:var(--sub);padding:0 2px}.snap-line b{color:var(--text);font-weight:900}.snap-line .hot b{color:var(--accent)}
+.hw-btn{width:100%;margin-top:12px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;white-space:normal;padding:11px 14px;border-radius:12px;border:0;background:var(--c,#a78bfa);color:#0b0616;cursor:pointer}
+.hw-btn b{font-size:11px;font-weight:900;letter-spacing:1.5px}.hw-btn span{font-size:14px;line-height:1.3;font-weight:800}
+.rec-link.rec-soft{border:0!important;background:none!important;color:var(--sub)!important;font-size:13px!important;font-weight:700!important;padding:10px 6px 2px!important;display:block!important}.rec-link.rec-soft b{color:#c4b5fd}
+#startLbl{font-size:18px}
+.bonus-head{width:100%;display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:13px 14px;color:var(--text);font-size:13px;font-weight:800;cursor:pointer;text-align:left}
+.bonus-head span{color:var(--sub);font-weight:900}.bonus-head.on{border-color:#22c55e88}
+.done-h{margin-top:14px;font-size:17px;font-weight:900;color:#22c55e}.done-acts{display:grid;grid-template-columns:1.4fr 1fr;gap:8px;margin-top:10px}
+.done-acts .start-btn{margin-top:0;padding:12px 8px}.done-acts .start-btn b{font-size:15px}
+.done-acts .rt-btn{background:var(--bg3);border:1px solid var(--border);border-radius:16px;color:var(--text);font-size:12px;font-weight:900;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}.done-acts .rt-btn span{font-size:10px;color:var(--sub)}
+.jg-card .jg-row{margin-top:0}
 .snap{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:8px 4px;text-align:center;min-width:0}
 .snap b{display:block;font-size:14px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .snap span{display:block;font-size:8px;letter-spacing:.8px;color:var(--sub);font-weight:800;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1426,8 +1437,6 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
           <div class="season-card hero-season" id="seasonCard"></div>
         </div>
         <div class="snap-row" id="snapRow"></div>
-        <!-- My Week: tap a day for team practice / game -->
-        <div class="myweek-card" id="myWeek"></div>
         <!-- Program today (EPA day etc.), full cards live in TEAMS -->
         <div id="progToday"></div>
         <!-- TODAY: session launcher -->
@@ -1437,19 +1446,28 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
           <div class="ms-bar" id="msBar"></div>
           <div class="today-hint" id="todayHint"></div>
           <div class="streak-line" id="streakLine"></div>
+          <div id="hwRow"></div>
           <div id="resumeRow"></div>
           <div id="gameRow"></div>
           <div id="miniRow"></div>
-          <div class="diff-label" style="margin-top:14px">INTENSITY</div>
+          <div id="todayDone" style="display:none"></div>
+          <div id="todayPre">
+          <div class="diff-label" style="margin-top:14px">CHOOSE INTENSITY</div>
           <div class="diff-btns">
             <button id="diff-limited" class="diff-btn" onclick="setDifficulty('limited')">🌙 LIGHT</button>
             <button id="diff-consistent" class="diff-btn active-consistent" onclick="setDifficulty('consistent')">✅ STANDARD</button>
             <button id="diff-hustle" class="diff-btn" onclick="setDifficulty('hustle')">💪 HUSTLE</button>
           </div>
+          <div class="rt-row" style="margin-top:12px"><button onclick="openRoutine('warm')">🔥 WARM-UP <span>+10 XP · ~4 min</span></button><button onclick="openRoutine('cool')">🧊 COOL-DOWN <span>+10 XP · ~4 min</span></button></div>
           <button class="start-btn" id="startBtn" onclick="todayMain()"><b id="startLbl">▶ START</b><span id="startSub"></span></button>
-          <div class="rt-row"><button onclick="openRoutine('warm')">🔥 WARM-UP <span>~4 min · on the beat</span></button><button onclick="openRoutine('cool')">🧊 COOL-DOWN <span>~4 min · timed holds</span></button></div>
-          <button class="rec-link" id="recLink" onclick="todayAlt()">🌙 RECOVERY DAY INSTEAD <span>~8 min · keeps the streak</span></button>
-          <!-- Juggles (folded in) -->
+          <button class="rec-link rec-soft" id="recLink" onclick="todayAlt()"></button>
+          </div>
+        </div>
+        <button class="bonus-head" id="bonusHead" onclick="toggleBonus()"></button>
+        <div id="bonusBody" style="display:none;flex-direction:column;gap:12px">
+        <div class="reward-card" id="rewardCard" style="display:none"></div>
+        <div class="quest-card" id="questCard"></div>
+        <div class="today-card jg-card"><div class="today-title" style="margin-bottom:8px">🎯 JUGGLES</div>
           <div class="jg-row">
             <div class="jg-cell"><div class="jg-lbl">🎯 JUGGLES TODAY <span id="juggleMinLbl">0 / 150</span></div>
               <input class="juggle-input" id="juggleToday" type="number" inputmode="numeric" placeholder="0" min="0" oninput="saveWip();updateJuggleBar()">
@@ -1459,13 +1477,9 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
           </div>
           <button class="jg-save" onclick="saveJuggles()">✓ SAVE JUGGLES <span id="jgDay"></span></button>
         </div>
-        <!-- Reward in progress (parent-set). Picking one lives on Profile. -->
-        <div class="reward-card" id="rewardCard" style="display:none"></div>
-        <!-- Daily quests (compact) -->
-        <div class="quest-card" id="questCard"></div>
-        <!-- Unlock road -->
-        <div class="unlock-card" id="unlockCard"></div>
-        <button class="start-btn start-bottom" onclick="playToday()"><b id="startLbl2">▶ START TODAY'S SESSION</b></button>
+        </div>
+        <!-- My Week: tap a day for team practice / game -->
+        <div class="myweek-card" id="myWeek"></div>
       </div>
     </div>
 
@@ -1489,6 +1503,7 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
         <div class="profile-rank" id="profileRank"></div>
         <div class="profile-juggle-pb" id="statJugglePb" style="display:none"></div>
       </div>
+      <div class="unlock-card" id="unlockCard" style="margin:0 16px 12px"></div>
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-val" id="statStreak">0</div><div class="stat-lbl">STREAK</div></div>
         <div class="stat-card"><div class="stat-val" id="statTouches">0K</div><div class="stat-lbl">TOUCHES</div></div>
@@ -2644,11 +2659,8 @@ function paintHeroAvatar(el, t, p, color) {
 function renderSnap(p) {
   const w = weekInfo(p), st = liveStreak(p), nx = nextUnlocks(p, 1)[0];
   const chip = (cls, big, small, click) => `<div class="snap ${cls}" ${click ? `onclick="${click}"` : ''}><b>${big}</b><span>${small}</span></div>`;
-  document.getElementById('snapRow').innerHTML =
-    chip(st ? 'hot' : '', `🔥 ${st}`, 'DAY STREAK') +
-    chip(w.days >= WEEK_DAYS_GOAL ? 'ok' : '', `📅 ${Math.min(w.days, 7)}/${WEEK_DAYS_GOAL}`, 'THIS WEEK') +
-    chip(w.streak ? 'ok' : '', `🗓 ${w.streak}`, 'WK STREAK') +
-(nx ? chip('next', '🔓 NEXT', nx.mystery ? '???' : uName(nx), 'openRoad()') : '');
+  const el = document.getElementById('snapRow'); el.className = 'snap-row snap-line';
+  el.innerHTML = `<span class="${st ? 'hot' : ''}">🔥 <b>${st}</b>-day streak</span><span>📅 <b>${Math.min(w.days, 7)}/${WEEK_DAYS_GOAL}</b> this week</span>`;
 }
 
 // ─── MY WEEK: tap a day = practice (repeats weekly) → game (this date) → clear ───
@@ -2703,7 +2715,8 @@ function renderProgToday() {
   const today = localDate(), pr = progDaysOn(p, today), es = epaState(p), L = epaLog(p.id), T = L[today] || {}, miss = es && es.kind !== 'offseason' ? missedEpa(p)[0] : null;
   const wkKey = 'wk_' + weekDates(0)[0], dow = new Date().getDay(), due = es && es.kind !== 'offseason' && (dow >= 4 || dow === 0) && !((L[wkKey] || {}).weekly);
   const dueBtn = due ? `<button class="pt-btn due" style="width:100%;margin-top:8px" onclick="openForm('journal')">📝 EPA WEEKLY JOURNAL · ${dow === 0 ? 'DUE TODAY' : 'DUE SUNDAY'} +${JOURNAL_XP}</button>` : '';
-  const hwOpen = openHomework(p), hwBtn = hwOpen.map(h => `<button class="pt-btn" style="width:100%;margin-top:8px;background:${(h.brand||{}).accent || '#a78bfa'};color:#0b0616" onclick="switchTab('teams')">📋 ${esc(h.short || h.org_name)} HOMEWORK: ${esc(h.hw.length > 34 ? h.hw.slice(0, 34) + '…' : h.hw)}</button>`).join('');
+  const hwOpen = openHomework(p), hwBtn = '', hwEl = document.getElementById('hwRow');
+  if (hwEl) hwEl.innerHTML = hwOpen.map(h => `<button class="hw-btn" style="--c:${(h.brand||{}).accent || '#a78bfa'}" onclick="switchTab('teams')"><b>📋 ${esc((h.short || h.org_name || '').toUpperCase())} HOMEWORK</b><span>${esc(h.hw)}</span></button>`).join('');
   if (!pr.length && !miss && !due) { el.innerHTML = hwBtn ? `<div class="prog-today">${hwBtn}</div>` : ''; return; }
   const epa = pr.find(x => x.id === 'epa'), c = (pr[0] || {color:'#2dd4bf'}).color;
   const acts = epa ? (T.epa ? `<span class="pt-done">✓ EPA logged</span>` : `${T.ready ? '<span class="pt-done">✓ Checked in</span>' : `<button class="pt-btn ghost" onclick="openCheckin()">🚌 CHECK IN</button>`}<button class="pt-btn" onclick="openEpaLog()">🏟 LOG EPA +${EPA_XP}</button>`) : '';
@@ -3796,19 +3809,25 @@ function renderToday() {
   document.getElementById('todayHint').textContent = di.hint;
   const goal = goalFor(currentDiff), ex = loadSess(), going = ex && !ex.finished && ex.mode === 'goal';
   const hit = !going && tot >= goal;
-  document.getElementById('startLbl').textContent = going ? '▶ KEEP GOING' : hit ? '✓ DONE TODAY · GO AGAIN?' : '▶ START';
+  document.getElementById('startLbl').textContent = going ? '▶ KEEP GOING' : "▶ START TODAY'S TOUCHES";
   document.getElementById('startSub').textContent = going ? `${ex.items.filter(i=>i.done).length} of ${ex.items.length} done · ${ex.target.toLocaleString()} touches`
     : hit ? 'Bonus session: extra XP and touches' : `${goal.toLocaleString()} touches · ~${Math.max(5, Math.round(goal/70))} min · ball mastery, moves + passing`;
   const heavy = heavyDone(p), safe = !!heavy || localStorage.getItem(`sfc_lastlog_${p.id}`) === localDate();
   document.getElementById('streakLine').innerHTML = safe ? `<b>🔥 STREAK SAFE TODAY</b>${heavy ? ` · your ${heavy === 'game' ? 'game' : 'EPA'} counted` : ''}`
-    : `<b>🔥 KEEP YOUR STREAK:</b> finish any session, a recovery day, log a game you played today, log EPA, or a juggling set`;
+    : `<b>🔥 ${liveStreak(p) ? `Train today to keep your ${liveStreak(p)}-day streak` : 'Train today to start a streak'}</b>`;
   document.getElementById('streakLine').className = 'streak-line ' + (safe ? 'safe' : '');
   if (heavy && !going) {
     document.getElementById('startLbl').textContent = '🌙 RECOVERY SESSION';
     document.getElementById('startSub').textContent = `${heavy === 'game' ? 'Game' : 'EPA'} done. ~8 min of mobility + easy touches so you bounce back.`;
     document.getElementById('todayHint').textContent = `${heavy === 'game' ? 'You played today' : 'You trained at EPA today'}. That was your big work. Recovery is the smart move, extra touches are optional.`;
     document.getElementById('recLink').innerHTML = `⚽ LIGHT TOUCHES ANYWAY <span>optional · ${goalFor('limited').toLocaleString()} touches</span>`;
-  } else document.getElementById('recLink').innerHTML = `🌙 RECOVERY DAY INSTEAD <span>~8 min · keeps the streak</span>`;
+  } else document.getElementById('recLink').innerHTML = `Not feeling it? 🌙 <b>Recovery day</b> keeps your streak`;
+  document.getElementById('todayHint').style.display = (heavy || di.type !== 'free') ? '' : 'none';
+  { const dn = document.getElementById('todayDone'), pre = document.getElementById('todayPre'), done = hit && !heavy;
+    dn.style.display = done ? 'block' : 'none'; pre.style.display = done ? 'none' : 'block';
+    if (done) dn.innerHTML = `<div class="done-h">✓ DONE TODAY · ${tot.toLocaleString()} touches</div>
+      <div class="done-acts"><button class="start-btn" onclick="todayMain()"><b>▶ GO AGAIN</b><span>Bonus XP + touches</span></button><button class="rt-btn" onclick="openRoutine('cool')">🧊 COOL-DOWN<span>+10 XP</span></button></div>`;
+    renderBonus(done); }
   { const b2 = document.getElementById('startLbl2'); if (b2) b2.textContent = going ? '▶ KEEP GOING' : heavy ? '🌙 RECOVERY SESSION' : hit ? '▶ GO AGAIN · BONUS XP' : "▶ START TODAY'S SESSION"; }
   const S = loadSess();
   const gr = document.getElementById('gameRow'); if (gr) gr.innerHTML = gameCardHTML(p);
@@ -4239,6 +4258,18 @@ function updateQuests(p, items, mode, pbCount, juggleTotal, allDone) {
   if (!q.bonus && q.done.length >= 3) { q.bonus = true; bonus = true; xp += QUEST_ALL_BONUS; }
   localStorage.setItem(questKey(p), JSON.stringify(q));
   return {xp, done, bonus};
+}
+let BONUS_OPEN = false;
+function toggleBonus() { BONUS_OPEN = !BONUS_OPEN; renderBonus(); }
+function renderBonus(done) {
+  const p = currentPlayer, h = document.getElementById('bonusHead'), b = document.getElementById('bonusBody'); if (!p || !h || !b) return;
+  if (done === undefined) done = h.dataset.done === '1'; h.dataset.done = done ? '1' : '';
+  let qn = 0; try { qn = todaysQuests(p).filter(x => x.done).length; } catch(e) {}
+  let rw = ''; try { const r = getReward(p.id), T = r && rTarget(r); if (T) rw = ` · 🍕 ${esc(r.name)} ${Math.min(100, Math.round(rewardProgress(p.id, r) / T * 100))}%`; } catch(e) {}
+  const open = done || BONUS_OPEN;
+  h.className = 'bonus-head' + (done ? ' on' : '');
+  h.innerHTML = `<div>${done ? '🎁 BONUS UNLOCKED · ' : ''}⚡ Quests ${qn}/3${rw} · 🎯 Juggles</div><span>${open ? '▾' : '›'}</span>`;
+  b.style.display = open ? 'flex' : 'none';
 }
 function renderQuests() {
   const p = currentPlayer, el = document.getElementById('questCard'); if (!p || !el) return;
