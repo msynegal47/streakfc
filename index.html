@@ -960,6 +960,17 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
 .info-btn{width:22px;height:22px;flex:0 0 22px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg3);color:var(--sub);font:900 12px/1 Georgia,serif;font-style:italic;cursor:pointer;padding:0;margin-right:6px}
 .gy{position:relative}.gy-info{position:absolute;top:6px;right:6px;margin:0}
 .bonus-row{width:100%;display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:13px 14px;color:var(--text);font-size:13px;cursor:pointer;text-align:left}.bonus-row>b{color:var(--green);white-space:nowrap}
+.sq-form{display:flex;gap:8px}.sq-form .auth-input{flex:1;margin:0}.sq-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pt-btn.ghost{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.sq-code{font:900 12px ui-monospace,monospace;letter-spacing:1px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:5px 8px;color:#facc15}.sq-code.sm{font-size:10px;padding:2px 6px}
+.sq-req{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}.sq-acts{display:flex;gap:6px}.sq-acts .pt-btn{padding:8px 12px}
+.idp-pri{font-size:12px;color:#c4b5fd;background:#a78bfa18;border:1px solid #a78bfa44;border-radius:10px;padding:8px 10px;margin:8px 0}
+.sore-warn{margin-top:10px;padding:10px 12px;border-radius:12px;background:#ef444418;border:1px solid #ef444466;font-size:13px;font-weight:700}
+.badge-hint{font-size:9px;color:var(--accent);text-align:center;font-weight:800;margin-top:2px}
+.path-card{margin:0 16px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px}.path-now{font-size:13px;color:var(--sub);margin:6px 0 12px}.path-now b{color:var(--text)}
+.path-row{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:12px;opacity:.5}.path-row.got{opacity:1}.path-row.cur{background:color-mix(in srgb,var(--c) 14%,transparent);border:1px solid color-mix(in srgb,var(--c) 50%,transparent)}
+.path-dots{display:flex;gap:4px}.path-dots i{width:10px;height:10px;border-radius:50%;border:2px solid var(--c)}.path-dots i.on{background:var(--c)}
+.path-name{font-size:13px;font-weight:900;color:var(--c)}.path-name span{font-size:9px;background:var(--c);color:#0b0f17;border-radius:6px;padding:1px 5px;margin-left:4px}.path-name small{display:block;font-size:10px;color:var(--sub);font-weight:700}
+.path-foot{font-size:10px;color:var(--sub);margin-top:10px;line-height:1.4}
 .bonus-head span{color:var(--sub);font-weight:900}.bonus-head.on{border-color:#22c55e88}
 .done-h{margin-top:14px;font-size:17px;font-weight:900;color:#22c55e}.done-acts{display:grid;grid-template-columns:1.4fr 1fr;gap:8px;margin-top:10px}
 .done-acts .start-btn{margin-top:0;padding:12px 8px}.done-acts .start-btn b{font-size:15px}
@@ -1481,6 +1492,7 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
         <div id="bonusBody" style="display:none;flex-direction:column;gap:12px">
         <div class="reward-card" id="rewardCard" style="display:none"></div>
         <div class="quest-card" id="questCard"></div>
+        <button class="bonus-row" onclick="SORE_SEL=[];openSore()"><span>🧊 <b>Sore somewhere?</b> Get stretches for that spot</span><b>+10 XP</b></button>
         <button class="bonus-row" onclick="openForm('progame')"><span>📺 <b>Watched a pro game?</b> Follow one player, answer 3 questions</span><b>+40 XP</b></button>
         <div class="today-card jg-card"><div class="today-title" style="margin-bottom:8px">🎯 JUGGLES</div>
           <div class="jg-row">
@@ -1519,6 +1531,7 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
         <div class="profile-champ" id="profileChamp" style="display:none"></div>
         <div class="profile-juggle-pb" id="statJugglePb" style="display:none"></div>
       </div>
+      <div class="path-card" id="pathCard"></div>
       <div class="unlock-card" id="unlockCard" style="margin:0 16px 12px"></div>
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-val" id="statStreak">0</div><div class="stat-lbl">STREAK</div></div>
@@ -1644,7 +1657,16 @@ const BADGES = [
   {id:'xp5000',        emoji:'💎', name:'5K XP',         cond:p=>p.xp>=5000},
   {id:'touches10k',    emoji:'🏆', name:'10K Touches',   cond:p=>p.total_touches>=10000},
   {id:'juggle50',      emoji:'🤹', name:'Juggle 50',      cond:p=>(p.juggle_pb||0)>=50},
+  {id:'streak14',      emoji:'🌋', name:'Two Weeks Strong', cond:p=>p.streak>=14},
+  {id:'juggle100',     emoji:'🎪', name:'Juggle 100',     cond:p=>(p.juggle_pb||0)>=100},
+  {id:'xp10000',       emoji:'🌟', name:'10K XP',         cond:p=>p.xp>=10000},
+  {id:'touches50k',    emoji:'🚀', name:'50K Touches',    cond:p=>p.total_touches>=50000},
+  {id:'champ',         emoji:'👑', name:'Week Champ',     cond:p=>champTitles()>0},
 ];
+const BADGE_HINT = {first_session:p=>'Finish 1 session', streak3:p=>`${Math.min(p.streak||0,3)}/3 days`, streak7:p=>`${Math.min(p.streak||0,7)}/7 days`, streak14:p=>`${Math.min(p.streak||0,14)}/14 days`,
+  streak30:p=>`${Math.min(p.streak||0,30)}/30 days`, xp1000:p=>`${fmtK(Math.min(p.xp||0,1000))}/1K`, xp5000:p=>`${fmtK(Math.min(p.xp||0,5000))}/5K`, xp10000:p=>`${fmtK(Math.min(p.xp||0,10000))}/10K`,
+  touches10k:p=>`${fmtK(Math.min(p.total_touches||0,10000))}/10K`, touches50k:p=>`${fmtK(Math.min(p.total_touches||0,50000))}/50K`, juggle50:p=>`PB ${p.juggle_pb||0}/50`, juggle100:p=>`PB ${p.juggle_pb||0}/100`, champ:p=>'Win a challenge week'};
+function champTitles() { return Object.values((typeof CH !== 'undefined' && CH.boards) || {}).reduce((a, B) => a + (((B.rows || []).find(r => r.me) || {}).titles || 0), 0); }
 
 // Players come from the family's account in the database. Nothing is hardcoded.
 function getSeededPlayers() { return []; }
@@ -2440,7 +2462,7 @@ function renderParentPortal() {
   const body = document.getElementById('portalBody');
   body.innerHTML = '';
   document.getElementById('portalTitle').textContent = family?.parent_name ? `${family.parent_name.toUpperCase()}'S CREW` : 'YOUR CREW';
-  if (players.length) { const fs = firstSessionCard(); if (fs) body.appendChild(fs); const ic = ideasCard(); if (ic) body.appendChild(ic); body.appendChild(todayStrip()); { const ch = document.createElement('div'); ch.dataset.pch = '1'; body.appendChild(ch); loadParentChallenges(ch); } body.appendChild(weekRecapCard()); }
+  if (players.length) { const fs = firstSessionCard(); if (fs) body.appendChild(fs); const ic = ideasCard(); if (ic) body.appendChild(ic); body.appendChild(todayStrip()); { const ch = document.createElement('div'); ch.dataset.pch = '1'; body.appendChild(ch); loadParentChallenges(ch); const sq = document.createElement('div'); sq.dataset.psq = '1'; body.appendChild(sq); loadParentSquads(sq); } body.appendChild(weekRecapCard()); }
   players.forEach(p => {
     const color = p.color || '#4fc3f7', rank = rankOf(p), w = kidWeek(p);
     const card = document.createElement('div');
@@ -2514,7 +2536,7 @@ function launchApp() {
   localStorage.setItem('sfc_mode', 'kid');
   loadWip();
   switchTab('home');
-  CH = {list:null, boards:{}, at:0}; setTimeout(() => loadChallenges(true), 800);
+  CH = {list:null, boards:{}, at:0}; SQ = {list:null, boards:{}, sel:null, at:0, form:''}; setTimeout(() => loadChallenges(true), 800);
   document.getElementById('screen-home').scrollTop = 0;
   renderHome();
   renderProfile();
@@ -2933,6 +2955,17 @@ function renderGamesCard(p) {
       : '<div class="tr-life">No games logged yet. After your next game, tap + LOG.</div>'}
     <div class="gl-foot">${sw.length ? `🔗 Your coaches at ${esc(sw.join(', '))} can see these. Log once, everyone's in the loop.` : 'Only you and your parents see these.'}</div>`;
 }
+function renderPath() {
+  const p = currentPlayer, el = document.getElementById('pathCard'); if (!p || !el) return;
+  const xp = seasonXP(p.id), r = seasonRank(xp), nx = nextStep(r), ss = seasonOf(), kr = kitRank(ss.n);
+  const perk = steps => [steps.some(x => x.idx === kr) ? '👕 season kit' : '', steps.some(x => x.idx === SILVER_RANK) ? '🥈 silver trophy' : '', steps.some(x => x.idx === GOLD_RANK) ? '🥇 gold trophy' : ''].filter(Boolean).join(' · ');
+  const rows = MAIN_RANKS.map(([m, c], mi) => { const st = LADDER.filter(x => x.mi === mi), cur = r.mi === mi, got = xp >= st[0].min;
+    return `<div class="path-row ${cur ? 'cur' : ''} ${got ? 'got' : ''}" style="--c:${c}"><div class="path-dots">${st.map(x => `<i class="${xp >= x.min ? 'on' : ''}"></i>`).join('')}</div>
+      <div class="path-name">${m}${cur ? ' <span>YOU</span>' : ''}<small>${st[0].min.toLocaleString()} XP${perk(st) ? ' · ' + perk(st) : ''}</small></div></div>`; }).reverse().join('');
+  el.innerHTML = `<div class="badges-title">MY SEASON PATH</div>
+    <div class="path-now">${esc(r.name)} · <b>${xp.toLocaleString()} XP</b>${nx ? ` · ${(nx.min - xp).toLocaleString()} to ${esc(nx.name)}` : ' · top of the ladder 👑'}</div>
+    <div class="path-list">${rows}</div><div class="path-foot">Every main rank has 3 teams (3rd, 2nd, 1st). The path resets each season. Lifetime XP: ${(p.xp || 0).toLocaleString()}</div>`;
+}
 function renderProfile() {
   const p = currentPlayer;
   const colors = {};
@@ -2948,7 +2981,7 @@ function renderProfile() {
       <div class="goal-ladder">${[['season','THIS SEASON'],['month','THIS MONTH'],['week','THIS WEEK']].filter(([k]) => sh[k]).map(([k,l]) => `<div><span>${l}</span>${esc(sh[k])}</div>`).join('')}</div>
       ${(p.goals||{}).coach ? `<div class="goal-coach"><b>COACH'S STANDARD</b><br>${esc(p.goals.coach)}</div>` : '<div class="goal-coach">Your coach will add the standard it takes.</div>'}` : '')
       + (g.length ? `<div class="badges-title" style="margin-top:${sh?14:0}px">MY SEASON GOALS</div>` : '') + `${g.map(x => `<div class="goal-row ${x.done?'done':''}">${x.done?'✅':'🎯'} ${esc(x.t)}</div>`).join('')}${!sh && (p.goals||{}).coach ? `<div class="goal-coach">💬 Coach: ${esc(p.goals.coach)}</div>` : ''}`; }
-  renderSpeed(); renderCoaches();
+  renderSpeed(); renderCoaches(); renderPath();
   const rank = rankOf(p);
   document.getElementById('profileRank').textContent = `${rank.name} · ${seasonLabel(seasonOf())}`;
   renderTrophies();
@@ -2996,7 +3029,7 @@ function renderBadges() {
     const isEarned = earned.includes(b.id);
     const item = document.createElement('div');
     item.className = 'badge-item';
-    item.innerHTML = `<div class="badge-icon ${isEarned?'earned':'locked'}">${b.emoji}</div><div class="badge-name">${b.name}</div>`;
+    item.innerHTML = `<div class="badge-icon ${isEarned?'earned':'locked'}">${b.emoji}</div><div class="badge-name">${b.name}</div>${!isEarned && BADGE_HINT[b.id] ? `<div class="badge-hint">${BADGE_HINT[b.id](currentPlayer)}</div>` : ''}`;
     grid.appendChild(item);
   });
 }
@@ -3042,7 +3075,7 @@ function acadProg() { const ps = acadProgs(); return (ps.find(e => e.id === acad
 function boardProg() { return crewScope === 'academy' ? acadProg() : crewScope; }
 function crewTabs() {
   const p = currentPlayer, progs = acadProgs(), t = (k, l) => `<button class="${crewScope === k ? 'sel' : ''}" onclick="crewScope='${k}';renderCrew()">${l}</button>`;
-  let h = `<div class="crew-tabs">${t('crew','MY CREW')}${progs.length ? t('academy','ACADEMY') : ''}${t('challenges','🏆 CHALLENGES')}</div>`;
+  let h = `<div class="crew-tabs">${t('crew','MY CREW')}${t('squads','SQUADS')}${progs.length ? t('academy','ACADEMY') : ''}${t('challenges','🏆')}</div>`;
   if (crewScope === 'academy' && progs.length > 1) h += `<div class="crew-tabs sub">${progs.map(e => { const c = (((p.orgs || {})[e.id] || {}).brand || {}).accent || '#2dd4bf';
     return `<button class="${acadProg() === e.id ? 'sel' : ''}" style="--tabc:${c}" onclick="acadSel='${e.id}';renderCrew()">${esc(progLabel(p, e.id))}</button>`; }).join('')}</div>`;
   return h;
@@ -3084,6 +3117,7 @@ function renderCrew() {
   empty.style.display = 'none';
   const tabs = crewTabs();
   if (crewScope === 'challenges') return renderChallenges(tabs);
+  if (crewScope === 'squads') return renderSquads(tabs);
   if (crewScope === 'academy' && acadProg()) return renderBoard(tabs);
   if (crewScope !== 'crew') crewScope = 'crew';
   list.innerHTML = tabs + `<div class="crew-toggle"><button class="${wk?'sel':''}" onclick="crewMode='week';renderCrew()">THIS WEEK</button><button class="${wk?'':'sel'}" onclick="crewMode='season';renderCrew()">${ss.n ? 'SEASON '+ss.n : 'PRESEASON'}</button></div>${ups.map(u=>`<div class="rankups">⬆ ${u.p.name} made <span style="color:${u.r.color}">${u.r.name}</span> today</div>`).join('')}
@@ -3129,7 +3163,7 @@ async function loadChallenges(force) {
   await Promise.all(CH.list.filter(c => c.status === 'joined').map(async c => {
     try { CH.boards[c.id] = {...(await rpc('sfc_challenge_board', {p_token:deviceToken() || null, p_player:p.id, p_challenge:c.id, p_week:wk})), week:wk}; } catch(e) {} }));
   if (crewScope === 'challenges') renderCrew();
-  renderChampBadge(); chPopups();
+  renderChampBadge(); if (champTitles() > 0) { checkBadges(); renderBadges(); } chPopups();
 }
 async function askToJoin(id) {
   if (DEMO) { showToast('Demo: this would ask your parent', 'success'); return; }
@@ -3194,6 +3228,83 @@ function chPopups() {
         <div class="ch-title">${esc(c.name.toUpperCase())}</div><div class="ch-sub2">${esc(c.blurb || '')}</div><div class="ch-stat">${c.members ? `${c.members} kid${c.members === 1 ? '' : 's'} in so far` : 'Be one of the first in'}</div>
         <button class="modal-save-btn" onclick="askToJoin('${c.id}')">🙋 ASK MY PARENT TO JOIN</button><button class="ch-later" onclick="closeChModal()">Maybe later</button></div>`); }
   }
+}
+// ─── SQUADS: friends join with a code, a parent approves every join ───
+let SQ = {list:null, boards:{}, sel:null, at:0, form:''};
+function sqDemo() { SQ.list = [{id:'demo-sq', name:'Backyard Crew', code:'SQ-7F3K', status:'joined', members:5}];
+  const R = [['Mateo','#f97316',1840,5],['Alex','#22c55e',1520,5],['Gabi','#a78bfa',1310,4],['Leo','#38bdf8',980,3],['Kai','#ef4444',410,1]];
+  SQ.boards['demo-sq'] = R.map(([n,c,x,d]) => ({id:'d-'+n, nickname:n, color:c, week_xp:x, days:d, age_group:'U10', me:n === 'Alex'})); }
+async function loadSquads(force) {
+  const p = currentPlayer; if (!p) return;
+  if (DEMO) { sqDemo(); return; }
+  if (!deviceToken() && !currentUser) return;
+  if (!force && SQ.list && Date.now() - SQ.at < 60e3) return;
+  SQ.at = Date.now();
+  try { SQ.list = await rpc('sfc_squads_for', {p_token:deviceToken() || null, p_player:p.id}) || []; } catch(e) { SQ.err = 1; if (crewScope === 'squads') renderCrew(); return; }
+  const wk = weekDates(0)[0];
+  await Promise.all(SQ.list.filter(q => q.status === 'joined').map(async q => { try { SQ.boards[q.id] = await rpc('sfc_squad_board', {p_token:deviceToken() || null, p_player:p.id, p_squad:q.id, p_week:wk}) || []; } catch(e) {} }));
+  if (crewScope === 'squads') renderCrew();
+}
+function sqForm() {
+  return SQ.form === 'new' ? `<div class="sq-form"><input class="auth-input" id="sqName" maxlength="24" placeholder="Squad name, e.g. Wall Ballers"><button class="pt-btn" onclick="squadCreate()">CREATE</button></div><div class="ch-meta">Your parent approves it. Then share the code with friends.</div>`
+    : SQ.form === 'join' ? `<div class="sq-form"><input class="auth-input" id="sqCode" maxlength="7" placeholder="SQ-XXXX" style="text-transform:uppercase"><button class="pt-btn" onclick="squadJoin()">JOIN</button></div><div class="ch-meta">Get the code from your friend. Your parent says yes on their dashboard.</div>`
+    : `<div class="sq-btns"><button class="pt-btn" onclick="SQ.form='new';renderCrew()">➕ START A SQUAD</button><button class="pt-btn ghost" onclick="SQ.form='join';renderCrew()">🔑 JOIN WITH A CODE</button></div>`;
+}
+function renderSquads(tabs) {
+  const list = document.getElementById('crewList');
+  if (!SQ.list) { list.innerHTML = tabs + `<div class="crew-empty">${SQ.err ? 'Squads need internet. Try again in a bit.' : 'Loading…'}</div>`; loadSquads(); return; }
+  loadSquads();
+  if (!SQ.list.length) { list.innerHTML = tabs + `<div class="ch-card"><div class="ch-name" style="color:var(--text)">👥 SQUADS</div><div class="ch-sub">Battle your friends every week. Start a squad and share the code, or join a friend's squad.</div><div style="margin-top:12px">${sqForm()}</div></div>`; return; }
+  const sel = SQ.list.find(q => q.id === SQ.sel) || SQ.list[0]; SQ.sel = sel.id;
+  const chips = SQ.list.length > 1 ? `<div class="crew-tabs sub">${SQ.list.map(q => `<button class="${q.id === sel.id ? 'sel' : ''}" onclick="SQ.sel='${q.id}';renderCrew()">${esc(q.name.toUpperCase())}</button>`).join('')}</div>` : '';
+  const left = 6 - dayIdxThisWeek(), B = SQ.boards[sel.id];
+  const body = sel.status !== 'joined' ? `<div class="ch-wait">⏳ Waiting for your parent to say yes</div>`
+    : !B ? '<div class="crew-empty">Loading…</div>'
+    : `<div class="ch-meta">This week's XP · resets Monday · ${left ? left + ' day' + (left === 1 ? '' : 's') + ' left' : 'last day!'}</div>` + B.map((r, i) => { const col = r.color || '#4fc3f7';
+      return `<div class="crew-card ch-row" style="margin-bottom:8px;${r.me ? `border-color:${col}` : ''}"><div style="width:20px;color:var(--sub);font-weight:900;text-align:center">${i === 0 && r.week_xp > 0 ? '👑' : i + 1}</div>
+        <div class="crew-avatar" style="background:${r.has_avatar && r.avatar ? '#0b1220' : col}">${r.has_avatar && r.avatar ? jerseySVG(kitCfg(r.avatar)) : esc((r.nickname || '?')[0].toUpperCase())}</div>
+        <div style="min-width:0"><div class="crew-name">${esc(r.nickname)}${r.me ? ' <span class="bot-tag" style="background:var(--accent);color:#fff">YOU</span>' : ''}</div><div class="crew-rank">${esc(r.age_group || '')} · ${r.days}/7 days</div></div>
+        <div class="ch-days"><b>${(r.week_xp || 0).toLocaleString()}</b><span>XP</span></div></div>`; }).join('');
+  list.innerHTML = tabs + chips + `<div class="ch-card"><div style="display:flex;justify-content:space-between;align-items:center"><div class="ch-name" style="color:var(--text)">👥 ${esc(sel.name.toUpperCase())}</div><div class="sq-code">${esc(sel.code)}</div></div>
+    <div class="ch-sub">Share the code with friends to add them.</div>${body}
+    <div style="margin-top:14px">${sqForm()}</div><button class="ch-later" onclick="squadLeave('${sel.id}')">Leave this squad</button></div>`;
+}
+async function squadCreate() {
+  const n = (document.getElementById('sqName') || {}).value || ''; if (n.trim().length < 2) return showToast('Give your squad a name', 'error');
+  if (DEMO) return showToast('Demo: this would create a squad', 'success');
+  try { const r = await rpc('sfc_squad_create', {p_token:deviceToken() || null, p_player:currentPlayer.id, p_name:n.trim()}); SQ.form = ''; SQ.sel = r.id;
+    showToast(`Squad made! Code ${r.code}. Your parent approves it.`, 'success'); loadSquads(true); }
+  catch(e) { showToast(/too_many/.test(e.message) ? 'That is enough new squads for today' : 'Needs internet. Try again.', 'error'); }
+}
+async function squadJoin() {
+  const c = ((document.getElementById('sqCode') || {}).value || '').trim().toUpperCase(); if (!c) return;
+  if (DEMO) return showToast('Demo: this would ask to join', 'success');
+  try { const r = await rpc('sfc_squad_request', {p_token:deviceToken() || null, p_player:currentPlayer.id, p_code:c.startsWith('SQ-') ? c : 'SQ-' + c}); SQ.form = ''; SQ.sel = r.id;
+    showToast(`Asked to join ${r.name}. Your parent says yes on their dashboard.`, 'success'); loadSquads(true); }
+  catch(e) { showToast(/code_invalid/.test(e.message) ? "That code didn't work. Check it with your friend." : /squad_full/.test(e.message) ? 'That squad is full' : 'Needs internet. Try again.', 'error'); }
+}
+async function squadLeave(id) {
+  if (DEMO) return showToast('Demo: nothing saves', 'success');
+  try { await rpc('sfc_squad_leave', {p_token:deviceToken() || null, p_player:currentPlayer.id, p_squad:id}); SQ.sel = null; showToast('Left the squad'); loadSquads(true); } catch(e) { showToast('Needs internet. Try again.', 'error'); }
+}
+async function loadParentSquads(el) {
+  if (!el) return;
+  try { const rows = await rpc('sfc_family_squads', {}) || []; paintParentSquads(el, rows); } catch(e) {}
+}
+function paintParentSquads(el, rows) {
+  const pend = rows.filter(r => r.status === 'requested'), joined = rows.filter(r => r.status === 'joined'), manage = el.dataset.manage === '1';
+  const mem = r => r.members && r.members.length ? `Members: ${r.members.map(esc).join(', ')}` : r.mine ? 'New squad, no one in yet' : '';
+  el.innerHTML = (pend.length ? `<div class="ch-pcard"><div class="ch-name" style="color:var(--text)">👥 SQUAD REQUESTS</div>
+      ${pend.map(r => `<div class="sq-req"><div><b>${esc(r.kid)}</b> ${r.mine ? 'started' : 'wants to join'} <b>${esc(r.name)}</b> <span class="sq-code sm">${esc(r.code)}</span><div class="ch-meta" style="margin:4px 0 0">${mem(r)}</div></div>
+        <div class="sq-acts"><button class="pt-btn" onclick="setSquad('${r.player}','${r.squad}',true,this)">YES</button><button class="pt-btn ghost" onclick="setSquad('${r.player}','${r.squad}',false,this)">NO</button></div></div>`).join('')}
+      <div class="ch-priv">Squad members see each other's nickname, avatar and weekly numbers. Leave anytime.</div></div>` : '')
+    + (joined.length ? (manage ? `<div class="ch-pcard"><div class="ch-name" style="color:var(--text)">👥 SQUADS</div>${joined.map(r => `<div class="sq-req"><div><b>${esc(r.kid)}</b> in <b>${esc(r.name)}</b><div class="ch-meta" style="margin:4px 0 0">${mem(r)}</div></div><div class="sq-acts"><button class="pt-btn ghost" onclick="setSquad('${r.player}','${r.squad}',false,this)">REMOVE</button></div></div>`).join('')}</div>`
+      : `<div class="ch-pline">👥 <b>Squads</b> · ${joined.map(r => esc(r.kid) + ' in ' + esc(r.name)).join(' · ')} <a onclick="this.closest('[data-psq]').dataset.manage='1';loadParentSquads(this.closest('[data-psq]'))">Manage</a></div>`) : '');
+}
+async function setSquad(pid, sid, join, btn) {
+  const el = btn.closest('[data-psq]'); btn.disabled = true;
+  try { await rpc('sfc_squad_set', {p_player:pid, p_squad:sid, p_join:join}); showToast(join ? 'Approved. They see the squad in Crew 👥' : 'Done', 'success'); loadParentSquads(el); }
+  catch(e) { btn.disabled = false; showToast('Could not save. Try again.', 'error'); }
 }
 // Parent dashboard: approve kids into challenges
 let PCH = null;
@@ -3841,11 +3952,17 @@ function idpHTML(p, dd) { const d = dd || idpOf(p); if (!d) return '';
     ${dr.length ? `<div class="idp-drills">${dr.map(k => `<button class="vid-btn sm" onclick="openIdpDrill('${k}')">${vidUrl(k)?'▶ ':''}${esc(SKILLS[k].name)}</button>`).join('')}</div><div class="idp-note">These drills get added to your home sessions 🎯</div>` : ''}
     ${d.strengths || d.improve || d.how ? `<details class="idp-more"><summary>Coach notes</summary>${[['strengths','💪 Strengths'],['improve','📈 Areas to improve'],['how','🛠 How we will improve']].filter(([k]) => d[k]).map(([k,l]) => `<div><b>${l}</b><p>${esc(d[k])}</p></div>`).join('')}${IDP_CATS.filter(([k]) => R[k] && R[k].note).map(([k,l]) => `<div><b>${l}</b><p>${esc(R[k].note)}</p></div>`).join('')}</details>` : ''}</div>`; }
 function openIdpDrill(k) { if (vidUrl(k)) openVideo(k); else showToast(`${SKILLS[k].name}: ${SKILLS[k].desc}`, 'success'); }
+const IDP_BLOCK = {bm:'bm', v1:'mv', ft:'wall', fin:'wall'};
+function idpPri(p) { const d = idpOf(p); if (!d) return null; const R = d.ratings || {};
+  let k = d.priority && IDP_BLOCK[d.priority] ? d.priority : null;
+  if (!k) { const c = ['bm','v1','ft','fin'].filter(x => R[x] && +R[x].lvl).sort((a, b) => +R[a].lvl - +R[b].lvl); if (c.length >= 2 && +R[c[0]].lvl < +R[c[1]].lvl) k = c[0]; }
+  return k ? {cat:k, block:IDP_BLOCK[k], label:(IDP_CATS.find(x => x[0] === k) || [k, k])[1]} : null; }
 function pickSkills(p, salt='') {
   const y = isYoung(p), rnd = seeded(p.id + localDate() + 'pick' + salt), all = b => Object.keys(SKILLS).filter(k => SKILLS[k].block===b && (!y || !SKILLS[k].lvl));
   const idp = idpDrills(p), take = (b, n) => { const lv = shuffled(poolFor(p,b).filter(k => !y || !SKILLS[k].lvl), rnd), rest = shuffled(all(b).filter(k => !lv.includes(k)), rnd), mine = idp.filter(k => SKILLS[k].block === b); return [...mine, ...lv.concat(rest).filter(k => !mine.includes(k))].slice(0, n); };
-  if (y) return {bm: take('bm', 2), mv: take('mv', 1), wall: take('wall', 1)};   // U8 and under: 4 easy drills, not 8
-  return {bm: take('bm', 3 + (rnd() < .5 ? 1 : 0)), mv: take('mv', 3 + (rnd() < .5 ? 1 : 0)), wall: take('wall', 1 + (rnd() < .5 ? 1 : 0))};
+  const pb = (idpPri(p) || {}).block, add = b => b === pb ? 1 : 0;   // IDP priority gets an extra drill
+  if (y) return {bm: take('bm', 2 + add('bm')), mv: take('mv', 1 + add('mv')), wall: take('wall', 1 + add('wall'))};   // U8 and under: 4 easy drills, not 8
+  return {bm: take('bm', 3 + (rnd() < .5 ? 1 : 0) + add('bm')), mv: take('mv', 3 + (rnd() < .5 ? 1 : 0) + add('mv')), wall: take('wall', 1 + (rnd() < .5 ? 1 : 0) + add('wall'))};
 }
 // Timed: a circuit that cycles the day's skills until the estimate reaches the goal
 function buildTimedPlan(p, intensity, salt='') {
@@ -3872,6 +3989,7 @@ function recoveryPlan(p) {
 // Touch goal: spread the goal across ball mastery (50%), moves (30%), passing (20%), capped per skill
 function buildGoalItems(p, target, pick, intensity='consistent') {
   const capMult = Math.max(1, target / 1000), share = {bm:.5, mv:.3, wall:.2};   // caps grow with bigger goals
+  { const pb = (idpPri(p) || {}).block; if (pb) { share[pb] += .15; const t = share.bm + share.mv + share.wall; Object.keys(share).forEach(b => share[b] /= t); } }   // IDP priority gets a bigger share
   const sk = [...(pick.bm||[]), ...(pick.wall||[]), ...(pick.mv||[])];
   const capT = s => (GOAL_CAP[s]||50) * capMult * tpr(s) * (GOAL_SK[s][1] ? 2 : 1);   // max touches for this skill
   const alloc = {}; sk.forEach(s => alloc[s] = 0);
@@ -4185,6 +4303,7 @@ function renderGoalList() {
   const done = S.items.filter(i=>i.done).reduce((a,b)=>a+itemTouches(b),0);
   const lbl = S.intensity==='limited'?'LIGHT':S.intensity==='hustle'?'HUSTLE':'STANDARD', anyDone = S.items.some(i=>i.done);
   body(`<div style="display:flex;justify-content:space-between;align-items:center"><div class="sk-block">${lbl} · ${S.target.toLocaleString()} TOUCHES</div>${anyDone?'':'<button class="mix-btn" onclick="newMix()">🔀 New mix</button>'}</div>
+    ${idpPri(currentPlayer) ? `<div class="idp-pri">🎯 IDP focus: <b>${esc(idpPri(currentPlayer).label)}</b> · extra reps today</div>` : ''}
     <div class="sk-desc">${isYoung(currentPlayer) ? 'Tap one to start the beeps. One touch every beep!' : 'Do each one, then tap it. Any order. 🎵 = do it on the beat.'}</div>
     <div class="touch-bar"><div class="touch-bar-fill" style="width:${Math.min(100,done/S.target*100)}%"></div></div>
     <div class="sk-desc"><b style="color:var(--text)">${done.toLocaleString()}</b> / ${S.target.toLocaleString()}</div>
@@ -4979,6 +5098,51 @@ function beatFinish(skip) { clearTimeout(btTimer); const i = BT.i, young = BT.yo
 function closeBeat() { clearTimeout(btTimer); BT = null; miniEl().classList.remove('open'); keepAwake(false); }
 
 // ─── WARM-UP / COOL-DOWN: beat reps + timed holds, voice cues, auto-advance ───
+// Sore spot -> matched stretches (holds/beat steps, same player as warm-up/cool-down)
+const STRETCH = {
+  calf:{n:'Calf stretch on a wall', t:'hold', s:30, sides:1, cue:'Back leg straight, heel down, lean into the wall.'},
+  roll:{n:'Ball roll under your foot', t:'time', s:30, sides:1, cue:'Roll a ball slowly from heel to toes. Gentle pressure.'},
+  ankle:{n:'Ankle circles', t:'beat', reps:10, bpm:40, sides:1, cue:'Big slow circles. One per beep.'},
+  balance:{n:'One-leg balance', t:'hold', s:20, sides:1, cue:'Stand tall on one foot. Eyes forward.'},
+  shin:{n:'Kneeling shin stretch', t:'hold', s:20, cue:'Kneel, tops of feet flat, sit back gently.'},
+  quad:{n:'Quad stretch', t:'hold', s:30, sides:1, cue:'Grab your ankle, knees together, stand tall.'},
+  ham:{n:'Seated hamstring reach', t:'hold', s:30, cue:'Legs straight, reach for your toes. No bouncing.'},
+  bridge:{n:'Glute bridge hold', t:'hold', s:20, cue:'Lie on your back, feet flat, lift your hips and hold.'},
+  hipflex:{n:'Kneeling hip flexor', t:'hold', s:30, sides:1, cue:'One knee down, push hips forward, stand tall.'},
+  fig4:{n:'Figure-4 stretch', t:'hold', s:30, sides:1, cue:'On your back, ankle over knee, pull the leg in.'},
+  butterfly:{n:'Butterfly stretch', t:'hold', s:30, cue:'Soles together, knees down gently.'},
+  sidelunge:{n:'Side lunge hold', t:'hold', s:20, sides:1, cue:'Wide stance, sit into one side, other leg straight.'},
+  child:{n:"Child's pose", t:'hold', s:30, cue:'Knees wide, sit back, arms long. Breathe.'},
+  catcow:{n:'Cat-cow', t:'beat', reps:8, bpm:24, cue:'Round your back, then arch it. One per beep.'},
+  hug:{n:'Knees to chest', t:'hold', s:30, cue:'On your back, hug both knees in.'}};
+const SORE_MAP = {heel:['calf','roll'], arch:['roll','calf'], toes:['roll','ankle'], 'top of foot':['ankle','roll'], ankle:['ankle','calf','balance'], shin:['calf','shin'],
+  knee:['quad','ham','bridge'], quad:['quad','hipflex'], hamstring:['ham','bridge'], groin:['butterfly','sidelunge'], hip:['hipflex','fig4','butterfly'], back:['child','catcow','hug']};
+const SORE_AREAS = Object.keys(SORE_MAP);
+let SORE_SEL = [];
+function soreLog(id) { return jget(`sfc_sore_${id}`, {}); }
+function soreTrend(id) { const L = soreLog(id), wk = [...Array(7)].map((_, i) => { const d = new Date(); d.setDate(d.getDate() - i); return localDate(d); }), n = {};
+  wk.forEach(d => (L[d] || []).forEach(a => n[a] = (n[a] || 0) + 1)); return Object.entries(n).filter(([, c]) => c >= 3); }
+function openSore() {
+  const p = currentPlayer, tr = soreTrend(p.id);
+  chModal(`<div class="ch-pop" style="text-align:left"><div class="ch-kicker" style="text-align:left">🧊 BODY CHECK</div><div class="ch-title" style="font-size:22px">Where are you sore?</div>
+    ${tr.length ? `<div class="sore-warn">⚠️ ${tr.map(([a, c]) => `Sore ${esc(a)} ${c} days this week`).join(' · ')}. Tell a parent or coach.</div>` : ''}
+    <div class="hurt-chips" style="margin:12px 0">${SORE_AREAS.map(a => `<button class="${SORE_SEL.includes(a) ? 'sel' : ''}" onclick="SORE_SEL=SORE_SEL.includes('${a}')?SORE_SEL.filter(x=>x!=='${a}'):[...SORE_SEL,'${a}'];openSore()">${a.toUpperCase()}</button>`).join('')}</div>
+    <button class="modal-save-btn" onclick="soreGo()">🧊 IT'S SORE · STRETCH IT</button>
+    <button class="ch-later" onclick="soreHurt()">⚠️ It's sharp pain, not just sore</button>
+    <div class="ch-meta">General guidance, not medical advice. Swelling, sharp pain, or pain that lasts = see a doctor.</div></div>`);
+}
+function soreSave() { const p = currentPlayer, L = soreLog(p.id), d = localDate(); L[d] = [...new Set([...(L[d] || []), ...SORE_SEL])];
+  Object.keys(L).sort().slice(0, -30).forEach(k => delete L[k]); localStorage.setItem(`sfc_sore_${p.id}`, JSON.stringify(L)); }
+function soreGo() {
+  if (!SORE_SEL.length) return showToast('Tap where you are sore', 'error');
+  soreSave(); const keys = [...new Set(SORE_SEL.flatMap(a => SORE_MAP[a]))].slice(0, 6);
+  ROUTINES.sore = {name:'Sore spot stretch', ico:'🧊', steps:keys.map(k => STRETCH[k])}; SORE_SEL = []; closeChModal(); openRoutine('sore');
+}
+function soreHurt() { if (SORE_SEL.length) soreSave(); SORE_SEL = [];
+  chModal(`<div class="ch-pop"><div class="ch-big">🛑</div><div class="ch-title" style="font-size:22px">Rest it today</div>
+    <div class="ch-sub2" style="color:var(--text)">Sharp pain means stop, don't stretch through it. Tell a parent or your coach today.</div>
+    <div class="ch-sub2">If it's swollen, hurts to walk, or isn't better in a couple of days, get it checked by a doctor.</div>
+    <button class="modal-save-btn" onclick="closeChModal()">GOT IT</button></div>`); }
 const ROUTINES = {
   warm: {name:'Dynamic warm-up', ico:'🔥', steps:[
     {n:'Jog in place', t:'time', s:30, cue:'Easy jog. Light feet.'},
@@ -5063,10 +5227,11 @@ function submitForm() {
   if (Array.isArray(v.hurt)) { v.hurt = hurtFold(v); delete v.side; delete v.where; }
   if (d.kind === 'journal') { const key = 'wk_' + weekDates(0)[0]; if ((epaLog(p.id)[key]||{}).weekly) return; setEpaLog(p.id, key, 'weekly', v); progXP(p, F.xp, 'weekly', [{weekly:v}]); }
   else if (d.kind === 'film') { if ((epaLog(p.id)[today]||{}).film) return showToast('One game analysis per day'); setEpaLog(p.id, today, 'film', v); progXP(p, F.xp, 'film', [{film:v}]); }
-  else if (d.kind === 'progame') { if ((epaLog(p.id)[today]||{}).progame) return showToast('One pro game per day'); setEpaLog(p.id, today, 'progame', v); progXP(p, F.xp, 'progame', [{progame:v}]); }
+  else if (d.kind === 'progame') { if ((epaLog(p.id)[today]||{}).progame && !(HW_PENDING && HW_PENDING.kind === 'progame')) return showToast('One pro game per day'); setEpaLog(p.id, today, 'progame', v); progXP(p, F.xp, 'progame', [{progame:v}]); }
   else if (d.kind === 'pregame') { if ((epaLog(p.id)[today]||{}).pregame) return; setEpaLog(p.id, today, 'pregame', v); progXP(p, F.xp, 'pregame', [{pregame:v}]); }
   else if (d.kind === 'game') { return commitGame(p, v); }
   else { const first = !((p.goals||{}).sheet); p.goals = {...(p.goals||{}), sheet:{...v, at:today}}; progXP(p, first ? F.xp : 0, 'goalsheet', [{sheet:v}]); }
+  if (HW_PENDING && HW_PENDING.kind === d.kind) { const hp = HW_PENDING.prog; HW_PENDING = null; setTimeout(() => markHomework(hp), 400); }
   renderHome(); renderProfile();
   showToast(d.kind === 'sheet' ? '🎯 Goals locked in. Your coach will add the standard.' : `+${F.xp} XP · ${F.title.toLowerCase()} saved`, 'success');
 }
@@ -5172,8 +5337,12 @@ function kidLessonHTML(p, prog, o) {
   return `<div class="lesson-kid" style="border-color:${acc}66"><div class="lk-h">LAST SESSION · ${esc(String(l.date).slice(5).replace('-','/'))}${l.by ? ' · ' + esc(l.by) : ''}</div>
     <div class="lk-row"><b style="color:${acc}">${kidTrend(L)[0]} ${esc(kidTrend(L)[1])}</b></div>
     ${l.work ? `<div class="lk-t">Worked on: ${esc(l.work)}</div>` : ''}${levelBars(L, true)}
-    ${l.hw ? `<div class="lk-hw"><div>📋 <b>HOMEWORK</b><br>${esc(l.hw)}</div>${done ? '<span class="pt-done">✓ Done</span>' : `<button class="pt-btn" style="background:${acc};color:#0b0616" onclick="markHomework('${prog}')">✓ DID IT +${HW_XP}</button>`}</div>` : ''}</div>`;
+    ${l.hw ? `<div class="lk-hw"><div>📋 <b>HOMEWORK</b><br>${esc(l.hw)}</div>${done ? '<span class="pt-done">✓ Done</span>' : hwKind(l.hw) ? `<button class="pt-btn" style="background:${acc};color:#0b0616" onclick="hwForm('${prog}','${hwKind(l.hw)}')">${hwKind(l.hw) === 'progame' ? '📺 DO IT' : '🎬 DO IT'}</button>` : `<button class="pt-btn" style="background:${acc};color:#0b0616" onclick="markHomework('${prog}')">✓ DID IT +${HW_XP}</button>`}</div>` : ''}</div>`;
 }
+// Coach homework can be a form: 📺 = watch a pro game, 🎬 = film review. Finishing the form completes the homework.
+let HW_PENDING = null;
+function hwKind(hw) { hw = String(hw || ''); return hw.startsWith('📺') ? 'progame' : hw.startsWith('🎬') ? 'film' : ''; }
+function hwForm(prog, kind) { HW_PENDING = {prog, kind}; openForm(kind); }
 function markHomework(prog) {
   const p = currentPlayer, l = lastLessons(p.lessons).find(x => x.program === prog); if (!l || hwDone(p, l)) return;
   localStorage.setItem(hwDoneKey(p, prog), localDate());

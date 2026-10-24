@@ -514,7 +514,7 @@ function lessonBlock(r, onSave) {
     <div class="pf"><label>SESSION LEVEL</label>${lzRow('diff', ['1 · intro', '5 · hardest version'])}</div>
     <div class="pf"><label>HOW THEY DID</label>${lzRow('rate', ['1 · rough day', '5 · crushed it'])}</div>
     <div class="pf"><label>WORKED ON</label><input id="lfWork" maxlength="300" placeholder="e.g. Receiving across the body, scanning before the ball"></div>
-    <div class="pf"><label>HOMEWORK UNTIL NEXT SESSION</label><input id="lfHw" maxlength="300" placeholder="${last && last.hw ? esc(last.hw) : 'e.g. 200 wall passes, 2 touch, check shoulder every rep'}"></div>
+    <div class="pf"><label>HOMEWORK UNTIL NEXT SESSION</label><select id="lfHwType" style="margin-bottom:6px"><option value="">🏠 At-home work (drill, touches)</option><option value="pro">📺 Watch a pro game (form in their app)</option><option value="film">🎬 Film review of their own game (form in their app)</option></select><input id="lfHw" maxlength="300" placeholder="${last && last.hw ? esc(last.hw) : 'e.g. 200 wall passes, 2 touch, check shoulder every rep'}"></div>
     <div class="pf"><label>🔒 STAFF-ONLY NOTE (OPTIONAL)</label><input id="lfPriv" maxlength="1000" placeholder="Only you and your staff see this"></div>
     <button class="btn" style="margin-top:12px" onclick="${onSave}">SAVE SESSION</button>
     ${growthLine(L)}</div>`;
@@ -522,6 +522,7 @@ function lessonBlock(r, onSave) {
 async function saveLesson(id, rid, pid) {
   if (!LF.diff || !LF.rate) return toast('Pick a session level and how they did');
   const v = {date:$('lfDate').value || localDate(), diff:LF.diff, rate:LF.rate, work:$('lfWork').value.trim(), hw:$('lfHw').value.trim(), text:$('lfPriv').value.trim()};
+  { const ht = $('lfHwType').value; if (ht === 'pro') v.hw = '📺 Watch a pro game' + (v.hw ? ': ' + v.hw : ''); else if (ht === 'film') v.hw = '🎬 Film review' + (v.hw ? ': ' + v.hw : ''); }
   let r = rid ? (D.roster||[]).find(x => x.id === rid) : (D.roster||[]).find(x => x.player_id === pid);
   if (!D.mock) { try {
     let realId = r && !String(r.id).startsWith('loc') ? r.id : await rpc('sfc_roster_ensure', {p_program:id, p_player:pid});
@@ -869,6 +870,7 @@ function idpCard(p) {
     <div class="form-row" style="margin-bottom:8px"><span class="small muted">Date</span><input id="idpDate" style="width:110px" maxlength="12" value="${esc(d.date || new Date().toLocaleDateString('en-US',{month:'numeric',day:'numeric'}))}"><span class="small muted">Coach</span><input id="idpCoach" style="width:140px" maxlength="30" value="${esc(d.coach || (ROLE==='coach' ? 'Coach' : 'Coach James'))}"></div>
     <div class="legend" style="margin-bottom:6px">5 Elite for age · 4 Strong · 3 Solid · 2 Developing · 1 Early stage${prev ? ` · last snapshot ${esc(prev.date)}` : ''}</div>
     ${IDP_CATS.map(([k,l]) => `<div class="form-row" style="margin-bottom:6px"><span style="width:150px;font-weight:700;font-size:13px">${l}</span><select id="idpR_${k}" style="width:64px"><option value="">-</option>${[1,2,3,4,5].map(n => `<option ${+(R[k]||{}).lvl===n?'selected':''}>${n}</option>`).join('')}</select>${prev && prev.ratings && prev.ratings[k] ? `<span class="small muted" style="width:40px">was ${prev.ratings[k]}</span>` : ''}<input id="idpN_${k}" style="flex:1;min-width:140px" maxlength="200" placeholder="Coach notes" value="${esc((R[k]||{}).note||'')}"></div>`).join('')}
+    <div class="form-row" style="margin:6px 0"><span style="width:150px;font-weight:700;font-size:13px">🎯 Priority #1</span><select id="idpPri" style="min-width:200px"><option value="">Auto (lowest rating)</option>${IDP_CATS.filter(([k]) => k !== 'men').map(([k,l]) => `<option value="${k}" ${d.priority===k?'selected':''}>${l}</option>`).join('')}</select><span class="small muted">Their daily home sessions lean toward this</span></div>
     ${ta('idpStr','Strengths',d.strengths)}${ta('idpImp','Areas to improve',d.improve)}${ta('idpHow','How we will improve',d.how)}
     <div class="field-lbl" style="margin-top:10px;font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:800">PRIMARY FOCUS · NEXT 4-6 WEEKS (BIG ON THEIR APP)</div>${ta('idpFoc','e.g. Be aggressive taking players on 1v1',d.focus)}
     <div class="form-row" style="margin-top:8px"><span class="small muted">Home drills</span>${[0,1,2].map(i => `<select id="idpD${i}" style="flex:1;min-width:120px"><option value="">-</option>${SKILL_LIST.map(x => `<option value="${x.id}" ${dr[i]===x.id?'selected':''}>${(D.media||{})[x.id]?'▶ ':''}${esc(x.name)}</option>`).join('')}</select>`).join('')}</div>
@@ -877,7 +879,7 @@ function idpCard(p) {
 async function saveIdp(id) {
   const p = D.byId[id], old = (D.idps||{})[id] || {}, v = x => $(x).value.trim();
   const ratings = Object.fromEntries(IDP_CATS.map(([k]) => [k, {lvl: +$('idpR_'+k).value || null, note: v('idpN_'+k)}]).filter(([,r]) => r.lvl || r.note));
-  const data = {date:v('idpDate'), coach:v('idpCoach'), ratings, strengths:v('idpStr'), improve:v('idpImp'), how:v('idpHow'), focus:v('idpFoc'), drills:[0,1,2].map(i => $('idpD'+i).value).filter(Boolean), history: old.history || [], at:localDate()};
+  const data = {date:v('idpDate'), coach:v('idpCoach'), ratings, strengths:v('idpStr'), improve:v('idpImp'), how:v('idpHow'), focus:v('idpFoc'), priority:$('idpPri').value, drills:[0,1,2].map(i => $('idpD'+i).value).filter(Boolean), history: old.history || [], at:localDate()};
   if (old.ratings && old.date && old.date !== data.date) data.history = [{date:old.date, ratings:Object.fromEntries(Object.entries(old.ratings).map(([k,r]) => [k, r.lvl]))}, ...data.history].slice(0, 6);
   if (!localOnly(p)) { try { await rpc('sfc_set_idp', {p_player:id, p_program:CURP(), p_data:data}); } catch(e) { return toast('Failed: ' + e.message); } }
   D.idps = {...(D.idps||{}), [id]:data}; if (REAL && D !== REAL && !localOnly(p)) REAL.idps = {...(REAL.idps||{}), [id]:data};
