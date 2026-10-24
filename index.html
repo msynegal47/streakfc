@@ -957,6 +957,9 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
 .rec-link.rec-soft{border:0!important;background:none!important;color:var(--sub)!important;font-size:13px!important;font-weight:700!important;padding:10px 6px 2px!important;display:block!important}.rec-link.rec-soft b{color:#c4b5fd}
 #startLbl{font-size:18px}
 .bonus-head{width:100%;display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:13px 14px;color:var(--text);font-size:13px;font-weight:800;cursor:pointer;text-align:left}
+.info-btn{width:22px;height:22px;flex:0 0 22px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg3);color:var(--sub);font:900 12px/1 Georgia,serif;font-style:italic;cursor:pointer;padding:0;margin-right:6px}
+.gy{position:relative}.gy-info{position:absolute;top:6px;right:6px;margin:0}
+.bonus-row{width:100%;display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:13px 14px;color:var(--text);font-size:13px;cursor:pointer;text-align:left}.bonus-row>b{color:var(--green);white-space:nowrap}
 .bonus-head span{color:var(--sub);font-weight:900}.bonus-head.on{border-color:#22c55e88}
 .done-h{margin-top:14px;font-size:17px;font-weight:900;color:#22c55e}.done-acts{display:grid;grid-template-columns:1.4fr 1fr;gap:8px;margin-top:10px}
 .done-acts .start-btn{margin-top:0;padding:12px 8px}.done-acts .start-btn b{font-size:15px}
@@ -1012,6 +1015,17 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
 .start-bottom{margin-top:4px}
 .crew-tabs{display:flex;gap:6px;margin-bottom:10px}
 .crew-tabs button{flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:var(--bg2);color:var(--sub);font-size:11px;font-weight:900;letter-spacing:1px;cursor:pointer}
+.crew-tabs.sub{margin-top:-4px}.crew-tabs.sub button{font-size:10px;padding:6px}
+.ch-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px}
+.ch-name{font-size:15px;font-weight:900;letter-spacing:.5px;color:#facc15}.ch-sub{font-size:12px;color:var(--sub);line-height:1.45;margin-top:4px}
+.ch-meta{font-size:11px;color:var(--sub);margin:10px 0}.ch-count{font-size:18px;font-weight:900;margin-top:12px}.ch-wait{margin-top:12px;padding:12px;border-radius:12px;background:var(--bg3);font-weight:800;font-size:13px;text-align:center}
+.ch-last{margin-top:12px;padding:10px 12px;border-radius:12px;background:#facc1518;border:1px solid #facc1555;font-size:13px}
+.ch-days{margin-left:auto;text-align:right;line-height:1}.ch-days b{font-size:20px;font-weight:900}.ch-days span{display:block;font-size:9px;color:var(--sub);font-weight:800;letter-spacing:.5px}
+.ch-titles{font-size:11px;color:#facc15;font-weight:900}.profile-champ{margin-top:8px;font-size:12px;font-weight:900;color:#facc15}
+.ch-pop{text-align:center}.ch-big{font-size:54px}.ch-kicker{font-size:11px;font-weight:900;letter-spacing:2px;color:var(--sub);margin-top:6px}.ch-title{font-size:26px;font-weight:900;margin:6px 0}.ch-stat{font-size:14px;font-weight:800;color:#facc15;margin:8px 0}.ch-sub2{font-size:13px;color:var(--sub);line-height:1.45}
+.ch-later{width:100%;background:none;border:0;color:var(--sub);font-size:13px;padding:12px;cursor:pointer}
+.ch-pcard{background:var(--bg2);border:1px solid #facc1566;border-radius:16px;padding:16px;margin-bottom:12px}.ch-kid{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:14px}.ch-asked{font-size:11px;color:#facc15;font-weight:900}.ch-in{font-size:11px;color:var(--green);font-weight:900}
+.ch-priv{font-size:11px;color:var(--sub);margin-top:6px}.ch-pline{font-size:13px;padding:10px 14px;border:1px solid var(--border);border-radius:12px;margin-bottom:12px;background:var(--bg2)}.ch-pline a{color:var(--accent);cursor:pointer;margin-left:6px;font-weight:800}
 .crew-tabs button.sel{color:#fff;border-color:var(--tabc,var(--accent));background:color-mix(in srgb,var(--tabc,var(--accent)) 25%,var(--bg2))}
 
 .epa-btn.due,.pt-btn.due{background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#1a1405;border:0;font-weight:900}
@@ -1467,6 +1481,7 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
         <div id="bonusBody" style="display:none;flex-direction:column;gap:12px">
         <div class="reward-card" id="rewardCard" style="display:none"></div>
         <div class="quest-card" id="questCard"></div>
+        <button class="bonus-row" onclick="openForm('progame')"><span>📺 <b>Watched a pro game?</b> Follow one player, answer 3 questions</span><b>+40 XP</b></button>
         <div class="today-card jg-card"><div class="today-title" style="margin-bottom:8px">🎯 JUGGLES</div>
           <div class="jg-row">
             <div class="jg-cell"><div class="jg-lbl">🎯 JUGGLES TODAY <span id="juggleMinLbl">0 / 150</span></div>
@@ -1501,6 +1516,7 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
         <div class="profile-name" id="profileName"></div>
         <div class="profile-club" id="profileClub"></div>
         <div class="profile-rank" id="profileRank"></div>
+        <div class="profile-champ" id="profileChamp" style="display:none"></div>
         <div class="profile-juggle-pb" id="statJugglePb" style="display:none"></div>
       </div>
       <div class="unlock-card" id="unlockCard" style="margin:0 16px 12px"></div>
@@ -2424,7 +2440,7 @@ function renderParentPortal() {
   const body = document.getElementById('portalBody');
   body.innerHTML = '';
   document.getElementById('portalTitle').textContent = family?.parent_name ? `${family.parent_name.toUpperCase()}'S CREW` : 'YOUR CREW';
-  if (players.length) { const fs = firstSessionCard(); if (fs) body.appendChild(fs); const ic = ideasCard(); if (ic) body.appendChild(ic); body.appendChild(todayStrip()); body.appendChild(weekRecapCard()); }
+  if (players.length) { const fs = firstSessionCard(); if (fs) body.appendChild(fs); const ic = ideasCard(); if (ic) body.appendChild(ic); body.appendChild(todayStrip()); { const ch = document.createElement('div'); ch.dataset.pch = '1'; body.appendChild(ch); loadParentChallenges(ch); } body.appendChild(weekRecapCard()); }
   players.forEach(p => {
     const color = p.color || '#4fc3f7', rank = rankOf(p), w = kidWeek(p);
     const card = document.createElement('div');
@@ -2498,6 +2514,7 @@ function launchApp() {
   localStorage.setItem('sfc_mode', 'kid');
   loadWip();
   switchTab('home');
+  CH = {list:null, boards:{}, at:0}; setTimeout(() => loadChallenges(true), 800);
   document.getElementById('screen-home').scrollTop = 0;
   renderHome();
   renderProfile();
@@ -3019,23 +3036,29 @@ let crewMode = 'week';
 // Crew tabs: my crew + one board per program (MSA EPA etc.)
 let crewScope = 'crew', BOARD = {};
 function progLabel(p, id) { const o = (p.orgs || {})[id] || {}; return `${o.short ? o.short + ' ' : ''}${id === 'epa' ? 'EPA' : (o.program || id).replace(/^MSA · /, '')}`.toUpperCase(); }
+let acadSel = null;
+function acadProgs() { return (currentPlayer?.programs || []).filter(e => e && e.id); }
+function acadProg() { const ps = acadProgs(); return (ps.find(e => e.id === acadSel) || ps[0] || {}).id; }
+function boardProg() { return crewScope === 'academy' ? acadProg() : crewScope; }
 function crewTabs() {
-  const p = currentPlayer, progs = (p?.programs || []).filter(e => e && e.id); if (!progs.length) return '';
-  return `<div class="crew-tabs"><button class="${crewScope === 'crew' ? 'sel' : ''}" onclick="crewScope='crew';renderCrew()">MY CREW</button>${progs.map(e => { const c = (((p.orgs || {})[e.id] || {}).brand || {}).accent || '#2dd4bf';
-    return `<button class="${crewScope === e.id ? 'sel' : ''}" style="--tabc:${c}" onclick="crewScope='${e.id}';renderCrew()">${esc(progLabel(p, e.id))}</button>`; }).join('')}</div>`;
+  const p = currentPlayer, progs = acadProgs(), t = (k, l) => `<button class="${crewScope === k ? 'sel' : ''}" onclick="crewScope='${k}';renderCrew()">${l}</button>`;
+  let h = `<div class="crew-tabs">${t('crew','MY CREW')}${progs.length ? t('academy','ACADEMY') : ''}${t('challenges','🏆 CHALLENGES')}</div>`;
+  if (crewScope === 'academy' && progs.length > 1) h += `<div class="crew-tabs sub">${progs.map(e => { const c = (((p.orgs || {})[e.id] || {}).brand || {}).accent || '#2dd4bf';
+    return `<button class="${acadProg() === e.id ? 'sel' : ''}" style="--tabc:${c}" onclick="acadSel='${e.id}';renderCrew()">${esc(progLabel(p, e.id))}</button>`; }).join('')}</div>`;
+  return h;
 }
 async function loadBoard(prog) {
   const p = currentPlayer, ss = seasonOf();
   if (DEMO) { const R = [['Mateo','#f97316',1840,9],['Alex','#22c55e',1520,12],['Gabi','#a78bfa',1310,6],['Leo','#38bdf8',980,3],['Sofia','#facc15',720,4],['Kai','#ef4444',410,1]];
-    BOARD[prog] = {at:Date.now(), ok:true, rows:R.map(([n,c,w,st]) => ({id:'demo-'+n, nickname:n, color:c, streak:st, last_log:localDate(), me:n === 'Alex', week_xp:w, season_xp:w * 6, has_avatar:false}))}; setTimeout(() => { if (crewScope === prog) renderCrew(); }, 0); return; }
+    BOARD[prog] = {at:Date.now(), ok:true, rows:R.map(([n,c,w,st]) => ({id:'demo-'+n, nickname:n, color:c, streak:st, last_log:localDate(), me:n === 'Alex', week_xp:w, season_xp:w * 6, has_avatar:false}))}; setTimeout(() => { if (boardProg() === prog) renderCrew(); }, 0); return; }
   if (!p || (!deviceToken() && !currentUser)) return;
   BOARD[prog] = {...(BOARD[prog] || {rows:[]}), at:Date.now()};
   try { const rows = await rpc('sfc_program_board', {p_token:deviceToken() || null, p_player:p.id, p_program:prog, p_week:weekDates(0)[0], p_since:ss.start && ss.start > localDate(new Date(Date.now() - 119 * 864e5)) ? ss.start : weekDates(0)[0]});
-    BOARD[prog] = {at:Date.now(), rows:rows || [], ok:true}; if (crewScope === prog) renderCrew(); }
-  catch(e) { BOARD[prog] = {at:Date.now(), rows:[], err:e.message}; if (crewScope === prog) renderCrew(); }
+    BOARD[prog] = {at:Date.now(), rows:rows || [], ok:true}; if (boardProg() === prog) renderCrew(); }
+  catch(e) { BOARD[prog] = {at:Date.now(), rows:[], err:e.message}; if (boardProg() === prog) renderCrew(); }
 }
 function renderBoard(tabs) {
-  const list = document.getElementById('crewList'), prog = crewScope, B = BOARD[prog], wk = crewMode === 'week', ss = seasonOf();
+  const list = document.getElementById('crewList'), prog = boardProg(), B = BOARD[prog], wk = crewMode === 'week', ss = seasonOf();
   if (!B || Date.now() - B.at > 60e3) loadBoard(prog);
   const live = r => (r.last_log && r.last_log >= yesterdayStr()) ? (r.streak || 0) : 0;
   const rows = (B ? B.rows : []).map(r => ({...r, score: wk ? r.week_xp : r.season_xp})).sort((a, b) => b.score - a.score);
@@ -3060,7 +3083,9 @@ function renderCrew() {
   roster.sort((a,b)=>b.score-a.score);
   empty.style.display = 'none';
   const tabs = crewTabs();
-  if (crewScope !== 'crew' && (currentPlayer?.programs || []).some(e => e.id === crewScope)) return renderBoard(tabs);
+  if (crewScope === 'challenges') return renderChallenges(tabs);
+  if (crewScope === 'academy' && acadProg()) return renderBoard(tabs);
+  if (crewScope !== 'crew') crewScope = 'crew';
   list.innerHTML = tabs + `<div class="crew-toggle"><button class="${wk?'sel':''}" onclick="crewMode='week';renderCrew()">THIS WEEK</button><button class="${wk?'':'sel'}" onclick="crewMode='season';renderCrew()">${ss.n ? 'SEASON '+ss.n : 'PRESEASON'}</button></div>${ups.map(u=>`<div class="rankups">⬆ ${u.p.name} made <span style="color:${u.r.color}">${u.r.name}</span> today</div>`).join('')}
     <div style="font-size:11px;color:var(--sub);margin:-2px 0 12px">${wk ? `Weekly XP · resets Monday${left?` · ${left} day${left===1?'':'s'} left`:' · last day!'} ` : ''}🤖 Pace bots train the same amount every day.</div>`;
   const colors = {};
@@ -3084,6 +3109,117 @@ function renderCrew() {
     }
     list.appendChild(card);
   });
+}
+
+// ─── CHALLENGES (Founders first): kid asks, parent approves, weekly board by days trained ───
+let CH = {list:null, boards:{}, at:0};
+function chFmtDate(d) { return new Date(d + 'T12:00').toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'}); }
+function chStarted(c) { return localDate() >= c.starts; }
+function chDemo() { const wk = weekDates(0)[0], R = [['Mateo','#f97316',6,1840,2],['Alex','#22c55e',5,1520,1],['Gabi','#a78bfa',5,1310,0],['Leo','#38bdf8',3,980,0],['Sofia','#facc15',2,720,0],['Kai','#ef4444',1,410,0]];
+  CH.list = [{id:'founders', name:'Founders Challenge', blurb:'Every founding StreakFC kid, battling week by week. Most days trained wins. Resets every Monday.', starts:'2026-10-01', status:'joined', members:R.length}];
+  CH.boards.founders = {starts:'2026-10-01', rows:R.map(([n,c,d,x,t]) => ({id:'demo-'+n, nickname:n, color:c, days:d, week_xp:x, titles:t, streak:d, last_log:localDate(), age_group:'U10', me:n === 'Alex'})), last:{nickname:'Mateo', days:6, xp:2100, me:false}, week:wk}; }
+async function loadChallenges(force) {
+  const p = currentPlayer; if (!p) return;
+  if (DEMO) { chDemo(); if (crewScope === 'challenges') renderCrew(); return; }
+  if (!deviceToken() && !currentUser) return;
+  if (!force && CH.list && Date.now() - CH.at < 60e3) return;
+  CH.at = Date.now();
+  try { CH.list = await rpc('sfc_challenges_for', {p_token:deviceToken() || null, p_player:p.id}) || []; } catch(e) { CH.err = e.message; if (crewScope === 'challenges') renderCrew(); return; }
+  const wk = weekDates(0)[0];
+  await Promise.all(CH.list.filter(c => c.status === 'joined').map(async c => {
+    try { CH.boards[c.id] = {...(await rpc('sfc_challenge_board', {p_token:deviceToken() || null, p_player:p.id, p_challenge:c.id, p_week:wk})), week:wk}; } catch(e) {} }));
+  if (crewScope === 'challenges') renderCrew();
+  renderChampBadge(); chPopups();
+}
+async function askToJoin(id) {
+  if (DEMO) { showToast('Demo: this would ask your parent', 'success'); return; }
+  try { const st = await rpc('sfc_challenge_request', {p_token:deviceToken() || null, p_player:currentPlayer.id, p_challenge:id});
+    const c = (CH.list || []).find(x => x.id === id); if (c) c.status = st;
+    showToast(st === 'joined' ? "You're in! 🏆" : 'Sent! Your parent will see it on their dashboard', 'success'); closeChModal(); renderCrew(); }
+  catch(e) { showToast('Needs internet. Try again in a bit.', 'error'); }
+}
+function chRow(r, i, started) {
+  const col = r.color || '#4fc3f7', crown = started && i === 0 && r.days > 0 ? '👑' : started ? i + 1 : '';
+  return `<div class="crew-card ch-row" style="margin-bottom:8px;${r.me ? `border-color:${col}` : ''}">
+    <div style="width:20px;color:var(--sub);font-weight:900;text-align:center">${crown}</div>
+    <div class="crew-avatar" style="background:${r.has_avatar && r.avatar ? '#0b1220' : col}">${r.has_avatar && r.avatar ? jerseySVG(kitCfg(r.avatar)) : esc((r.nickname || '?')[0].toUpperCase())}</div>
+    <div style="min-width:0"><div class="crew-name">${esc(r.nickname)}${r.me ? ' <span class="bot-tag" style="background:var(--accent);color:#fff">YOU</span>' : ''}${r.titles ? ` <span class="ch-titles">👑×${r.titles}</span>` : ''}</div>
+      <div class="crew-rank">${esc(r.age_group || '')}${started ? ` · ${(r.week_xp || 0).toLocaleString()} XP` : ''}</div></div>
+    ${started ? `<div class="ch-days"><b>${r.days}</b><span>/7 days</span></div>` : ''}</div>`;
+}
+function renderChallenges(tabs) {
+  const list = document.getElementById('crewList');
+  if (!CH.list) { list.innerHTML = tabs + `<div class="crew-empty">${CH.err ? 'Challenges need internet. Try again in a bit.' : 'Loading…'}</div>`; loadChallenges(); return; }
+  loadChallenges();
+  if (!CH.list.length) { list.innerHTML = tabs + '<div class="crew-empty">No challenges running right now. Check back soon.</div>'; return; }
+  list.innerHTML = tabs + CH.list.map(c => {
+    const B = CH.boards[c.id], started = chStarted(c), head = `<div class="ch-head"><div class="ch-name">🏆 ${esc(c.name.toUpperCase())}</div><div class="ch-sub">${esc(c.blurb || '')}</div></div>`;
+    if (c.status !== 'joined') return `<div class="ch-card">${head}
+      <div class="ch-meta">${started ? 'Running now' : 'Kicks off ' + chFmtDate(c.starts)} · ${c.members ? c.members + ' kid' + (c.members === 1 ? '' : 's') + ' in' : 'be one of the first in'}</div>
+      ${c.status === 'requested' ? `<div class="ch-wait">⏳ Waiting for your parent to say yes</div>` : `<button class="start-btn" style="margin-top:12px" onclick="askToJoin('${c.id}')"><b>🙋 ASK MY PARENT TO JOIN</b><span>Your parent approves it on their dashboard</span></button>`}</div>`;
+    if (!B) return `<div class="ch-card">${head}<div class="crew-empty">Loading…</div></div>`;
+    const rows = B.rows || [], days = Math.ceil((new Date(c.starts + 'T12:00') - new Date(localDate() + 'T12:00')) / 864e5), left = 6 - dayIdxThisWeek();
+    return `<div class="ch-card">${head}
+      ${started ? (B.last && B.last.days ? `<div class="ch-last">👑 Last week: <b>${esc(B.last.nickname)}</b>${B.last.me ? ' (you!)' : ''} · ${B.last.days}/7 days</div>` : '')
+        + `<div class="ch-meta">This week · most days trained wins, XP breaks ties · ${left ? left + ' day' + (left === 1 ? '' : 's') + ' left' : 'last day!'}</div>`
+        : `<div class="ch-count">Kicks off ${chFmtDate(c.starts)}${days > 0 ? ` · ${days} day${days === 1 ? '' : 's'} to go` : ''}</div><div class="ch-meta">You're in. ${rows.length} kid${rows.length === 1 ? '' : 's'} so far.</div>`}
+      ${(started ? rows : [...rows].sort((a, b) => (a.nickname || '').localeCompare(b.nickname || ''))).map((r, i) => chRow(r, i, started)).join('')}</div>`;
+  }).join('');
+}
+function renderChampBadge() {
+  const el = document.getElementById('profileChamp'); if (!el) return;
+  const t = Object.entries(CH.boards).map(([id, B]) => { const me = (B.rows || []).find(r => r.me), c = (CH.list || []).find(x => x.id === id); return me && me.titles ? `👑 ${me.titles}× ${esc((c || {}).name || 'Challenge')} week champ` : ''; }).filter(Boolean);
+  el.innerHTML = t.join('<br>'); el.style.display = t.length ? 'block' : 'none';
+}
+function chModal(html) {
+  let m = document.getElementById('chModal');
+  if (!m) { m = document.createElement('div'); m.id = 'chModal'; m.className = 'modal-overlay'; m.onclick = e => { if (e.target === m) closeChModal(); }; document.body.appendChild(m); }
+  m.style.zIndex = 400; m.innerHTML = `<div class="modal-sheet ch-sheet">${html}</div>`; m.classList.add('open');
+}
+function closeChModal() { const m = document.getElementById('chModal'); if (m) m.classList.remove('open'); }
+function chPopups() {
+  const p = currentPlayer; if (!p || DEMO || !CH.list || document.getElementById('app').style.display !== 'flex') return;
+  const wk = weekDates(0)[0];
+  for (const c of CH.list) {   // Monday recap first
+    const B = CH.boards[c.id], k = `sfc_recap_${c.id}_${wk}_${p.id}`;
+    if (c.status === 'joined' && B && B.last && B.last.days && !localStorage.getItem(k)) { localStorage.setItem(k, '1');
+      return chModal(`<div class="ch-pop"><div class="ch-big">👑</div><div class="ch-kicker">${esc(c.name.toUpperCase())} · LAST WEEK'S CHAMP</div>
+        <div class="ch-title">${B.last.me ? "THAT'S YOU!" : esc(B.last.nickname)}</div><div class="ch-stat">${B.last.days}/7 days trained · ${(B.last.xp || 0).toLocaleString()} XP</div>
+        <div class="ch-sub2">New week, fresh board. Day 1 starts now.</div><button class="modal-save-btn" onclick="closeChModal();crewScope='challenges';switchTab('crew');renderCrew()">SEE THE BOARD</button></div>`); }
+  }
+  for (const c of CH.list) {   // invite pop-up, at most once every 5 days
+    const k = `sfc_chpop_${c.id}_${p.id}`, last = +localStorage.getItem(k) || 0;
+    if ((!c.status || c.status === 'none') && Date.now() - last > 5 * 864e5) { localStorage.setItem(k, String(Date.now()));
+      return chModal(`<div class="ch-pop"><div class="ch-big">🏆</div><div class="ch-kicker">${chStarted(c) ? 'RUNNING NOW' : 'STARTS ' + chFmtDate(c.starts).toUpperCase()}</div>
+        <div class="ch-title">${esc(c.name.toUpperCase())}</div><div class="ch-sub2">${esc(c.blurb || '')}</div><div class="ch-stat">${c.members ? `${c.members} kid${c.members === 1 ? '' : 's'} in so far` : 'Be one of the first in'}</div>
+        <button class="modal-save-btn" onclick="askToJoin('${c.id}')">🙋 ASK MY PARENT TO JOIN</button><button class="ch-later" onclick="closeChModal()">Maybe later</button></div>`); }
+  }
+}
+// Parent dashboard: approve kids into challenges
+let PCH = null;
+async function loadParentChallenges(el) {
+  if (!el) return; if (PCH) paintParentChallenges(el);
+  try { PCH = await rpc('sfc_family_challenges', {}) || []; paintParentChallenges(el); } catch(e) {}
+}
+function paintParentChallenges(el) {
+  const kidsById = Object.fromEntries(players.map(k => [k.id, k]));
+  el.innerHTML = (PCH || []).map(c => {
+    const ids = Object.keys(c.kids || {}).filter(id => kidsById[id]); if (!ids.length) return '';
+    const st = id => c.kids[id], open = ids.some(id => st(id) === 'none' || st(id) === 'requested'), manage = el.dataset.manage === c.id;
+    if (!open && !manage) { const inn = ids.filter(id => st(id) === 'joined').map(id => esc(kidsById[id].name));
+      return `<div class="ch-pline">🏆 <b>${esc(c.name)}</b> · ${inn.length ? 'In: ' + inn.join(', ') : 'Not joined'} <a onclick="this.closest('[data-pch]').dataset.manage='${c.id}';paintParentChallenges(this.closest('[data-pch]'))">Manage</a></div>`; }
+    return `<div class="ch-pcard"><div class="ch-name">🏆 ${esc(c.name.toUpperCase())}</div>
+      <div class="ch-sub" style="margin:4px 0 10px">${esc(c.blurb || '')} ${localDate() < c.starts ? 'Kicks off ' + chFmtDate(c.starts) + '.' : ''}</div>
+      ${ids.map(id => `<label class="ch-kid"><input type="checkbox" data-kid="${id}" ${st(id) !== 'declined' ? 'checked' : ''}> <b>${esc(kidsById[id].name)}</b>${st(id) === 'requested' ? ' <span class="ch-asked">🙋 asked to join</span>' : st(id) === 'joined' ? ' <span class="ch-in">in</span>' : ''}</label>`).join('')}
+      <div class="ch-priv">Other families see nickname, avatar, streak and weekly numbers only. Leave anytime.</div>
+      <button class="modal-save-btn" style="margin-top:10px" onclick="saveParentChallenge('${c.id}', this)">SAVE</button></div>`;
+  }).join('');
+}
+async function saveParentChallenge(id, btn) {
+  const box = btn.closest('.ch-pcard'), el = btn.closest('[data-pch]'); btn.disabled = true;
+  try { for (const cb of box.querySelectorAll('input[data-kid]')) await rpc('sfc_challenge_set', {p_player:cb.dataset.kid, p_challenge:id, p_join:cb.checked});
+    showToast('Saved. Joined kids see the board in Crew 🏆', 'success'); delete el.dataset.manage; PCH = null; loadParentChallenges(el); CH.list = null; }
+  catch(e) { btn.disabled = false; showToast('Could not save. Try again.', 'error'); }
 }
 
 // ─── NAV ──────────────────────────────────────────────
@@ -3673,7 +3809,9 @@ function estRound(p, skill, secs) {
 }
 // Pick the day's skills: 3-4 ball mastery, 3-4 moves, 1-2 wall (prefers their level, fills from all)
 // ── Coach videos + IDP (pulled with plans) ──
-function vidUrl(skill) { const m = jget('sfc_media', {})[skill]; return m && m.url; }
+// StreakFC's own drill videos (YouTube links). Coach/academy videos win; these fill the gaps. Add as they're filmed: skill id -> URL.
+const DEFAULT_VIDS = {};
+function vidUrl(skill) { const m = jget('sfc_media', {})[skill]; return (m && m.url) || DEFAULT_VIDS[skill] || ''; }
 function vidBtn(skill, small) { return vidUrl(skill) ? `<button class="vid-btn${small?' sm':''}" onclick="event.stopPropagation();openVideo('${skill}')">▶${small?'':' WATCH HOW'}</button>` : ''; }
 function embedOf(u) { let m;
   if ((m = u.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{6,})/))) return {src:'https://www.youtube-nocookie.com/embed/' + m[1] + '?rel=0&playsinline=1&modestbranding=1', tall:/shorts\//.test(u)};
@@ -4050,17 +4188,24 @@ function renderGoalList() {
     <div class="sk-desc">${isYoung(currentPlayer) ? 'Tap one to start the beeps. One touch every beep!' : 'Do each one, then tap it. Any order. 🎵 = do it on the beat.'}</div>
     <div class="touch-bar"><div class="touch-bar-fill" style="width:${Math.min(100,done/S.target*100)}%"></div></div>
     <div class="sk-desc"><b style="color:var(--text)">${done.toLocaleString()}</b> / ${S.target.toLocaleString()}</div>
-    ${isYoung(currentPlayer) ? `<div class="gy-grid">${S.items.map((it,i)=>`<div class="gy ${it.done?'done':''}" onclick="${it.done?`goalToggle(${i})`:`openBeat(${i})`}">
+    ${isYoung(currentPlayer) ? `<div class="gy-grid">${S.items.map((it,i)=>`<div class="gy ${it.done?'done':''}" onclick="${it.done?`goalToggle(${i})`:`openBeat(${i})`}"><button class="info-btn gy-info" onclick="event.stopPropagation();drillInfo('${it.skill}')" aria-label="What is this?">i</button>
       <div class="gy-i">${it.done?'✅':({bm:'🦶',wall:'🧱',mv:'🌀'})[SKILLS[it.skill].block]||'⚽'}</div><div class="gy-n">${SKILLS[it.skill].name}</div>
       <div class="gy-c">${it.count}${it.foot?`<small>${it.foot.toLowerCase()}</small>`:''}</div><div class="gy-dots">${[...Array(Math.min(10,Math.ceil(it.count/10)))].map(()=>'<i></i>').join('')}</div></div>`).join('')}</div>` : ''}
     ${S.items.map((it,i)=> isYoung(currentPlayer) ? '' : `<div class="gi ${it.done?'done':''}" onclick="goalToggle(${i})">
       <div class="ck">${it.done?'✓':''}</div>
-      ${vidBtn(it.skill, true)}<div class="gi-name">${idpDrills(currentPlayer).includes(it.skill)?'🎯 ':''}${SKILLS[it.skill].name}<small>${it.foot?it.foot.toLowerCase():''}${tpr(it.skill)>1?`${it.foot?' · ':''}${itemTouches(it)} touches`:''}</small></div>
+      ${vidBtn(it.skill, true)}<button class="info-btn" onclick="event.stopPropagation();drillInfo('${it.skill}')" aria-label="What is this?">i</button><div class="gi-name">${idpDrills(currentPlayer).includes(it.skill)?'🎯 ':''}${SKILLS[it.skill].name}<small>${it.foot?it.foot.toLowerCase():''}${tpr(it.skill)>1?`${it.foot?' · ':''}${itemTouches(it)} touches`:''}</small></div>
       <div class="gi-cnt">${it.count}</div>${it.done?'':`<button class="beat-btn" onclick="event.stopPropagation();openBeat(${i})" aria-label="Do it on the beat">🎵</button>`}</div>`).join('')}
     ${done >= S.target ? `<button class="big-btn ghost" onclick="S.items.push(...buildGoalItems(currentPlayer,250,pickSkills(currentPlayer,'+'+S.items.length)).slice(0,2));saveSess();renderGoalList()">+ BONUS ROUND (250 MORE)</button>` : ''}
     <div style="flex:1"></div>
     ${goalFinishHint()}
     <button class="big-btn" ${goalCanFinish()?'':'disabled style="opacity:.4"'} onclick="commitSession()">FINISH & LOG 🔥</button>`);
+}
+function drillInfo(k) {
+  const sk = SKILLS[k]; if (!sk) return; const v = vidUrl(k);
+  chModal(`<div class="ch-pop" style="text-align:left"><div class="ch-kicker" style="text-align:left">${esc((BLOCK_LBL[sk.block] || '').toUpperCase())}</div><div class="ch-title" style="font-size:22px">${esc(sk.name)}</div>
+    <div class="ch-sub2" style="font-size:15px;color:var(--text);margin:8px 0 14px">${esc(sk.desc || '')}</div>
+    ${v ? `<button class="modal-save-btn" onclick="closeChModal();openVideo('${k}')">▶ WATCH HOW</button>` : `<div class="ch-meta">🎬 Video coming soon.</div>`}
+    <button class="ch-later" onclick="closeChModal()">Got it</button></div>`);
 }
 // Minimum to log: 6 boxes (or all if fewer) with at least one from each section
 function goalCanFinish() {
@@ -4579,7 +4724,7 @@ function commitEPA(d) {
 }
 
 // ── MSA forms, in the app: Goal Worksheet, Weekly Journal, Game Analysis (step-by-step, tap-first) ──
-const JOURNAL_XP = 50, FILM_XP = 40, SHEET_XP = 50, PREGAME_XP = 15, GAME_XP = 60;
+const PROGAME_XP = 40, JOURNAL_XP = 50, FILM_XP = 40, SHEET_XP = 50, PREGAME_XP = 15, GAME_XP = 60;
 const GAME_TOUCHES = {'0-15':150, '15-30':300, '30-45':450, '45-60':600, '60+':750};
 const AREAS = ['First Touch','Passing','Dribbling','Shooting','Defending','Speed','Decision Making','Communication','Confidence','Leadership'];
 const WORKED = ['Ball Mastery','Juggling','Passing','Shooting','Speed','Strength','Watching Soccer','Recovery','Stretching','Scanning'];
@@ -4595,8 +4740,13 @@ const FORMS = {
       {k:'mins', t:'chips', o:['0','15-30','30-60','60+'], l:'Minutes on your own (per day)'}, {k:'worked', t:'chips', multi:1, o:WORKED, l:'What did you work on?'}]},
     {h:'Wellness', f:[{k:'sleep', t:'chips', o:['Less than 7','7-8','8-9','9+'], l:'Average hours of sleep', req:1}, {k:'energy', t:'scale', n:5, l:'Energy level · 1 = drained · 5 = full energy', req:1},
       {k:'mental', t:'chips', o:['Great','Good','Okay','Stressed','Need to talk'], l:'How are you feeling mentally?', req:1}, {k:'hurt', t:'chips', multi:1, o:HURT, none:'Nope 👍', l:'Anything hurting?'}]},
-    {h:'Next week + coach', f:[{k:'goal', t:'text', l:'My #1 goal for next week'}, {k:'habit', t:'text', l:'One habit I will improve'}, {k:'coachMsg', t:'text', l:'Anything you want your coach to know?'},
+    {h:'Next week + coach', sub:'Make your goal something you can count. "Work hard" doesn\'t count.', f:[{k:'goal', t:'text', l:'My #1 goal for next week: what, how many, how often', ph:'e.g. 20 left-foot wall passes every day', req:1, specific:1}, {k:'habit', t:'text', l:'One habit I will improve'}, {k:'coachMsg', t:'text', l:'Anything you want your coach to know?'},
       {k:'followup', t:'chips', o:['Yes','No'], l:'Want a coach to follow up with you?', req:1}]}]},
+  progame: {title:'Watch a pro game', xp:PROGAME_XP, steps:[
+    {h:'The game', sub:'Watch like a pro: pick one player and follow them, even when they don\'t have the ball.', f:[{k:'match', t:'text', l:'Which game?', ph:'e.g. Arsenal vs Chelsea', req:1},
+      {k:'player', t:'text', l:'Player you followed', req:1}, {k:'pos', t:'chips', o:FILM_POS, l:'Their position', req:1}]},
+    {h:'What you saw', f:[{k:'off', t:'text', l:'Something smart they did WITHOUT the ball', req:1}, {k:'on', t:'text', l:'Something they did WITH the ball you want to copy', req:1},
+      {k:'try', t:'text', l:'What will you try in your next game or training?', req:1}]}]},
   film: {title:'Game analysis', xp:FILM_XP, steps:[
     {h:'The game', f:[{k:'link', t:'text', l:'Link to the game video', req:1, ph:'https://'}, {k:'date', t:'date', l:'Game date', req:1}, {k:'color', t:'text', l:'Your team color', req:1},
       {k:'formation', t:'chips', o:FORMATIONS, l:'Formation', req:1}, {k:'position', t:'chips', o:FILM_POS, l:'Your position', req:1}]},
@@ -4653,7 +4803,10 @@ function formField(f, v) {
 function formHurtSet(k, v, quiet) { epaDraft.v[k] = v; saveFormDraft(); if (!quiet) paintEpa(); }
 function formSet(k, v, quiet) { epaDraft.v[k] = v; saveFormDraft(); if (quiet) { const s = document.getElementById('epaSave'); s.disabled = !formStepOk(); } else paintEpa(); }
 function formPick(k, o, multi) { const cur = epaDraft.v[k]; epaDraft.v[k] = multi ? (Array.isArray(cur) && cur.includes(o) ? cur.filter(x => x !== o) : [...(cur||[]), o]) : (cur === o ? '' : o); paintEpa(); }
-function formStepOk() { const st = FORMS[epaDraft.kind].steps[epaDraft.step]; return st.f.every(f => !f.req || (Array.isArray(epaDraft.v[f.k]) ? true : String(epaDraft.v[f.k] ?? '').trim() !== '')); }
+function isSpecific(t) { t = String(t || '').trim(); const words = t.split(/\s+/).filter(Boolean).length;
+  const vague = /\b(work(ing)? hard(er)?|try(ing)? (hard|harder|my best)|do (better|good|my best)|play better|get better|practice more|be better|give 100)\b/i.test(t);
+  return words >= 4 && (/\d/.test(t) || !vague); }
+function formStepOk() { const st = FORMS[epaDraft.kind].steps[epaDraft.step]; return st.f.every(f => (!f.req || (Array.isArray(epaDraft.v[f.k]) ? true : String(epaDraft.v[f.k] ?? '').trim() !== '')) && (!f.specific || isSpecific(epaDraft.v[f.k]))); }
 function paintForm() {
   const d = epaDraft, F = FORMS[d.kind], st = F.steps[d.step], last = d.step === F.steps.length - 1;
   document.getElementById('epaTitle').textContent = F.title;
@@ -4910,6 +5063,7 @@ function submitForm() {
   if (Array.isArray(v.hurt)) { v.hurt = hurtFold(v); delete v.side; delete v.where; }
   if (d.kind === 'journal') { const key = 'wk_' + weekDates(0)[0]; if ((epaLog(p.id)[key]||{}).weekly) return; setEpaLog(p.id, key, 'weekly', v); progXP(p, F.xp, 'weekly', [{weekly:v}]); }
   else if (d.kind === 'film') { if ((epaLog(p.id)[today]||{}).film) return showToast('One game analysis per day'); setEpaLog(p.id, today, 'film', v); progXP(p, F.xp, 'film', [{film:v}]); }
+  else if (d.kind === 'progame') { if ((epaLog(p.id)[today]||{}).progame) return showToast('One pro game per day'); setEpaLog(p.id, today, 'progame', v); progXP(p, F.xp, 'progame', [{progame:v}]); }
   else if (d.kind === 'pregame') { if ((epaLog(p.id)[today]||{}).pregame) return; setEpaLog(p.id, today, 'pregame', v); progXP(p, F.xp, 'pregame', [{pregame:v}]); }
   else if (d.kind === 'game') { return commitGame(p, v); }
   else { const first = !((p.goals||{}).sheet); p.goals = {...(p.goals||{}), sheet:{...v, at:today}}; progXP(p, first ? F.xp : 0, 'goalsheet', [{sheet:v}]); }
