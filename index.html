@@ -980,6 +980,13 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
 .tour-btns{display:flex;justify-content:space-between;align-items:center;margin-top:14px}.tour-skip{background:none;border:0;color:var(--sub);font-weight:700;font-size:14px;padding:8px 4px}
 .tour-next{background:#96F308;color:#0b0f17;border:0;border-radius:12px;font-weight:900;font-size:15px;padding:10px 18px}
 .tour-replay{display:block;margin:0 auto 16px;background:none;border:0;color:var(--sub);font-weight:700;font-size:13px;text-decoration:underline}
+.earn-card{display:flex;flex-direction:column;gap:10px;margin-bottom:4px}
+.earn-row{display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:16px;background:linear-gradient(135deg,#facc1522,#96F30814);border:2px solid #facc15}
+.earn-row.miss{background:var(--bg2);border:1px solid var(--border)}
+.earn-big{font-size:34px;line-height:1}.earn-k{font-size:10px;font-weight:900;letter-spacing:2px;color:#facc15}.earn-row.miss .earn-k{color:var(--sub)}
+.earn-t{font-size:17px;font-weight:900;margin:2px 0}.earn-t b{color:#facc15}.earn-s{font-size:12px;color:var(--sub);line-height:1.35}
+.earn-acts{display:flex;gap:8px;margin-top:10px}
+.tr-won{display:flex;flex-direction:column;gap:6px;margin:8px 0 10px}.tr-wonrow{display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:8px 10px;border-radius:10px;background:#facc1514;border:1px solid #facc1544}.tr-wonrow span{color:var(--sub);font-size:11px;font-weight:700}
 .bonus-head span{color:var(--sub);font-weight:900}.bonus-head.on{border-color:#22c55e88}
 .done-h{margin-top:14px;font-size:17px;font-weight:900;color:#22c55e}.done-acts{display:grid;grid-template-columns:1.4fr 1fr;gap:8px;margin-top:10px}
 .done-acts .start-btn{margin-top:0;padding:12px 8px}.done-acts .start-btn b{font-size:15px}
@@ -1786,6 +1793,7 @@ function hydratePlayer(data) {
   if (p.badges) set(`sfc_badges_${id}`, p.badges);
   if ('avatar' in p) set(`sfc_avatar_${id}`, p.avatar);
   if ('reward' in p) set(`sfc_reward_${id}`, p.reward);
+  if ('rewards_won' in p) set(`sfc_won_${id}`, p.rewards_won || []);
   if (p.juggle_min) set(`sfc_jugglemin_${id}`, String(p.juggle_min));
   if (p.juggle_pb) set(`sfc_juggle_${id}`, String(Math.max(p.juggle_pb, parseInt(localStorage.getItem(`sfc_juggle_${id}`)||'0'))));
   if (p.created_at && !localStorage.getItem(`sfc_firstday_${id}`)) set(`sfc_firstday_${id}`, String(p.created_at).slice(0,10));
@@ -2473,7 +2481,7 @@ function renderParentPortal() {
   const body = document.getElementById('portalBody');
   body.innerHTML = '';
   document.getElementById('portalTitle').textContent = family?.parent_name ? `${family.parent_name.toUpperCase()}'S CREW` : 'YOUR CREW';
-  if (players.length) { const fs = firstSessionCard(); if (fs) body.appendChild(fs); const ic = ideasCard(); if (ic) body.appendChild(ic); body.appendChild(todayStrip()); { const ch = document.createElement('div'); ch.dataset.pch = '1'; body.appendChild(ch); loadParentChallenges(ch); const sq = document.createElement('div'); sq.dataset.psq = '1'; body.appendChild(sq); loadParentSquads(sq); } body.appendChild(weekRecapCard()); }
+  if (players.length) { const ec = earnedCard(); if (ec) body.appendChild(ec); const fs = firstSessionCard(); if (fs) body.appendChild(fs); const ic = ideasCard(); if (ic) body.appendChild(ic); body.appendChild(todayStrip()); { const ch = document.createElement('div'); ch.dataset.pch = '1'; body.appendChild(ch); loadParentChallenges(ch); const sq = document.createElement('div'); sq.dataset.psq = '1'; body.appendChild(sq); loadParentSquads(sq); } body.appendChild(weekRecapCard()); }
   players.forEach(p => {
     const color = p.color || '#4fc3f7', rank = rankOf(p), w = kidWeek(p);
     const card = document.createElement('div');
@@ -3207,6 +3215,7 @@ function endTour(done) {
   const was = TOUR.on; TOUR.on = false; try { localStorage.setItem(TOUR.key, '1'); } catch(e) {}
   if (!was) return;
   if (TOUR.kind === 'kid') { const sh = document.getElementById('screen-home'); if (sh) sh.scrollTop = 0; setTimeout(chPopups, 500); }
+  else { const pb = document.getElementById('portalBody'); if (pb) pb.scrollTop = 0; }
 }
 // ─── CHALLENGES (Founders first): kid asks, parent approves, weekly board by days trained ───
 let CH = {list:null, boards:{}, at:0};
@@ -3275,6 +3284,7 @@ function chModal(html) {
 }
 function closeChModal() { const m = document.getElementById('chModal'); if (m) m.classList.remove('open'); }
 function chPopups() {
+  if (document.getElementById('app').style.display === 'flex' && rewardPopups()) return;
   const p = currentPlayer; if (!p || DEMO || TOUR.on || !CH.list || document.getElementById('app').style.display !== 'flex') return;
   const wk = weekDates(0)[0];
   for (const c of CH.list) {   // Monday recap first
@@ -3583,7 +3593,7 @@ function renderRewardCard() {
     const html = `<div class="reward-top"><div class="reward-name">🎯 CHALLENGE · ${esc(r.name)}</div><div class="reward-count">${end ? end.toUpperCase() : ''}</div></div>
       <div style="font-size:12px;color:var(--text);font-weight:700;margin-bottom:8px">${rGoalTxt(r)}${r.end ? ' ' + (end === 'ended' ? '' : end) : ''} → ${esc(r.name)}</div>
       <div class="reward-bar"><div style="width:${n/T*100}%"></div></div>
-      <div style="font-size:11px;color:var(--sub);margin-top:6px">${n.toLocaleString()} / ${T.toLocaleString()} · ${done ? 'You did it! Go tell your parents 🎉' : end === 'ended' ? 'Time ran out on this one. Ask for a rematch.' : left + ' to go'}</div>`;
+      <div style="font-size:11px;color:var(--sub);margin-top:6px">${n.toLocaleString()} / ${T.toLocaleString()} · ${done ? '🏆 Earned! Waiting on your parent to deliver it' : end === 'ended' ? 'Time ran out on this one. Ask for a rematch.' : left + ' to go'}</div>`;
     home.style.display = 'block'; home.innerHTML = html; if (pick) { pick.style.display = 'block'; pick.innerHTML = html; }
     return;
   }
@@ -3605,6 +3615,42 @@ function saveWish(w) {
   const args = {p_token:deviceToken() || null, p_player:p.id, p_wish:w};
   if (deviceToken()) callOrQueue('sfc_player_wish', args); else if (currentUser) rpc('sfc_player_wish', args).catch(() => {});
   renderRewardCard(); showToast(`💡 Sent to your parent: ${w}`, 'success');
+}
+// Earned rewards: parent delivers (closes it out + logs it), kid gets a "delivered" moment and a trophy, then pitches the next one.
+function rEarned(id, r) { return !!(r && rTarget(r) && rewardProgress(id, r) >= rTarget(r)); }
+function rewardWon(id) { return jget(`sfc_won_${id}`, []); }
+function earnedCard() {
+  const kids = players.filter(p => rEarned(p.id, getReward(p.id))), miss = players.filter(p => { const r = getReward(p.id); return r && rTarget(r) && !rEarned(p.id, r) && rEndTxt(r) === 'ended'; });
+  if (!kids.length && !miss.length) return null;
+  const el = document.createElement('div'); el.className = 'earn-card';
+  el.innerHTML = kids.map(p => { const r = getReward(p.id); return `<div class="earn-row"><div class="earn-big">🏆</div><div style="flex:1"><div class="earn-k">CHALLENGE COMPLETE</div><div class="earn-t">${esc(p.name)} earned <b>${esc(r.name)}</b></div>
+      <div class="earn-s">${rGoalTxt(r)} done. Deliver it, then tap below to close it out.</div>
+      <div class="earn-acts"><button class="pt-btn" onclick="deliverReward('${p.id}',this)">✅ DELIVERED</button></div></div></div>`; }).join('')
+    + miss.map(p => { const r = getReward(p.id), n = rewardProgress(p.id, r); return `<div class="earn-row miss"><div class="earn-big">⏱️</div><div style="flex:1"><div class="earn-k">TIME RAN OUT</div><div class="earn-t">${esc(p.name)} · ${esc(r.name)}</div>
+      <div class="earn-s">${n.toLocaleString()} / ${rGoalTxt(r)}. Give them a rematch or clear it.</div>
+      <div class="earn-acts"><button class="pt-btn" onclick="openRewardModal('${p.id}')">🔁 REMATCH</button><button class="pt-btn ghost" onclick="rewardFor='${p.id}';clearReward()">CLEAR</button></div></div></div>`; }).join('');
+  return el;
+}
+async function deliverReward(id, btn) {
+  const p = players.find(x => x.id === id), r = getReward(id); if (!r) return; if (btn) btn.disabled = true;
+  try { const won = await rpc('sfc_reward_deliver', {p_player:id, p_date:localDate()}); localStorage.setItem(`sfc_won_${id}`, JSON.stringify(won || [])); }
+  catch(e) { if (btn) btn.disabled = false; return showToast('Could not save: ' + e.message, 'error'); }
+  localStorage.removeItem(`sfc_reward_${id}`);
+  renderParentPortal(); showToast(`🏆 ${p ? p.name : ''}'s ${r.name} closed out. Set the next one?`, 'success');
+  setTimeout(() => openRewardModal(id), 700);
+}
+// Kid: one-time pop-ups for "earned" and "delivered"
+function rewardPopups() {
+  const p = currentPlayer; if (!p || DEMO || TOUR.on) return false;
+  const r = getReward(p.id), won = rewardWon(p.id), last = won[won.length - 1];
+  if (last && localStorage.getItem(`sfc_wonseen_${p.id}`) !== String(won.length)) { localStorage.setItem(`sfc_wonseen_${p.id}`, String(won.length));
+    if (won.length && last.delivered) { chModal(`<div class="ch-pop"><div class="ch-big">🎁</div><div class="ch-kicker">DELIVERED</div><div class="ch-title">${esc(last.name)}</div>
+      <div class="ch-sub2">You earned it. It's in your trophy cabinet now.</div><div class="ch-stat">Challenges won: ${won.length}</div>
+      <button class="modal-save-btn" onclick="closeChModal();switchTab('profile');setTimeout(()=>{const e=document.getElementById('rewardPick');e&&e.scrollIntoView({block:'center'})},300)">💡 PITCH THE NEXT ONE</button><button class="ch-later" onclick="closeChModal()">Later</button></div>`); return true; } }
+  if (rEarned(p.id, r) && !localStorage.getItem(`sfc_earnseen_${p.id}_${r.start}_${r.name}`)) { localStorage.setItem(`sfc_earnseen_${p.id}_${r.start}_${r.name}`, '1');
+    chModal(`<div class="ch-pop"><div class="ch-big">🏆</div><div class="ch-kicker">CHALLENGE COMPLETE</div><div class="ch-title">${esc(r.name)}</div>
+      <div class="ch-sub2">${rGoalTxt(r)}. You did it. Go tell your parent so they can deliver it!</div><button class="modal-save-btn" onclick="closeChModal()">LET'S GOOO</button></div>`); return true; }
+  return false;
 }
 // Parent: ideas from the kids, top of the parent view
 function ideasCard() {
@@ -5520,7 +5566,9 @@ function seasonRevealFront(c) {
 function renderTrophies() {
   const p = currentPlayer, el = document.getElementById('trophyCard'); if (!p || !el) return;
   const all = recordSeason(p), cur = seasonOf().n, keys = Object.keys(all).map(Number).sort((a,b)=>b-a);
+  const won = rewardWon(p.id).slice().reverse();
   el.innerHTML = `<div class="badges-title">TROPHY CABINET</div><div class="tr-life">Lifetime XP <b>${(p.xp||0).toLocaleString()}</b></div>
+    ${won.length ? `<div class="tr-won">${won.map(w => `<div class="tr-wonrow">🎁 <b>${esc(w.name)}</b><span>${rGoalTxt(w)}${w.delivered ? ' · ' + new Date(w.delivered + 'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : ''}</span></div>`).join('')}</div>` : ''}
     ${keys.length ? keys.map(n => { const t = all[n], kit = getUnlocks(p.id).includes('kit_s'+n) && seasonKit(n);
       return `<div class="tr-row"><div class="tr-ic">${trophyEmoji(t.idx)}</div><div style="flex:1"><div class="tr-s">${n ? 'SEASON '+n+' · '+SEASON_NAMES[((n-1)%6)+1].toUpperCase() : 'PRESEASON'}${n===cur?' · NOW':''}</div><div class="tr-p">${t.peak}</div></div>${kit?`<div class="tr-kit">${jerseySVG({...seasonKit(n), number:''})}</div>`:''}</div>`; }).join('') : '<div class="tr-life">Finish a session to start your first trophy.</div>'}`;
 }
