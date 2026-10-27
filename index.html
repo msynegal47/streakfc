@@ -3217,7 +3217,7 @@ function chDemo() { const wk = weekDates(0)[0], R = [['Mateo','#f97316',6,1840,2
   CH.boards.founders = {starts:'2026-10-01', rows:R.map(([n,c,d,x,t]) => ({id:'demo-'+n, nickname:n, color:c, days:d, week_xp:x, titles:t, streak:d, last_log:localDate(), age_group:'U10', me:n === 'Alex'})), last:{nickname:'Mateo', days:6, xp:2100, me:false}, week:wk}; }
 async function loadChallenges(force) {
   const p = currentPlayer; if (!p) return;
-  if (DEMO) { chDemo(); if (crewScope === 'challenges') renderCrew(); return; }
+  if (DEMO) { const had = !!CH.list; chDemo(); if (!had && crewScope === 'challenges') renderCrew(); return; }
   if (!deviceToken() && !currentUser) return;
   if (!force && CH.list && Date.now() - CH.at < 60e3) return;
   CH.at = Date.now();
