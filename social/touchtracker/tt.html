@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:I;src:url(inter-latin-900-normal.woff2);font-weight:900}
+@font-face{font-family:I;src:url(inter-latin-700-normal.woff2);font-weight:700}
+html,body{margin:0;width:1080px;height:1920px;overflow:hidden;font-family:I,'Noto Color Emoji',sans-serif;color:#fff;
+ background:radial-gradient(800px 700px at 90% 5%,#74EF0840,transparent 60%),radial-gradient(800px 700px at 0% 100%,#F9731640,transparent 60%),#0B0F17}
+.wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding-top:250px;text-align:center}
+.mk{width:150px}.k{margin-top:30px;font-weight:900;font-size:40px;letter-spacing:8px;color:#96F308}.wk{font-weight:700;font-size:34px;color:#9aa3b5;margin-top:12px}
+.n{font-weight:900;font-size:250px;line-height:1;letter-spacing:-10px;margin-top:60px}.u{font-weight:900;font-size:64px;color:#F97316;margin-top:6px}
+.row{display:flex;gap:26px;margin-top:80px}.c{background:#141a26;border:2px solid #ffffff1c;border-radius:32px;padding:30px 36px;min-width:230px}
+.c b{display:block;font-weight:900;font-size:76px}.c span{font-weight:700;font-size:26px;letter-spacing:3px;color:#9aa3b5}
+.tot{margin-top:70px;font-weight:700;font-size:40px;color:#d6dbe4}.tot b{color:#96F308}
+.cta{position:absolute;bottom:330px;left:0;right:0;text-align:center;font-weight:900;font-size:40px}.cta em{font-style:normal;color:#96F308}
+</style></head><body><div class="wrap">
+<img class="mk" src="mark.png"><div class="k">TOUCH TRACKER</div><div class="wk" id="wk"></div>
+<div class="n" id="n"></div><div class="u">touches this week 🔥</div>
+<div class="row"><div class="c"><b id="kids"></b><span>KIDS TRAINED</span></div><div class="c"><b id="sess"></b><span>SESSIONS</span></div></div>
+<div class="tot" id="tot"></div></div>
+<div class="cta">Every touch counts. <em>streakfc.app</em></div>
+<script>const q=new URLSearchParams(location.search),f=x=>Number(x).toLocaleString('en-US');
+document.getElementById('wk').textContent=q.get('label');document.getElementById('n').textContent=f(q.get('touches'));
+document.getElementById('kids').textContent=f(q.get('kids'));document.getElementById('sess').textContent=f(q.get('sessions'));
+document.getElementById('tot').innerHTML=q.get('total')?`Since Oct 1: <b>${f(q.get('total'))}</b> touches`:'';</script></body></html>
