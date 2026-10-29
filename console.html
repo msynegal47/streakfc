@@ -452,12 +452,13 @@ function vProgram(id) {
   return `<div class="hdr"><div><h2>${ic} ${esc(P.name)}</h2><div class="s">${esc(kl)} · ${D.players.length} on StreakFC${waiting.length ? ` · ${waiting.length} not yet` : ''}</div><div class="legend" style="margin-top:4px;max-width:560px">${esc(desc)}</div></div>
     <div style="display:flex;gap:8px;align-items:center"><div class="kpi" style="padding:8px 14px;white-space:nowrap"><span class="legend">JOIN CODE</span> <b style="color:var(--accent);letter-spacing:3px;font-size:18px">${esc(D.code||'-')}</b></div><button class="btn add-btn" style="white-space:nowrap" onclick="openAddRoster('${id}')">＋ ADD PLAYER</button></div></div>
     ${D.mock ? `<div class="sandbox-banner">🧪 <b>SANDBOX</b> · sample players and notes.</div>` : ''}
+    ${weekCard(id)}
     <div class="card" style="padding:6px 14px"><div class="card-h" style="margin:10px 0 4px">ON STREAKFC <span class="legend">click for profile, IDP, lesson notes</span></div>
-      ${D.players.length ? `<table class="tight"><tr><th>PLAYER</th><th>AGE</th><th class="num">STREAK</th><th class="num">HOME 7D</th><th>LAST ACTIVE</th><th>IDP</th><th>LESSONS</th></tr>
-      ${D.players.map(p => { const i = (D.idps||{})[p.id], n = notesOf(p.id); return `<tr class="click" onclick="openKid('${p.id}')"><td>${kidCell(p)}</td><td class="muted small">${esc(p.age_group||'')}</td><td class="num">${liveStreak(p)}🔥</td><td class="num">${fmtK(sumT(p,7))}</td><td class="small muted">${esc(lastActive(p)||'-')}</td><td>${i ? `<span class="chip c-teal">${esc(i.date||'set')}</span>` : '<span class="muted small">-</span>'}</td><td class="small">${lessonCell(R.find(r => r.player_id === p.id))}</td></tr>`; }).join('')}</table>`
+      ${D.players.length ? `<table class="tight"><tr><th>PLAYER</th><th>AGE</th><th class="num">STREAK</th><th class="num">HOME 7D</th><th>LAST ACTIVE</th><th>IDP</th><th>LESSONS</th><th>CREDITS</th><th>WEEKLY</th></tr>
+      ${D.players.map(p => { const i = (D.idps||{})[p.id], n = notesOf(p.id); return `<tr class="click" onclick="openKid('${p.id}')"><td>${kidCell(p)}</td><td class="muted small">${esc(p.age_group||'')}</td><td class="num">${liveStreak(p)}🔥</td><td class="num">${fmtK(sumT(p,7))}</td><td class="small muted">${esc(lastActive(p)||'-')}</td><td>${i ? `<span class="chip c-teal">${esc(i.date||'set')}</span>` : '<span class="muted small">-</span>'}</td><td class="small">${lessonCell(R.find(r => r.player_id === p.id))}</td><td>${credChip(R.find(r => r.player_id === p.id))}</td><td class="small muted">${esc(slotLbl((R.find(r => r.player_id === p.id)||{}).slot))}</td></tr>`; }).join('')}</table>`
       : '<div class="muted small" style="padding:8px 0 12px">No one yet. Give families the join code.</div>'}</div>
     <div class="card" style="padding:6px 14px"><div class="card-h" style="margin:10px 0 4px">NOT ON STREAKFC YET <span class="legend">nickname + age group only. Parent connects with the code</span></div>
-      ${waiting.length ? `<table class="tight"><tr><th>PLAYER</th><th>AGE</th><th>LESSONS</th><th>PARENT CODE</th><th></th></tr>${waiting.map(r => `<tr class="click" onclick="openRoster('${id}','${r.id}')"><td><b>${esc(r.nickname)}</b></td><td class="muted small">${esc(r.age_group||'')}</td><td class="small">${lessonCell(r)}</td><td><span class="chip c-sub" style="letter-spacing:1.5px">${esc(r.claim_code)}</span></td><td class="num"><span class="small" style="color:var(--accent)">Open</span></td></tr>`).join('')}</table>`
+      ${waiting.length ? `<table class="tight"><tr><th>PLAYER</th><th>AGE</th><th>LESSONS</th><th>CREDITS</th><th>WEEKLY</th><th>PARENT CODE</th><th></th></tr>${waiting.map(r => `<tr class="click" onclick="openRoster('${id}','${r.id}')"><td><b>${esc(r.nickname)}</b></td><td class="muted small">${esc(r.age_group||'')}</td><td class="small">${lessonCell(r)}</td><td>${credChip(r)}</td><td class="small muted">${esc(slotLbl(r.slot))}</td><td><span class="chip c-sub" style="letter-spacing:1.5px">${esc(r.claim_code)}</span></td><td class="num"><span class="small" style="color:var(--accent)">Open</span></td></tr>`).join('')}</table>`
       : '<div class="muted small" style="padding:8px 0 12px">Booked a lesson outside StreakFC? ＋ ADD PLAYER, log notes now, connect later.</div>'}</div>`;
 }
 function openAddRoster(id) {
@@ -481,6 +482,7 @@ function openRoster(id, rid) {
   $('drawer').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:20px;font-weight:900">${esc(r.nickname)} <span class="muted small">${esc(r.age_group||'')}</span></div><button class="btn ghost sm" onclick="$('drawer').classList.remove('open')">Close</button></div>
     <div class="muted small" style="margin:6px 0 14px">${esc(progName(id))} · not on StreakFC yet</div>
     ${lessonBlock(r, `saveLesson('${id}','${rid}',null)`)}
+    ${creditsCard(id, r)}
     ${notesBlock(r.notes, `rosterNote('${id}','${rid}')`)}
     <div class="card"><div class="card-h">CONNECT THE PARENT <span class="legend">code ${esc(r.claim_code)}</span></div><div class="small muted">Parent taps the link, signs in (or sets up in 2 min) and picks which kid it is. Your lessons move onto that kid. Already on StreakFC? Nothing gets duplicated.</div>
       <div class="pf"><label>TEXT THE PARENT</label><textarea id="rMsg" rows="3" style="width:100%">${esc(msg)}</textarea></div><button class="btn ghost sm" style="margin-top:6px" onclick="navigator.clipboard.writeText($('rMsg').value).then(()=>toast('Copied'))">COPY</button>
@@ -530,9 +532,9 @@ async function saveLesson(id, rid, pid) {
     if (r) r.id = realId; else { r = {id:realId, player_id:pid, notes:[]}; D.roster = [...(D.roster||[]), r]; }
   } catch(e) { return toast('Failed: ' + e.message); } }
   else if (!r) { r = {id:'loc' + pid, player_id:pid, notes:[]}; D.roster = [...(D.roster||[]), r]; }
-  r.notes = [...(r.notes||[]), {kind:'lesson', by:myStaffName(), ...v}]; render();
+  r.notes = [...(r.notes||[]), {kind:'lesson', by:myStaffName(), ...v}]; if (credOn(r)) credLocal(r, -1, 'use', 'Session ' + v.date.slice(5).replace('-','/')); render();
   if (rid) openRoster(id, r.id); else openKid(pid);
-  toast(v.hw ? 'Saved. Homework is on their app.' : 'Session saved');
+  toast((v.hw ? 'Saved. Homework is on their app.' : 'Session saved') + (credOn(r) ? ` · ${Math.max(0, r.credits)} credit${r.credits === 1 ? '' : 's'} left` : ''));
 }
 function myStaffName() { const S = ORG && ORGD[ORG.id], me = S && S.staff.find(s => s.me); return me ? me.name : 'Coach'; }
 async function rosterNote(id, rid) {
@@ -543,8 +545,142 @@ async function rosterNote(id, rid) {
 async function removeRoster(id, rid) { if (!confirm('Remove from the list? Their notes go too.')) return; if (!D.mock) { try { await rpc('sfc_roster_remove', {p_id:rid}); } catch(e) { return toast('Failed: ' + e.message); } } D.roster = D.roster.filter(x => x.id !== rid); $('drawer').classList.remove('open'); render(); }
 function progNotesCard(p) {
   const id = CURP(); if (id === 'epa' || !(p.programs||[]).some(e => e.id === id)) return '';
-  const r = (D.roster||[]).find(x => x.player_id === p.id) || {id:'loc' + p.id, player_id:p.id, notes:[]};
-  return lessonBlock(r, `saveLesson('${id}',null,'${p.id}')`) + notesBlock(r.notes, `playerNote('${p.id}')`);
+  const r = (D.roster||[]).find(x => x.player_id === p.id) || {id:'loc' + p.id, player_id:p.id, nickname:p.nickname, notes:[]};
+  return lessonBlock(r, `saveLesson('${id}',null,'${p.id}')`) + creditsCard(id, r) + notesBlock(r.notes, `playerNote('${p.id}')`);
+}
+
+// ── Credits + weekly time (1:1 trainers). A pack can be split across players, credits move between players, each logged session uses 1.
+const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function credOn(r) { return !!(r && (r.credit_log||[]).length); }
+function t12(t) { const [h,m] = String(t||'0:00').split(':').map(Number); return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${h < 12 ? 'AM' : 'PM'}`; }
+function slotNext(s) {
+  if (!s) return null; const now = new Date();
+  for (let i = 0; i < 8; i++) { const d = new Date(now); d.setDate(now.getDate() + i); if (d.getDay() !== +s.dow) continue;
+    const [h,m] = s.time.split(':').map(Number); d.setHours(h, m, 0, 0); if (d.getTime() + (s.mins||60) * 60000 > now.getTime()) return d; }
+  return null;
+}
+function slotLbl(s, withDate) { const d = slotNext(s); return s ? `${DOW[s.dow]}${withDate && d ? ' ' + (d.getMonth()+1) + '/' + d.getDate() : ''} ${t12(s.time)}` : ''; }
+function credChip(r) {
+  if (!credOn(r)) return '<span class="muted small">-</span>';
+  const c = r.credits || 0; return `<span class="chip ${c <= 0 ? 'c-red' : c <= 1 ? 'c-amber' : 'c-green'}">${c < 0 ? Math.abs(c) + ' owed' : c + ' left'}</span>`;
+}
+function rowName(r) { return r.nickname || ((D.byId||{})[r.player_id]||{}).nickname || 'Player'; }
+function lastPack(r) { return (r.credit_log||[]).filter(e => e.kind === 'pack').slice(-1)[0]; }
+// Everyone who shared this player's latest pack (siblings), so one text covers the family
+function packGroup(r) { const lp = lastPack(r); if (!lp) return [r]; return (D.roster||[]).filter(x => (x.credit_log||[]).some(e => e.pack === lp.pack)); }
+function renewText(r) {
+  const G = packGroup(r), lp = lastPack(r), who = ORG ? ORG.short || ORG.name : 'Coach';
+  const bal = G.map(x => `${rowName(x)} has ${Math.max(0, x.credits||0)} session${(x.credits||0) === 1 ? '' : 's'} left`).join(', ');
+  const owed = G.filter(x => (x.credits||0) < 0).map(x => `${rowName(x)} is ${-x.credits} past the pack`).join(', ');
+  const nx = G.filter(x => x.slot).map(x => `${slotLbl(x.slot)} (${rowName(x)})`).join(', ');
+  return `Hi! Quick heads up from ${who}: ${bal} on your current ${lp ? lp.of + '-' : ''}pack.${owed ? ' ' + owed + '.' : ''} Want me to set up another ${lp ? lp.of + '-pack' : 'pack'}?${nx ? ' Next up: ' + nx + '.' : ''}`;
+}
+function creditsCard(id, r) {
+  const on = credOn(r), lp = lastPack(r), L = (r.credit_log||[]).slice(-6).reverse(), s = r.slot || {}, rid = r.id;
+  const kindL = {pack:'＋ Pack', use:'Session', move:'Moved', adjust:'Adjust'};
+  return `<div class="card"><div class="card-h">CREDITS <span class="legend">each logged session uses 1 · parent sees the balance</span></div>
+    ${on ? `<div style="display:flex;align-items:baseline;gap:12px"><div style="font-size:34px;font-weight:900">${r.credits < 0 ? Math.abs(r.credits) : r.credits}</div><div>${credChip(r)}</div></div>
+      ${lp ? `<div class="legend" style="margin-top:4px">Last pack ${esc(String(lp.date).slice(5).replace('-','/'))} · ${lp.of} total${packGroup(r).length > 1 ? ' shared with ' + esc(packGroup(r).filter(x => x !== r).map(rowName).join(', ')) : ''} · ${lp.paid ? '<span style="color:var(--green)">PAID</span>' : `<a href="#" style="color:var(--amber)" onclick="packPaid('${id}','${esc(lp.pack)}','${rid}');return false">NOT PAID · mark paid</a>`}</div>` : ''}`
+    : '<div class="small muted">Not tracking yet. Add a pack (split it between siblings if they share one) and every session you log counts it down.</div>'}
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px"><button class="btn sm" onclick="openPack('${id}','${rid}')">＋ ADD PACK</button>
+      ${on ? `<button class="btn ghost sm" onclick="openMove('${id}','${rid}')">⇄ MOVE</button><button class="btn ghost sm" onclick="adjustCredits('${id}','${rid}')">± ADJUST</button><button class="btn ghost sm" onclick="copyRenew('${rid}')">💬 COPY RENEWAL TEXT</button>` : `<button class="btn ghost sm" onclick="adjustCredits('${id}','${rid}')">SET STARTING BALANCE</button>`}</div>
+    <div id="credPanel"></div>
+    ${L.length ? `<div style="margin-top:10px">${L.map(e => `<div class="feed-row small"><span class="muted" style="width:46px">${esc(String(e.date).slice(5).replace('-','/'))}</span><span style="flex:1">${e.kind === 'use' ? esc(e.note || 'Session') : (kindL[e.kind]||e.kind) + (e.note ? ' · ' + esc(e.note) : '')}</span><b style="color:${e.delta > 0 ? 'var(--green)' : 'var(--sub)'}">${e.delta > 0 ? '+' : ''}${e.delta}</b></div>`).join('')}</div>` : ''}</div>
+  <div class="card"><div class="card-h">WEEKLY TIME <span class="legend">${r.slot ? 'next: ' + esc(slotLbl(r.slot, true)) : 'optional'}</span></div>
+    <div class="form-row"><select id="slDow">${DOW.map((d,i) => `<option value="${i}" ${+s.dow === i ? 'selected' : ''}>${d}</option>`).join('')}</select>
+      <input id="slTime" type="time" value="${esc(s.time||'09:00')}" step="900"><select id="slMins">${[30,45,60,75,90,120].map(m => `<option ${(s.mins||60) === m ? 'selected' : ''}>${m}</option>`).join('')}</select><span class="small muted">min</span>
+      <button class="btn sm" onclick="saveSlot('${id}','${rid}')">SAVE</button>${r.slot ? `<a href="#" class="small muted" onclick="saveSlot('${id}','${rid}',true);return false">clear</a>` : ''}</div></div>`;
+}
+// Roster rows (connected kids get one created on first use)
+function credTargets(id) {
+  const R = (D.roster||[]).map(r => ({key:r.id, name:rowName(r), r}));
+  (D.players||[]).filter(p => (p.programs||[]).some(e => e.id === id) && !(D.roster||[]).some(r => r.player_id === p.id)).forEach(p => R.push({key:'p:' + p.id, name:p.nickname, pid:p.id}));
+  return R;
+}
+async function ensureRow(id, key) {
+  if (!key.startsWith('p:') && !key.startsWith('loc')) return (D.roster||[]).find(x => x.id === key);
+  const pid = key.startsWith('p:') ? key.slice(2) : key.slice(3), old = (D.roster||[]).find(x => x.id === key || x.player_id === pid);
+  if (old && !String(old.id).startsWith('loc')) return old;
+  const rid = D.mock ? 'mk-' + pid : await rpc('sfc_roster_ensure', {p_program:id, p_player:pid});
+  const r = old || {notes:[]}; Object.assign(r, {id:rid, player_id:pid, nickname:(D.byId[pid]||{}).nickname, credits:r.credits||0, credit_log:r.credit_log||[]});
+  if (!old) D.roster = [...(D.roster||[]), r]; return r;
+}
+function reopen(id, r) { render(); if (r.player_id && D.byId[r.player_id]) openKid(r.player_id); else openRoster(id, r.id); }
+function credLocal(r, delta, kind, note, extra = {}) { r.credits = (r.credits||0) + delta; r.credit_log = [...(r.credit_log||[]), {date:localDate(), delta, kind, note, by:myStaffName(), ...extra}]; }
+function openPack(id, rid) {
+  const T = credTargets(id), me = T.find(t => t.key === rid || (t.r && t.r.id === rid) || ('loc' + t.pid) === rid) || T[0];
+  $('credPanel').innerHTML = `<div class="card" style="margin-top:12px;background:var(--bg3)"><div class="card-h">NEW PACK</div>
+    <div class="pf"><label>PACK SIZE</label><input id="pkSize" type="number" min="1" max="100" value="10" oninput="pkSplit()"></div>
+    <div class="pf"><label>SPLIT (SIBLINGS SHARING ONE PACK)</label>${T.map(t => `<div class="form-row" style="margin:4px 0"><span style="width:110px">${esc(t.name)}</span><input class="pkN" data-k="${esc(t.key)}" type="number" min="0" max="100" value="${t === me ? 10 : 0}" style="width:70px" oninput="pkSum()"></div>`).join('')}
+      <div class="legend" id="pkSum">Total 10</div></div>
+    <div class="pf"><label>NOTE (OPTIONAL)</label><input id="pkNote" maxlength="200" placeholder="e.g. Fall 10-pack"></div>
+    <label class="pchk"><input type="checkbox" id="pkPaid"> Paid</label>
+    <button class="btn" style="margin-top:12px" onclick="savePack('${id}','${rid}')">ADD PACK</button></div>`;
+}
+function pkSum() { const t = [...document.querySelectorAll('.pkN')].reduce((a,i) => a + (+i.value||0), 0), s = +$('pkSize').value||0; $('pkSum').innerHTML = `Total ${t}${t !== s ? ` <span style="color:var(--amber)">· pack is ${s}</span>` : ''}`; }
+function pkSplit() { const I = [...document.querySelectorAll('.pkN')].filter(i => +i.value > 0), s = +$('pkSize').value||0; if (I.length) { const each = Math.floor(s / I.length); I.forEach((i,n) => i.value = each + (n < s - each * I.length ? 1 : 0)); } pkSum(); }
+async function savePack(id, rid) {
+  const parts = [...document.querySelectorAll('.pkN')].map(i => ({key:i.dataset.k, n:+i.value||0})).filter(x => x.n > 0), tot = parts.reduce((a,x) => a + x.n, 0);
+  if (!tot) return toast('Give at least one player credits'); if (parts.some(x => x.n > 100)) return toast('Max 100 per player');
+  const note = $('pkNote').value.trim(), paid = $('pkPaid').checked;
+  try {
+    const rows = []; for (const x of parts) rows.push({r: await ensureRow(id, x.key), n:x.n});
+    let pack = 'K' + Date.now().toString(36).toUpperCase();
+    if (!D.mock) pack = await rpc('sfc_roster_pack', {p_rows:rows.map(x => ({id:x.r.id, n:x.n})), p_note:note, p_paid:paid});
+    rows.forEach(x => credLocal(x.r, x.n, 'pack', note, {pack, of:tot, paid}));
+    const me = rows.find(x => x.r.id === rid || 'loc' + x.r.player_id === rid || 'p:' + x.r.player_id === rid) || rows[0];
+    toast(`Pack added: ${rows.map(x => rowName(x.r) + ' ' + x.n).join(', ')}`); reopen(id, me.r);
+  } catch(e) { toast('Failed: ' + e.message); }
+}
+function openMove(id, rid) {
+  const T = credTargets(id).filter(t => !(t.r && t.r.id === rid));
+  if (!T.length) return toast('No other players to move credits to');
+  $('credPanel').innerHTML = `<div class="card" style="margin-top:12px;background:var(--bg3)"><div class="card-h">MOVE CREDITS <span class="legend">injury, time off, sibling</span></div>
+    <div class="form-row"><span class="small muted">Move</span><input id="mvN" type="number" min="1" max="100" value="1" style="width:64px"><span class="small muted">to</span><select id="mvTo">${T.map(t => `<option value="${esc(t.key)}">${esc(t.name)}</option>`).join('')}</select>
+    <button class="btn sm" onclick="saveMove('${id}','${rid}')">MOVE</button></div></div>`;
+}
+async function saveMove(id, rid) {
+  const n = +$('mvN').value, key = $('mvTo').value; if (!(n >= 1 && n <= 100)) return toast('1 to 100');
+  try {
+    const a = await ensureRow(id, rid), b = await ensureRow(id, key);
+    if (!D.mock) await rpc('sfc_roster_move', {p_from:a.id, p_to:b.id, p_n:n});
+    credLocal(a, -n, 'move', 'to ' + rowName(b)); credLocal(b, n, 'move', 'from ' + rowName(a));
+    toast(`Moved ${n} to ${rowName(b)}`); reopen(id, a);
+  } catch(e) { toast('Failed: ' + e.message); }
+}
+async function adjustCredits(id, rid) {
+  const r0 = (D.roster||[]).find(x => x.id === rid), first = !credOn(r0);
+  const v = prompt(first ? 'How many sessions do they have left right now?' : 'Add or remove credits (e.g. 1 or -1)', first ? '' : '1'); if (v === null) return;
+  const n = parseInt(v, 10); if (!n || Math.abs(n) > 100) return toast(first ? 'Enter 1 or more' : 'Enter a number like 1 or -1');
+  const note = first ? 'Starting balance' : (prompt('Reason (optional)', '') || '');
+  try { const r = await ensureRow(id, rid); if (!D.mock) await rpc('sfc_roster_adjust', {p_id:r.id, p_delta:n, p_note:note}); credLocal(r, n, 'adjust', note); toast('Saved'); reopen(id, r); }
+  catch(e) { toast('Failed: ' + e.message); }
+}
+async function packPaid(id, pack, rid) {
+  if (!D.mock) { try { await rpc('sfc_roster_pack_paid', {p_pack:pack, p_paid:true}); } catch(e) { return toast('Failed: ' + e.message); } }
+  (D.roster||[]).forEach(x => (x.credit_log||[]).forEach(e => { if (e.pack === pack && e.kind === 'pack') e.paid = true; }));
+  toast('Marked paid'); const r = (D.roster||[]).find(x => x.id === rid); if (r) reopen(id, r); else render();
+}
+function copyRenew(rid) { const r = (D.roster||[]).find(x => x.id === rid); if (!r) return; navigator.clipboard.writeText(renewText(r)).then(() => toast('Copied. Paste it into your text to the parent.')); }
+async function saveSlot(id, rid, clear) {
+  const slot = clear ? null : {dow:+$('slDow').value, time:$('slTime').value, mins:+$('slMins').value};
+  if (slot && !/^\d\d:\d\d$/.test(slot.time)) return toast('Pick a time');
+  try { const r = await ensureRow(id, rid); if (!D.mock) await rpc('sfc_roster_slot', {p_id:r.id, p_slot:slot}); r.slot = slot; toast(clear ? 'Cleared' : `Every ${DOW[slot.dow]} ${t12(slot.time)}`); reopen(id, r); }
+  catch(e) { toast('Failed: ' + e.message); }
+}
+// Program page: this week's sessions + who's running low
+function weekCard(id) {
+  const R = (D.roster||[]).filter(r => r.slot), today = new Date().getDay();
+  const low = []; const seen = new Set();
+  (D.roster||[]).filter(credOn).forEach(r => { const G = packGroup(r), k = G.map(x => x.id).sort().join(); if (seen.has(k)) return; seen.add(k);
+    if (G.reduce((a,x) => a + (x.credits||0), 0) <= 2) low.push(G); });
+  if (!R.length && !low.length) return '';
+  const open = r => r.player_id && D.byId[r.player_id] ? `openKid('${r.player_id}')` : `openRoster('${id}','${r.id}')`;
+  const S = R.map(r => ({r, d:slotNext(r.slot)})).filter(x => x.d).sort((a,b) => a.d - b.d);
+  return `<div class="grid2">${R.length ? `<div class="card"><div class="card-h">NEXT 7 DAYS <span class="legend">weekly times · click to log</span></div>
+      ${S.map(({r,d}) => `<div class="feed-row click" onclick="${open(r)}"><b style="width:120px;${d.getDay() === today ? 'color:var(--accent)' : ''}">${d.getDay() === today ? 'TODAY' : DOW[d.getDay()] + ' ' + (d.getMonth()+1) + '/' + d.getDate()} ${t12(r.slot.time)}</b><span style="flex:1">${esc(rowName(r))} <span class="muted small">${r.slot.mins} min</span></span>${credChip(r)}</div>`).join('')}</div>` : ''}
+    ${low.length ? `<div class="card" style="border-color:#f59e0b66"><div class="card-h">RUNNING LOW <span class="legend">2 or fewer left on the pack</span></div>
+      ${low.map(G => `<div class="feed-row"><span style="flex:1">${G.map(x => `${esc(rowName(x))} ${credChip(x)}`).join(' ')}</span><button class="btn ghost sm" onclick="copyRenew('${G[0].id}')">💬 COPY TEXT</button></div>`).join('')}</div>` : ''}</div>`;
 }
 async function playerNote(pid) {
   const t = $('newNote').value.trim(), id = CURP(); if (!t) return;

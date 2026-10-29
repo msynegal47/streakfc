@@ -2236,6 +2236,7 @@ async function loadParent() {
     players = rows.map(r => hydratePlayer({player:r, history:hist[r.id]||{}, xp_days:xpd[r.id]||{}, pb_days:pbd[r.id]||{}}));
     try { const sp = await sb('sfc_sessions?select=player_id,date,rounds,created_at&mode=eq.speed&order=date,created_at'); const by = {}; sp.forEach(x => { const v = ((x.rounds||[])[0]||{}).speed; if (v) (by[x.player_id] = by[x.player_id] || []).push({date:x.date, test:v.test, val:Number(v.val), by:v.by}); }); rows.forEach(r => mergeSpeed(r.id, by[r.id] || [])); } catch(e) {}
     try { LESSONS = await rpc('sfc_family_lessons') || {}; } catch(e) { LESSONS = {}; }
+    try { CREDITS = await rpc('sfc_family_credits') || {}; } catch(e) { CREDITS = {}; }
     progRows = {}; sess.filter(x => ['epa','checkin','weekly','homework'].includes(x.mode)).forEach(x => { (progRows[x.player_id] = progRows[x.player_id] || []).push(x); });
     localStorage.setItem('sfc_parent_cache', JSON.stringify(players));
   } catch(e) {
@@ -2515,7 +2516,7 @@ function renderParentPortal() {
         <div class="kid-stat"><div class="kid-stat-val">${w.pbs}</div><div class="kid-stat-lbl">PBs THIS WK</div></div>
         <div class="kid-stat"><div class="kid-stat-val">${fmtK(w.xp)}</div><div class="kid-stat-lbl">XP THIS WK</div></div>
       </div>
-      ${epaParentLine(p)}${lessonParentLine(p)}
+      ${epaParentLine(p)}${lessonParentLine(p)}${creditParentLine(p)}
       ${speedParentLine(p)}
       ${statusLine(p)}
       ${rewardLine(p)}
@@ -5527,7 +5528,16 @@ async function saveSpeed() {
 }
 
 // ── Trainer sessions (e.g. PFA): level 1-5, how they did, worked on, homework. Kid checks off homework, parent sees growth.
-let LESSONS = {};
+let LESSONS = {}, CREDITS = {};
+// Parent only: sessions left on the trainer's pack + weekly time. Kids never see credits.
+function creditParentLine(p) {
+  const C = CREDITS[p.id] || []; if (!C.length) return '';
+  const D7 = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], t12 = t => { const [h,m] = String(t).split(':').map(Number); return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${h < 12 ? 'AM' : 'PM'}`; };
+  return C.map(c => { const acc = (c.brand||{}).accent || '#a78bfa', n = c.credits;
+    return `<div class="epa-parent" style="border-color:${acc}55"><b>🎟 ${esc(c.short || c.org_name)} · ${esc(c.program_name)}</b>
+      ${n != null ? `<div><b style="color:${n <= 0 ? 'var(--red)' : n <= 1 ? 'var(--amber)' : acc}">${n < 0 ? Math.abs(n) + ' past the pack' : n + ' session' + (n === 1 ? '' : 's') + ' left'}</b>${c.last_pack ? ` <span style="opacity:.7">· pack from ${esc(String(c.last_pack).slice(5).replace('-','/'))}</span>` : ''}</div>` : ''}
+      ${c.slot ? `<div>Every ${D7[c.slot.dow]} ${t12(c.slot.time)}</div>` : ''}</div>`; }).join('');
+}
 const RATE_L = ['', 'Rough day', 'Struggled', 'Solid', 'Strong', 'Crushed it'], HW_XP = 25;
 function lastLessons(L) { const by = {}; (L || []).forEach(l => { by[l.program] = l; }); return Object.values(by); }
 function hwDoneKey(p, prog) { return `sfc_hwdone_${p.id}_${prog}`; }
