@@ -990,6 +990,9 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
 .stg{font-size:13px;color:var(--text);background:#96F30814;border:1px solid #96F30844;border-radius:10px;padding:8px 10px;margin:8px 0;line-height:1.35}.stg b{color:#96F308;margin-right:6px;font-size:11px;letter-spacing:1px}
 .stg-ladder{display:flex;flex-direction:column;gap:4px;margin-top:8px}.stg-ladder div{font-size:12px;color:var(--sub);display:flex;gap:8px;align-items:center}.stg-ladder b{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;flex:0 0 18px}
 .stg-ladder .on{color:var(--text);font-weight:700}.stg-ladder .on b{background:#96F308;border-color:#96F308;color:#0b0f17}.stg-ladder .done b{background:#96F30844;border-color:#96F30888}
+.push-card{display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:16px;background:var(--bg2);border:1px solid #96F30866}.push-card b{display:block;font-size:15px}.push-card span{display:block;font-size:12px;color:var(--sub);margin-top:2px;line-height:1.35}
+.push-line{font-size:12px;color:var(--sub);text-align:center;padding:6px 0}.push-line a{color:var(--accent);font-weight:800;margin-left:8px;cursor:pointer;text-decoration:underline}
+.push-times{justify-content:center;margin:14px 0}
 .bonus-head span{color:var(--sub);font-weight:900}.bonus-head.on{border-color:#22c55e88}
 .done-h{margin-top:14px;font-size:17px;font-weight:900;color:#22c55e}.done-acts{display:grid;grid-template-columns:1.4fr 1fr;gap:8px;margin-top:10px}
 .done-acts .start-btn{margin-top:0;padding:12px 8px}.done-acts .start-btn b{font-size:15px}
@@ -1552,6 +1555,7 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
       </div>
       <div class="path-card" id="pathCard"></div>
       <div class="unlock-card" id="unlockCard" style="margin:0 16px 12px"></div>
+      <div id="pushLineKid" style="margin:0 16px 6px"></div>
       <button class="tour-replay" onclick="startTour('kid',1)">❓ Replay the app tour</button>
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-val" id="statStreak">0</div><div class="stat-lbl">STREAK</div></div>
@@ -2488,7 +2492,7 @@ function renderParentPortal() {
   const body = document.getElementById('portalBody');
   body.innerHTML = '';
   document.getElementById('portalTitle').textContent = family?.parent_name ? `${family.parent_name.toUpperCase()}'S CREW` : 'YOUR CREW';
-  if (players.length) { const ec = earnedCard(); if (ec) body.appendChild(ec); const fs = firstSessionCard(); if (fs) body.appendChild(fs); const ic = ideasCard(); if (ic) body.appendChild(ic); body.appendChild(todayStrip()); { const ch = document.createElement('div'); ch.dataset.pch = '1'; body.appendChild(ch); loadParentChallenges(ch); const sq = document.createElement('div'); sq.dataset.psq = '1'; body.appendChild(sq); loadParentSquads(sq); } body.appendChild(weekRecapCard()); }
+  if (players.length) { const ec = earnedCard(); if (ec) body.appendChild(ec); const pc = pushCard(); if (pc) body.appendChild(pc); const fs = firstSessionCard(); if (fs) body.appendChild(fs); const ic = ideasCard(); if (ic) body.appendChild(ic); body.appendChild(todayStrip()); { const ch = document.createElement('div'); ch.dataset.pch = '1'; body.appendChild(ch); loadParentChallenges(ch); const sq = document.createElement('div'); sq.dataset.psq = '1'; body.appendChild(sq); loadParentSquads(sq); } body.appendChild(weekRecapCard()); }
   players.forEach(p => {
     const color = p.color || '#4fc3f7', rank = rankOf(p), w = kidWeek(p);
     const card = document.createElement('div');
@@ -2530,6 +2534,7 @@ function renderParentPortal() {
   actions3.innerHTML = `<button class="kid-action-btn" style="flex:1;padding:14px" onclick="startDemo()">👀 SHOW SOMEONE THE APP (DEMO PLAYER)</button><button class="kid-action-btn" style="flex:0 0 56px;padding:14px 0" onclick="startTour('parent',1)" aria-label="Replay tour">❓</button>`;
   body.appendChild(actions);
   body.appendChild(actions2); body.appendChild(actions3);
+  { const pl = document.createElement('div'); pl.innerHTML = pushLine('parent'); if (pl.innerHTML) body.appendChild(pl); }
   if (localStorage.getItem('sfc_beta') === '1') body.appendChild(testPanel());
 }
 
@@ -2998,7 +3003,7 @@ function renderProfile() {
   const colors = {};
   const color = p.color || colors[p.id] || '#4fc3f7';
   paintHeroAvatar(document.getElementById('profileAvatar'), document.getElementById('profileTease'), p, color);
-  renderGamesCard(p); renderRewardCard();
+  renderGamesCard(p); renderRewardCard(); { const pl = document.getElementById('pushLineKid'); if (pl) pl.innerHTML = DEMO ? '' : pushLine('kid'); }
   document.getElementById('editAvBtn').style.display = hasUnlock(p.id,'avatar') ? 'inline-block' : 'none';
   document.getElementById('profileName').textContent = p.name.toUpperCase();
   document.getElementById('profileClub').textContent = [(p.club||'').toUpperCase(), [p.pos1, p.pos2].filter(Boolean).join(' / ')].filter(Boolean).join(' · ');
@@ -3223,6 +3228,68 @@ function endTour(done) {
   if (!was) return;
   if (TOUR.kind === 'kid') { const sh = document.getElementById('screen-home'); if (sh) sh.scrollTop = 0; setTimeout(chPopups, 500); }
   else { const pb = document.getElementById('portalBody'); if (pb) pb.scrollTop = 0; }
+}
+// ─── STREAK REMINDERS (web push) ───
+// Ask after a finished session (kids) or on the dashboard (parents): first 2 times, then every 7 days. Never after the browser says "denied".
+const VAPID_PUB = 'BA3AAWB4ziTkZ2Gy0HGgY1rNlZDnVYQh6TWW-JFplaxDe68lygPz2WFYr1OOLlKb3F8b_5zDqPLf7FxObKVsUZg';
+function pushOk() { return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; }
+function isIOS() { return /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }
+function standalone() { return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }
+function pushState() { return jget('sfc_push', {}); }
+function pushOn() { return !!pushState().on && pushOk() && Notification.permission === 'granted'; }
+function pushDue(kind) {
+  if (DEMO || pushOn() || (pushOk() && Notification.permission === 'denied')) return false;
+  if (!pushOk() && !isIOS()) return false;   // desktop/browser without push: don't nag
+  const n = +localStorage.getItem(`sfc_pushask_${kind}_n`) || 0, at = +localStorage.getItem(`sfc_pushask_${kind}_at`) || 0;
+  return n < 2 ? Date.now() - at > 20 * 3600e3 : Date.now() - at > 7 * 864e5;
+}
+function pushAsked(kind) { localStorage.setItem(`sfc_pushask_${kind}_n`, String((+localStorage.getItem(`sfc_pushask_${kind}_n`) || 0) + 1)); localStorage.setItem(`sfc_pushask_${kind}_at`, String(Date.now())); }
+function u8(b64) { const p = '='.repeat((4 - b64.length % 4) % 4), s = atob((b64 + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...s].map(c => c.charCodeAt(0))); }
+let pushPick = '16:00';
+function pushTimes(kind) { return kind === 'parent' ? [['17:00','5 PM'],['18:00','6 PM'],['19:00','7 PM']] : [['15:30','3:30'],['16:00','4 PM'],['17:00','5 PM'],['18:00','6 PM']]; }
+function pushPrompt(kind) {
+  const kidMode = kind === 'kid', p = currentPlayer, st = kidMode && p ? liveStreak(p) : 0;
+  pushAsked(kind); pushPick = (pushState().at) || (kidMode ? '16:00' : '18:00');
+  if (!pushTimes(kind).some(x => x[0] === pushPick)) pushPick = kidMode ? '16:00' : '18:00';
+  if (!pushOk() && isIOS() && !standalone()) return chModal(`<div class="ch-pop"><div class="ch-big">🔔</div><div class="ch-title" style="font-size:22px">Get streak reminders</div>
+      <div class="ch-sub2">Reminders only work when StreakFC is on your Home Screen. Tap <b>Share ⬆︎</b>, then <b>Add to Home Screen</b>, then open it from there.</div>
+      <button class="modal-save-btn" onclick="closeChModal()">GOT IT</button></div>`);
+  chModal(`<div class="ch-pop"><div class="ch-big">🔔</div><div class="ch-title" style="font-size:22px">${kidMode ? (st >= 2 ? `Protect your ${st}-day streak?` : 'Want a reminder tomorrow?') : 'Get a heads-up?'}</div>
+    <div class="ch-sub2">${kidMode ? "We'll ping you once a day if you haven't trained yet. Already trained? No ping." : "One ping a day if a kid hasn't trained yet. If they all have, nothing."}</div>
+    <div class="hurt-chips push-times" id="pushTimes">${pushTimes(kind).map(([v, l]) => `<button class="${pushPick === v ? 'sel' : ''}" onclick="pushPick='${v}';this.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('sel'));this.classList.add('sel')">${l}</button>`).join('')}</div>
+    <button class="modal-save-btn" onclick="pushEnable('${kind}', this)">🔔 YES, REMIND ME</button><button class="ch-later" onclick="closeChModal()">Not now</button></div>`);
+}
+async function pushEnable(kind, btn) {
+  if (btn) btn.disabled = true;
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') { closeChModal(); return showToast(perm === 'denied' ? 'Notifications are blocked. Turn them on in Settings.' : 'No problem, maybe later', 'error'); }
+    const reg = await navigator.serviceWorker.ready;
+    const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:u8(VAPID_PUB)});
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Phoenix';
+    await rpc('sfc_push_save', {p_token: kind === 'kid' ? (deviceToken() || null) : null, p_player: kind === 'kid' && currentPlayer ? currentPlayer.id : null, p_sub: sub.toJSON(), p_time: pushPick, p_tz: tz});
+    localStorage.setItem('sfc_push', JSON.stringify({on:true, at:pushPick, kind, endpoint:sub.endpoint}));
+    closeChModal(); showToast(`🔔 Reminders on · ${(pushTimes(kind).find(x => x[0] === pushPick) || [0, pushPick])[1]}`, 'success');
+    if (kind === 'parent') renderParentPortal(); else renderProfile();
+  } catch(e) { if (btn) btn.disabled = false; showToast('Could not turn on reminders: ' + e.message, 'error'); }
+}
+async function pushDisable() {
+  const st = pushState();
+  try { const reg = await navigator.serviceWorker.ready, sub = await reg.pushManager.getSubscription(); if (sub) { await rpc('sfc_push_off', {p_endpoint: sub.endpoint}).catch(() => {}); await sub.unsubscribe(); } } catch(e) {}
+  localStorage.setItem('sfc_push', JSON.stringify({on:false, at:st.at})); showToast('Reminders off');
+  if (document.getElementById('parent-portal')?.classList.contains('active')) renderParentPortal(); else renderProfile();
+}
+function pushLine(kind) {
+  const st = pushState(), t = (pushTimes(kind).find(x => x[0] === st.at) || [0, st.at])[1];
+  return pushOn() ? `<div class="push-line">🔔 Reminders on · ${t} <a onclick="pushPrompt('${kind}')">Change</a> <a onclick="pushDisable()">Turn off</a></div>`
+    : (pushOk() || isIOS()) ? `<div class="push-line">🔕 Reminders off <a onclick="pushPrompt('${kind}')">Turn on</a></div>` : '';
+}
+function pushCard() {
+  if (!pushDue('parent') || !players.length) return null;
+  const el = document.createElement('div'); el.className = 'push-card';
+  el.innerHTML = `<div style="font-size:26px">🔔</div><div style="flex:1"><b>Get a heads-up if a kid hasn't trained</b><span>One ping in the evening, only if someone still needs their touches.</span>
+    <div class="earn-acts"><button class="pt-btn" onclick="pushPrompt('parent')">TURN ON</button><button class="pt-btn ghost" onclick="pushAsked('parent');this.closest('.push-card').remove()">NOT NOW</button></div></div>`;
+  return el;
 }
 // ─── CHALLENGES (Founders first): kid asks, parent approves, weekly board by days trained ───
 let CH = {list:null, boards:{}, at:0};
@@ -3768,8 +3835,9 @@ function showReveals(list) { revealQueue = list.slice(); nextReveal(); }
 function nextReveal() {
   const ov = document.getElementById('reveal');
   ov.className = '';
+  const wasDone = revealCur && revealCur.type === 'done';
   revealCur = revealQueue.shift();
-  if (!revealCur) { ov.classList.remove('open'); return; }
+  if (!revealCur) { ov.classList.remove('open'); if (wasDone && currentPlayer && pushDue('kid')) setTimeout(() => pushPrompt('kid'), 500); return; }
   void ov.offsetWidth;
   ov.classList.add('open');
   if (revealCur.type === 'done') return showDone(revealCur);
