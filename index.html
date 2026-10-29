@@ -1866,6 +1866,7 @@ function hideAllScreens() {
   document.getElementById('app').style.display='none';
 }
 function showScreen(id) {
+  if (typeof TOUR !== 'undefined' && TOUR.on) { const o = document.getElementById('tourLayer'); if (o) o.style.display = 'none'; TOUR.on = false; }   // never leave the tour overlay on another screen
   hideAllScreens();
   document.getElementById('toast')?.classList.remove('show');
   const el = document.getElementById(id);
@@ -2248,7 +2249,10 @@ let obColor = '#4fc3f7';
 function showOnboard(step) {
   showScreen('onboard');
   const body = document.getElementById('onboardBody'), stepEl = document.getElementById('onboardStep'), title = document.getElementById('onboardTitle');
-  document.getElementById('onboardBack').style.display = (step==='players' && players.length) ? 'block' : 'none';
+  { const ob = document.getElementById('onboardBack'), has = players.length > 0;   // always a way out of setup
+    ob.style.display = 'block';
+    if (step === 'players' && has) { ob.textContent = '← DASHBOARD'; ob.onclick = () => loadParent(); }
+    else { ob.textContent = 'SIGN OUT'; ob.onclick = () => logout(); } }
   if (step === 'family') {
     stepEl.textContent = 'STEP 1 OF 2'; title.textContent = 'WELCOME';
     body.innerHTML = `<div class="ob-card">
@@ -2262,7 +2266,7 @@ function showOnboard(step) {
       <button class="opt-btn" style="width:100%;margin-top:12px" onclick="joinFamily()">👥 JOINING A FAMILY? ENTER CODE</button></div>`;
   } else if (step === 'kids') {
     stepEl.textContent = 'LAST STEP'; title.textContent = 'GET YOUR KIDS ON';
-    document.getElementById('onboardBack').style.display = 'block';
+    { const ob = document.getElementById('onboardBack'); ob.style.display = 'block'; ob.textContent = 'DONE'; ob.onclick = () => loadParent(); }
     body.innerHTML = `<div class="ob-card" style="text-align:center">
       <div style="font-size:15px;font-weight:800">Send this to your kids' phone or iPad</div>
       <div class="kid-code" id="obKidCode">······</div>
@@ -4211,10 +4215,9 @@ function renderToday() {
     : `<b>🔥 ${liveStreak(p) ? `Train today to keep your ${liveStreak(p)}-day streak` : 'Train today to start a streak'}</b>`;
   document.getElementById('streakLine').className = 'streak-line ' + (safe ? 'safe' : '');
   if (heavy && !going) {
-    document.getElementById('startLbl').textContent = '🌙 RECOVERY SESSION';
-    document.getElementById('startSub').textContent = `${heavy === 'game' ? 'Game' : 'EPA'} done. ~8 min of mobility + easy touches so you bounce back.`;
-    document.getElementById('todayHint').textContent = `${heavy === 'game' ? 'You played today' : 'You trained at EPA today'}. That was your big work. Recovery is the smart move, extra touches are optional.`;
-    document.getElementById('recLink').innerHTML = `⚽ LIGHT TOUCHES ANYWAY <span>optional · ${goalFor('limited').toLocaleString()} touches</span>`;
+    document.getElementById('startSub').textContent = `Optional extra touches · ${goal.toLocaleString()} · pick your intensity`;
+    document.getElementById('todayHint').textContent = `${heavy === 'game' ? 'You played today' : 'You trained at EPA today'}, so your streak is safe. Want more? Go for extra touches, or do a Recovery session if your legs are tired.`;
+    document.getElementById('recLink').innerHTML = `🌙 <b>Recovery session</b> · ~8 min, easy on the legs`;
   } else document.getElementById('recLink').innerHTML = `Not feeling it? 🌙 <b>Recovery day</b> keeps your streak`;
   document.getElementById('todayHint').style.display = (heavy || di.type !== 'free') ? '' : 'none';
   { const dn = document.getElementById('todayDone'), pre = document.getElementById('todayPre'), done = hit && !heavy;
@@ -4222,7 +4225,7 @@ function renderToday() {
     if (done) dn.innerHTML = `<div class="done-h">✓ DONE TODAY · ${tot.toLocaleString()} touches</div>
       <div class="done-acts"><button class="start-btn" onclick="todayMain()"><b>▶ GO AGAIN</b><span>Bonus XP + touches</span></button><button class="rt-btn" onclick="openRoutine('cool')">🧊 COOL-DOWN<span>+10 XP</span></button></div>`;
     renderBonus(done); }
-  { const b2 = document.getElementById('startLbl2'); if (b2) b2.textContent = going ? '▶ KEEP GOING' : heavy ? '🌙 RECOVERY SESSION' : hit ? '▶ GO AGAIN · BONUS XP' : "▶ START TODAY'S SESSION"; }
+  { const b2 = document.getElementById('startLbl2'); if (b2) b2.textContent = going ? '▶ KEEP GOING' : hit ? '▶ GO AGAIN · BONUS XP' : "▶ START TODAY'S SESSION"; }
   const S = loadSess();
   const gr = document.getElementById('gameRow'); if (gr) gr.innerHTML = gameCardHTML(p);
   const mr = document.getElementById('miniRow'); if (mr) mr.innerHTML = miniRowHTML(p);
@@ -4392,8 +4395,8 @@ function openGoal() {
 function playToday() { if (typeof switchTab === 'function') switchTab('home'); todayMain(); }
 // Game / EPA already done today = the work is in. Default to recovery, touches optional.
 function heavyDone(p) { const T = epaLog(p.id)[localDate()] || {}; return (T.games || []).length ? 'game' : T.epa ? 'epa' : ''; }
-function todayMain() { const p = currentPlayer, ex = loadSess(); if (heavyDone(p) && !(ex && !ex.finished && ex.mode === 'goal')) return startRecovery(); startSession(); }
-function todayAlt() { if (heavyDone(currentPlayer)) { setDifficulty('limited'); return startSession(); } startRecovery(); }
+function todayMain() { startSession(); }
+function todayAlt() { startRecovery(); }
 function startSession() {
   const ex = loadSess();
   if (ex && !ex.finished) { if (ex.mode === 'goal' && ex.intensity !== currentDiff && !ex.items.some(i=>i.done)) { clearSess(); } else { S = ex; return resumeSession(); } }
