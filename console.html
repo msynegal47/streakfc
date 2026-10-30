@@ -131,6 +131,7 @@ table.tight td{padding:6px 8px;vertical-align:middle}tr.click{cursor:pointer}
 .pf{margin-top:14px;display:flex;flex-direction:column;gap:6px}.pf label{font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:800}.day-line{display:flex;gap:8px;align-items:center}.day-line span{width:80px;font-size:12px;font-weight:800}.day-line input{flex:1}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.cal-h{font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:800;padding:4px}
 .cal-sess{font-size:10.5px;font-weight:800;color:var(--text);background:#1ab3bd22;border-radius:5px;padding:2px 5px;margin-top:3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.cal-sess.empty{background:transparent;color:var(--sub);border:1px dashed var(--border)}
+.br-kid .tl{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.br-kid .tl em,.sc td.hi,.sc td.mid,.sc td.lo{font-style:normal}.br-kid .tl em{font-size:10px;font-weight:800;padding:2px 6px;border-radius:5px;background:#ffffff10;color:var(--sub)}.tl .hi,.tl .ok{background:#22c55e22!important;color:var(--green)!important}.tl .mid{background:#f59e0b22!important;color:var(--amber)!important}.tl .lo{background:#ef444422!important;color:var(--red)!important}.sc-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin:6px 0 12px}.sc-t{border:1px solid var(--border);border-radius:10px;padding:8px 10px}.sc-t span{display:block;font-size:9px;letter-spacing:1.5px;font-weight:800;color:var(--sub)}.sc-t b{font-size:20px;font-weight:900}.sc-t b small{font-size:11px;color:var(--sub)}.sc-t i{display:block;font-size:10px;color:var(--sub);font-style:normal}.sc-t.hi{border-color:#22c55e66}.sc-t.mid{border-color:#f59e0b66}.sc-t.lo{border-color:#ef444466;background:#ef444410}.sc td.hi{color:var(--green);font-weight:700}.sc td.mid{color:var(--amber);font-weight:700}.sc td.lo{color:var(--red);font-weight:700}.up{color:var(--green)}.dn{color:var(--red)}.sc-j{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
 .logrow>summary{list-style:none}.logrow>summary::-webkit-details-marker{display:none}.logrow[open]>summary{background:#ffffff08}.qa{margin:2px 0 10px 96px;padding:10px 14px;border-left:2px solid var(--accent);background:#ffffff05;border-radius:6px}.qa div{display:flex;gap:14px;padding:4px 0;font-size:13px;border-bottom:1px solid #ffffff0a}.qa span{color:var(--sub);width:320px;flex:none}.qa b{font-weight:700}
 .brief-top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:14px;flex-wrap:wrap}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:900px){.grid2{grid-template-columns:1fr}}
 .br-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}.br-kid{border:1px solid var(--border);border-radius:10px;padding:8px 10px;cursor:pointer;opacity:.55}.br-kid.in{opacity:1}.br-kid.flag{border-color:var(--amber);background:#f59e0b14;opacity:1}.br-kid b{display:block;font-size:13px}.br-kid span{font-size:15px}.br-kid i{font-size:11px;color:var(--sub);font-style:normal}
@@ -771,7 +772,7 @@ function qaRows(s) {
 }
 function detail(s) {
   const r = (s.rounds||[])[0] || {};
-  if (r.epa) { const f = FOCUS[r.epa.focus]; return `${r.epa.coach?`<span class="chip c-sub">${esc(r.epa.coach)}</span>`:''}${f?f.ico+' '+f.name:esc(r.epa.focus)} · effort <b>${r.epa.effort}/10</b> · felt ${FEELS[r.epa.feel]||''} ${FEEL_W[r.epa.feel]||''}${r.epa.note?` · <span class="muted">"${esc(r.epa.note)}"</span>`:''}`; }
+  if (r.epa) { const f = FOCUS[r.epa.focus]; return `${r.epa.coach?`<span class="chip c-sub">${esc(r.epa.coach)}</span>`:''}${f?f.ico+' '+f.name:esc(r.epa.focus)} · how hard <b>${r.epa.effort}/10</b> · felt ${FEELS[r.epa.feel]||''} ${FEEL_W[r.epa.feel]||''}${r.epa.note?` · <span class="muted">"${esc(r.epa.note)}"</span>`:''}`; }
   if (r.ready) { const y = r.ready; if (!y.score) return y.arrive === 2 ? '✅ Arrived (check-in board)' : '🚌 Checked in';
     return `Ready <b>${y.score}/5</b> <span class="muted">${[y.sleep ? 'sleep ' + y.sleep : '', y.energy ? 'energy ' + y.energy : '', y.body ? 'body ' + esc(y.body) : y.legs ? 'legs ' + y.legs : '', y.mood ? 'mood ' + y.mood : ''].filter(Boolean).join(' · ')}</span>${(y.hurt||[]).length ? ` <span class="chip c-red">SORE: ${y.hurt.map(esc).join(', ').toUpperCase()}</span>` : ''}`; }
   if (r.game) { const g = r.game; return `⚽ ${esc(g.result && g.result !== 'Skip' ? g.result : 'Game')}${g.opp ? ' vs ' + esc(g.opp) : ''} · <b>${g.rate || '-'}/10</b> · ${esc(g.mins || '')} min · ${esc([].concat(g.pos || []).join('/'))}${(g.hurt||[]).length ? ` <span class="chip c-red">SORE: ${g.hurt.map(esc).join(', ').toUpperCase()}</span>` : ''}${g.well ? `<div class="muted">👍 ${esc(g.well)}${g.work ? ' · 🛠 ' + esc(g.work) : ''}</div>` : ''}`; }
@@ -982,7 +983,7 @@ function epaReport(days) {
     <div class="noprint"><button onclick="print()">Save as PDF</button></div>
     <div class="bar"><div><h1>MSA EAST · EPA ROUNDUP</h1><div class="sub">${fmtD(from)} to ${fmtD(today)} · ${days === 7 ? 'Weekly' : 'Monthly'} · ${sched.length} EPA sessions · ${rows.length} players</div></div><div><span class="tag">STREAKFC BETA${demo ? ' · INCLUDES SAMPLE DATA' : ''}</span></div></div>
     <div class="kpis"><div class="k"><b>${poss ? pct(tot / poss) : '-'}</b><span>ATTENDANCE</span></div><div class="k"><b>${grp('younger')} / ${grp('older')}</b><span>YOUNGER / OLDER</span></div>
-      <div class="k"><b>${f1(avg(rows.map(r => r.eff).filter(v => v != null)))}</b><span>AVG EFFORT /10</span></div><div class="k"><b>${f1(avg(rows.map(r => r.rdy).filter(v => v != null)))}</b><span>AVG READINESS /5</span></div>
+      <div class="k"><b>${f1(avg(rows.map(r => r.eff).filter(v => v != null)))}</b><span>AVG HOW HARD /10</span></div><div class="k"><b>${f1(avg(rows.map(r => r.rdy).filter(v => v != null)))}</b><span>AVG READINESS /5</span></div>
       <div class="k"><b>${rows.reduce((a,r) => a + r.jn, 0)}</b><span>JOURNALS + FILM</span></div><div class="k"><b>${fmtK(rows.reduce((a,r) => a + r.home, 0))}</b><span>HOME TOUCHES*</span></div></div>
     <div class="cols"><div class="box"><h3>⭐ BIGGEST RATING JUMPS · SEASON</h3><ul>${top('dR', 5, r => `${r.rA} → <b class="up">${r.rB}</b> (+${r.dR})`)}</ul></div>
       <div class="box"><h3>🏟 MOST CONSISTENT</h3><ul>${top('att', 5, r => `${r.att}/${sched.length} sessions`)}</ul></div>
@@ -1079,7 +1080,7 @@ function vEPA() {
   <div class="kpis kpis-sm">
     <div class="kpi"><b>${wkLogs.length}/${E.length * due.length || 0}</b><span>EPA LOGS THIS WEEK</span></div>
     <div class="kpi"><b>${avg(ready7)}</b><span>AVG READINESS 7D</span></div>
-    <div class="kpi"><b>${avg(wkLogs.map(s => (s.rounds||[])[0]?.epa?.effort).filter(Boolean))}</b><span>AVG EFFORT</span></div>
+    <div class="kpi"><b>${avg(wkLogs.map(s => (s.rounds||[])[0]?.epa?.effort).filter(Boolean))}</b><span>AVG HOW HARD</span></div>
     <div class="kpi" style="cursor:pointer" onclick="epaTab='roster';setEpaF('flag','follow')"><b style="color:${flagsN('follow')?'var(--amber)':'inherit'}">${flagsN('follow')}</b><span>FOLLOW-UPS</span></div>
     <div class="kpi" style="cursor:pointer" onclick="epaTab='roster';setEpaF('flag','sore')"><b style="color:${flagsN('sore')?'var(--red)':'inherit'}">${flagsN('sore')}</b><span>SORE</span></div>
   </div>
@@ -1243,7 +1244,7 @@ function epaToday() {
     return {p, r, ep, energy, body, flags, g}; });
   const inN = rows.filter(x => x.r || x.ep).length, F = rows.filter(x => x.flags.length), plan = (D.days||{})[ds], np = (D.days||{})[nxt];
   const grp = g => rows.filter(x => (epaOf(x.p).group||'younger') === g);
-  const tile = x => `<div class="br-kid ${x.flags.length?'flag':''} ${x.r||x.ep?'in':''}" onclick="openKid('${x.p.id}')"><b>${esc(x.p.nickname)}</b><span>${x.r || x.ep ? `${x.energy ? ENERGY_I[x.energy] : ''} ${x.body ? (BODY_I[x.body]||'') : ''} ${x.ep ? '✅' : '🚌'}` : '<i>not checked in</i>'}</span></div>`;
+  const tile = x => `<div class="br-kid ${x.flags.length?'flag':''} ${x.r||x.ep?'in':''}" onclick="openKid('${x.p.id}')"><b>${esc(x.p.nickname)}</b><span class="tl">${x.r || x.ep ? `${x.energy ? `<em class="${lvl(x.energy,5)}">Energy ${x.energy}/5</em>` : ''}${x.body ? `<em class="${x.body === 'Sore' || x.body === 'Hurt' ? 'lo' : x.body === 'Tight' ? 'mid' : 'hi'}">${esc(x.body)}</em>` : ''}${x.ep ? '<em class="ok">Logged ✓</em>' : '<em>On the way</em>'}` : '<i>not checked in</i>'}</span></div>`;
   const planHTML = (P, d, label) => P ? `<div class="card"><div class="card-h">${label} · ${fmtDay(d).toUpperCase()} <a href="#" class="small" style="color:var(--accent)" onclick="openDayPlan('${d}');return false">Edit</a></div>
       <div style="font-size:18px;font-weight:900;margin-bottom:6px">${FOCUS[P.theme] ? FOCUS[P.theme].ico + ' ' : ''}${esc(P.title || (FOCUS[P.theme]||{}).name || 'Session')}</div>
       ${(P.blocks||[]).filter(b => b.what).map(b => `<div class="feed-row"><div class="t" style="width:54px">${esc(b.t||'')}</div><b style="flex:1">${b.grp ? `<span class="chip c-teal" style="margin-right:6px">${b.grp.toUpperCase()}</span>` : ''}${esc(b.what)}${b.note ? `<div class="muted small" style="font-weight:500">${esc(b.note)}</div>` : ''}</b>${b.coach ? `<span class="chip c-sub">${esc(b.coach)}</span>` : ''}${b.drill && (D.media||{})[b.drill] ? `<a class="small" style="color:var(--accent);margin-left:6px" target="_blank" rel="noopener" href="${esc(D.media[b.drill].url)}">▶</a>` : ''}</div>`).join('') || '<div class="muted small">No blocks yet.</div>'}</div>`
@@ -1263,6 +1264,37 @@ function planAhead(from) {
   const n = out.filter(ds => (D.days||{})[ds]).length;
   return `<div class="card"><div class="card-h">PLAN AHEAD · NEXT 3 WEEKS <span class="legend">${n}/${out.length} planned · click any day · or use the Calendar tab for later months</span></div>
     <div class="br-grid">${out.map(ds => { const p = (D.days||{})[ds]; return `<div class="br-kid ${p ? 'in' : ''}" style="opacity:1" onclick="openDayPlan('${ds}')"><b>${fmtDay(ds)}</b><span>${p ? (FOCUS[p.theme] ? FOCUS[p.theme].ico + ' ' : '') + esc(p.title || 'Planned') : '<i style="color:var(--accent)">+ plan</i>'}</span></div>`; }).join('')}</div></div>`;
+}
+// EPA scorecard: what the player entered, as numbers + words. Last 3 weeks of EPA days + last 2 journals.
+const EN_W = ['','drained','low','okay','good','full'];
+function lvl(v, max) { const f = v / max; return f >= .75 ? 'hi' : f >= .5 ? 'mid' : 'lo'; }
+function epaScorecard(p) {
+  if (!epaOf(p).id) return '';
+  const today = localDate(), days = []; let d = new Date(today + 'T12:00:00');
+  for (let i = 0; i < 40 && days.length < 9; i++) { const ds = localDate(d); if (isEpaDay(ds)) days.push(ds); d.setDate(d.getDate() - 1); }
+  const r0 = s => (s && (s.rounds||[])[0]) || {};
+  const rows = days.map(ds => { const ck = r0(p.sess.find(s => s.mode === 'checkin' && s.date === ds)).ready, ep = r0(p.sess.find(s => s.mode === 'epa' && s.date === ds)).epa; return {ds, ck, ep}; });
+  const avg = a => a.length ? a.reduce((x,y) => x + y, 0) / a.length : null;
+  const half = (f, from, to) => avg(rows.slice(from, to).map(f).filter(v => v != null));
+  const effA = half(x => x.ep && x.ep.effort, 0, 3), effB = half(x => x.ep && x.ep.effort, 3, 9), feA = half(x => x.ep && x.ep.feel != null ? x.ep.feel + 1 : null, 0, 3), feB = half(x => x.ep && x.ep.feel != null ? x.ep.feel + 1 : null, 3, 9);
+  const enA = half(x => x.ck && x.ck.energy, 0, 9), logged = rows.filter(x => x.ep).length, checked = rows.filter(x => x.ck).length;
+  const arrow = (a, b) => a == null || b == null ? '' : a - b >= .75 ? ' <span class="up">▲</span>' : b - a >= .75 ? ' <span class="dn">▼</span>' : ' <span class="muted">●</span>';
+  const tile = (lbl, val, sub, cls) => `<div class="sc-t ${cls||''}"><span>${lbl}</span><b>${val}</b><i>${sub}</i></div>`;
+  const J = p.sess.filter(s => s.mode === 'weekly').slice(0, 2).map(s => ({ds:s.date, w:r0(s).weekly || {}}));
+  const cell = (txt, cls) => `<td class="${cls||''}">${txt}</td>`;
+  return `<div class="card"><div class="card-h">EPA SCORECARD <span class="legend">what ${esc(p.nickname)} entered · last ${days.length} EPA days · kids pick emojis, you see numbers</span></div>
+    <div class="sc-tiles">
+      ${tile('LOGGED', `${logged}/${days.length}`, `checked in ${checked}/${days.length}`, logged / days.length >= .75 ? 'hi' : logged / days.length >= .5 ? 'mid' : 'lo')}
+      ${tile('HOW HARD', effA != null ? effA.toFixed(1) + '<small>/10</small>' + arrow(effA, effB) : '-', 'their RPE · last 3 vs before', '')}
+      ${tile('FELT', feA != null ? FEEL_W[Math.round(feA) - 1] + arrow(feA, feB) : '-', 'rough · okay · good · great', feA != null ? lvl(feA, 4) : '')}
+      ${tile('ENERGY', enA != null ? enA.toFixed(1) + '<small>/5</small>' : '-', 'pre-session check-in', enA != null ? lvl(enA, 5) : '')}</div>
+    <table class="tight sc"><tr><th>DAY</th><th>ENERGY</th><th>BODY</th><th>SESSION</th><th>HOW HARD</th><th>FELT</th><th>WORKED ON</th></tr>
+    ${rows.map(x => `<tr>${cell(fmtDay(x.ds))}${x.ck ? cell(x.ck.energy ? `${x.ck.energy}/5 ${EN_W[x.ck.energy]}` : 'on the way', x.ck.energy ? lvl(x.ck.energy, 5) : '') + cell(esc(x.ck.body || '-') + ((x.ck.hurt||[]).length ? ': ' + esc(x.ck.hurt.join(', ')) : ''), /Sore|Hurt/.test(x.ck.body||'') ? 'lo' : x.ck.body === 'Tight' ? 'mid' : '') : cell('<span class="muted">no check-in</span>') + cell('')}
+      ${x.ep ? cell(esc((FOCUS[x.ep.focus]||{}).name || x.ep.focus || '')) + cell(`${x.ep.effort}/10`) + cell(`${FEELS[x.ep.feel]||''} ${FEEL_W[x.ep.feel]||''}`, x.ep.feel != null ? lvl(x.ep.feel + 1, 4) : '') + cell(esc(x.ep.note || ''), 'muted') : cell('<span class="muted">not logged</span>') + cell('') + cell('') + cell('')}</tr>`).join('')}</table>
+    ${J.length ? `<div class="sc-j">${J.map(({ds,w}) => `<div><div class="legend">WEEKLY JOURNAL · ${fmtDay(ds)}</div>
+      <div class="sc-tiles">${w.rate ? tile('WEEK', w.rate + '<small>/10</small>', '', lvl(w.rate, 10)) : ''}${w.effort ? tile('EFFORT', w.effort + '<small>/5</small>', '', lvl(w.effort, 5)) : ''}${w.focus ? tile('FOCUS', w.focus + '<small>/5</small>', '', lvl(w.focus, 5)) : ''}${w.energy ? tile('ENERGY', w.energy + '<small>/5</small>', '', lvl(w.energy, 5)) : ''}${w.mental ? tile('MENTAL', esc(w.mental), '', /Stressed|talk/.test(w.mental) ? 'lo' : w.mental === 'Okay' ? 'mid' : 'hi') : ''}${w.sleep ? tile('SLEEP', esc(w.sleep), 'hrs', '') : ''}</div>
+      <div class="small">${(w.hurt||[]).length ? `<span class="chip c-red">SORE: ${w.hurt.map(esc).join(', ').toUpperCase()}</span> ` : ''}${w.followup === 'Yes' ? '<span class="chip c-amber">WANTS FOLLOW-UP</span> ' : ''}${w.goal ? `<span class="muted">Goal next week:</span> ${esc(w.goal)}` : ''}</div></div>`).join('')}</div>` : ''}
+  </div>`;
 }
 // ── EPA session planner ──
 let dayDraft = null;
@@ -1449,6 +1481,7 @@ function openKid(id) {
   const days = [...Array(14)].map((_,i) => daysAgo(13-i)), per = days.map(d => p.sess.filter(s => s.date === d).reduce((a,s) => a + (s.touches||0), 0)), mx = Math.max(1, ...per);
   dr.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div class="kid" style="font-size:20px"><span class="dot" style="width:36px;height:36px;background:${esc(p.color||'#4fc3f7')}">${esc(p.nickname[0])}</span>${esc(p.nickname)}</div><button class="btn ghost sm" onclick="$('drawer').classList.remove('open')">Close</button></div>
     <div class="muted small" style="margin:6px 0 14px">${esc(p.age_group)} · ${esc(p.skill_level||'')} · ${coachView() ? '' : esc(p.fam.parent_name||'') + ' family'}</div>
+    ${epaScorecard(p)}
     ${progNotesCard(p)}
     <div class="kpis"><div class="kpi"><b>${liveStreak(p)}</b><span>STREAK</span></div><div class="kpi"><b>${p.best_streak||0}</b><span>BEST</span></div><div class="kpi"><b>${fmtK(p.total_touches)}</b><span>LIFETIME</span></div><div class="kpi"><b>${fmt(p.xp)}</b><span>XP</span></div></div>
     <div class="card"><div class="card-h">TOUCHES · LAST 14 DAYS</div><div class="bars" style="height:90px">${per.map((n,i) => `<div class="bar ${n?'':'zero'}" style="height:${n/mx*100}%" title="${days[i]}: ${n}"></div>`).join('')}</div></div>
