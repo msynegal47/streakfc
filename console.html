@@ -756,7 +756,7 @@ function progChips(p) { return (p.programs||[]).map(e => `<span class="chip c-te
 const QA = {
   epa: [['focus','What was it mostly?', v => (FOCUS[v]||{}).name || v], ['effort','How hard? (1 easy · 10 max)', v => v + '/10'], ['feel','How did it feel? (😫 rough · 😐 okay · 🙂 good · 🔥 great)', v => (FEELS[v]||'') + ' ' + (FEEL_W[v]||'')], ['note','One thing you worked on (optional)']],
   ready: [['energy','Energy (😴 1 · 😕 2 · 😐 3 · 🙂 4 · 🔥 5)', v => ['','😴','😕','😐','🙂','🔥'][v] + ' ' + v + '/5'], ['body','Body (Fresh · Good · Tight · Sore · Hurt)'], ['hurt','Where? (only asked if Sore or Hurt)'], ['arrive','How they checked in', v => v === 2 ? 'Check-in board at the field' : 'Heading to EPA, from the app'],
-    ['sleep','Sleep (older check-in)'], ['mood','Mood (older check-in)'], ['legs','Legs (older check-in)']],
+    ['sleep','Sleep (older check-in)'], ['mood','Mood (older check-in)']],
   weekly: [['rate','How would you rate your week? (1-10)'], ['proud','What are you most proud of?'], ['learned','Something valuable you learned'], ['effort','Effort in training (1 not my best · 5 absolute best)'], ['focus','How focused were you? (1-5)'],
     ['improved','Which area improved the most?'], ['challenge','Biggest challenge this week'], ['overcome','How did you overcome it?'], ['days','Days you practiced on your own'], ['mins','Minutes on your own (per day)'], ['worked','What did you work on?'],
     ['sleep','Average hours of sleep'], ['energy','Energy level (1 drained · 5 full)'], ['mental','How are you feeling mentally?'], ['hurt','Anything hurting?'], ['goal','My #1 goal for next week'], ['habit','One habit I will improve'],
