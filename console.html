@@ -131,6 +131,7 @@ table.tight td{padding:6px 8px;vertical-align:middle}tr.click{cursor:pointer}
 .pf{margin-top:14px;display:flex;flex-direction:column;gap:6px}.pf label{font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:800}.day-line{display:flex;gap:8px;align-items:center}.day-line span{width:80px;font-size:12px;font-weight:800}.day-line input{flex:1}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.cal-h{font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:800;padding:4px}
 .cal-sess{font-size:10.5px;font-weight:800;color:var(--text);background:#1ab3bd22;border-radius:5px;padding:2px 5px;margin-top:3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.cal-sess.empty{background:transparent;color:var(--sub);border:1px dashed var(--border)}
+.logrow>summary{list-style:none}.logrow>summary::-webkit-details-marker{display:none}.logrow[open]>summary{background:#ffffff08}.qa{margin:2px 0 10px 96px;padding:10px 14px;border-left:2px solid var(--accent);background:#ffffff05;border-radius:6px}.qa div{display:flex;gap:14px;padding:4px 0;font-size:13px;border-bottom:1px solid #ffffff0a}.qa span{color:var(--sub);width:320px;flex:none}.qa b{font-weight:700}
 .brief-top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:14px;flex-wrap:wrap}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:900px){.grid2{grid-template-columns:1fr}}
 .br-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}.br-kid{border:1px solid var(--border);border-radius:10px;padding:8px 10px;cursor:pointer;opacity:.55}.br-kid.in{opacity:1}.br-kid.flag{border-color:var(--amber);background:#f59e0b14;opacity:1}.br-kid b{display:block;font-size:13px}.br-kid span{font-size:15px}.br-kid i{font-size:11px;color:var(--sub);font-style:normal}
 .cal-d{min-height:92px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px;display:flex;flex-direction:column;gap:3px;font-size:11px}.cal-d.dim{opacity:.35}.cal-d.today{border-color:var(--accent)}.cal-d.epa{border-left:3px solid #1ab3bd}.cal-d.off{background:#f59e0b0d}
@@ -188,7 +189,7 @@ const PROGRAMS = {epa:{name:'EPA', brand:{org:'McGhee Soccer Academy', short:'MS
   off:[['2026-11-11','2026-11-11','Veterans Day'],['2026-11-25','2026-11-27','Thanksgiving'],['2026-12-21','2027-01-03','Winter Break'],
        ['2027-01-18','2027-01-18','MLK Day'],['2027-02-15','2027-02-15','Presidents Day'],['2027-03-15','2027-03-28','Spring Break']]}};
 const FOCUS = {technical:{name:'Technical',ico:'⚽',touches:1200},mixed:{name:'Mixed',ico:'🔀',touches:700},tactical:{name:'Small-sided / tactical',ico:'🧠',touches:500},speed:{name:'Speed + agility',ico:'⚡',touches:200}};
-const FEELS = ['😫','😐','🙂','🔥'];
+const FEELS = ['😫','😐','🙂','🔥'], FEEL_W = ['rough','okay','good','great'];
 const MODE = {speed:'Speed test', film:'Game analysis', goalsheet:'Goal worksheet', goal:'Home session', timed:'Timed test', recovery:'Recovery', parent:'Parent log', epa:'EPA session', checkin:'Check-in', weekly:'Weekly journal', game:'Game', pregame:'Pre-game', mini:'Game Time', juggle:'Juggles', warmup:'Warm-up', cooldown:'Cool-down'};
 
 let ROLE = 'admin', ROLES = null, asCoach = localStorage.getItem('sfc_as_coach') === '1', showDemo = localStorage.getItem('sfc_show_demo') !== '0', MIXED = null;
@@ -751,9 +752,26 @@ function sumT(p, days) { const lo = daysAgo(days-1); return p.sess.filter(s => s
 function activeDays(p, days) { const lo = daysAgo(days-1); return new Set(p.sess.filter(s => s.date >= lo && s.mode !== 'checkin' && s.mode !== 'weekly').map(s => s.date)).size; }
 function kidCell(p) { return `<div class="kid" onclick="openKid('${p.id}')"><span class="dot" style="background:${esc(p.color||'#4fc3f7')}">${esc((p.nickname||'?')[0])}</span>${esc(p.nickname)}${D && D.mixed && isDemo(p) ? ' <span class="chip c-sub" style="font-size:8px">DEMO</span>' : D && D.mixed ? ' <span class="chip c-teal" style="font-size:8px">REAL</span>' : ''}</div>`; }
 function progChips(p) { return (p.programs||[]).map(e => `<span class="chip c-teal">${esc((e.id||'').toUpperCase())}${e.group?' · '+esc(e.group[0].toUpperCase()):''}</span>`).join('') || '<span class="muted">-</span>'; }
+// The exact questions the kid answered in the app, with their answers (same wording as the kid's form)
+const QA = {
+  epa: [['focus','What was it mostly?', v => (FOCUS[v]||{}).name || v], ['effort','How hard? (1 easy · 10 max)', v => v + '/10'], ['feel','How did it feel? (😫 rough · 😐 okay · 🙂 good · 🔥 great)', v => (FEELS[v]||'') + ' ' + (FEEL_W[v]||'')], ['note','One thing you worked on (optional)']],
+  ready: [['energy','Energy (😴 1 · 😕 2 · 😐 3 · 🙂 4 · 🔥 5)', v => ['','😴','😕','😐','🙂','🔥'][v] + ' ' + v + '/5'], ['body','Body (Fresh · Good · Tight · Sore · Hurt)'], ['hurt','Where? (only asked if Sore or Hurt)'], ['arrive','How they checked in', v => v === 2 ? 'Check-in board at the field' : 'Heading to EPA, from the app'],
+    ['sleep','Sleep (older check-in)'], ['mood','Mood (older check-in)'], ['legs','Legs (older check-in)']],
+  weekly: [['rate','How would you rate your week? (1-10)'], ['proud','What are you most proud of?'], ['learned','Something valuable you learned'], ['effort','Effort in training (1 not my best · 5 absolute best)'], ['focus','How focused were you? (1-5)'],
+    ['improved','Which area improved the most?'], ['challenge','Biggest challenge this week'], ['overcome','How did you overcome it?'], ['days','Days you practiced on your own'], ['mins','Minutes on your own (per day)'], ['worked','What did you work on?'],
+    ['sleep','Average hours of sleep'], ['energy','Energy level (1 drained · 5 full)'], ['mental','How are you feeling mentally?'], ['hurt','Anything hurting?'], ['goal','My #1 goal for next week'], ['habit','One habit I will improve'],
+    ['coachMsg','Anything you want your coach to know?'], ['followup','Want a coach to follow up with you?'], ['best','Best part of the week'], ['hard','Hardest thing']],
+};
+function qaRows(s) {
+  const r = (s.rounds||[])[0] || {}, key = Object.keys(QA).find(k => r[k] && typeof r[k] === 'object'); if (!key) {
+    const k2 = Object.keys(r).find(k => r[k] && typeof r[k] === 'object' && !Array.isArray(r[k])); if (!k2) return [];
+    return Object.entries(r[k2]).filter(([,v]) => v !== '' && v != null && !(Array.isArray(v) && !v.length) && typeof v !== 'object' || Array.isArray(v) && v.length).map(([k,v]) => [k.replace(/([A-Z])/g,' $1').replace(/^./, c => c.toUpperCase()), Array.isArray(v) ? v.join(', ') : String(v)]); }
+  const o = r[key]; return QA[key].filter(([k]) => o[k] != null && o[k] !== '' && !(Array.isArray(o[k]) && !o[k].length)).map(([k,l,f]) => [l, f ? f(o[k]) : Array.isArray(o[k]) ? o[k].join(', ') : String(o[k])])
+    .concat(key === 'ready' && Array.isArray(o.hurt) && !o.hurt.length && o.body ? [] : []);
+}
 function detail(s) {
   const r = (s.rounds||[])[0] || {};
-  if (r.epa) { const f = FOCUS[r.epa.focus]; return `${r.epa.coach?`<span class="chip c-sub">${esc(r.epa.coach)}</span>`:''}${f?f.ico+' '+f.name:esc(r.epa.focus)} · effort <b>${r.epa.effort}</b> · ${FEELS[r.epa.feel]||''}${r.epa.note?` · <span class="muted">"${esc(r.epa.note)}"</span>`:''}`; }
+  if (r.epa) { const f = FOCUS[r.epa.focus]; return `${r.epa.coach?`<span class="chip c-sub">${esc(r.epa.coach)}</span>`:''}${f?f.ico+' '+f.name:esc(r.epa.focus)} · effort <b>${r.epa.effort}/10</b> · felt ${FEELS[r.epa.feel]||''} ${FEEL_W[r.epa.feel]||''}${r.epa.note?` · <span class="muted">"${esc(r.epa.note)}"</span>`:''}`; }
   if (r.ready) { const y = r.ready; if (!y.score) return y.arrive === 2 ? '✅ Arrived (check-in board)' : '🚌 Checked in';
     return `Ready <b>${y.score}/5</b> <span class="muted">${[y.sleep ? 'sleep ' + y.sleep : '', y.energy ? 'energy ' + y.energy : '', y.body ? 'body ' + esc(y.body) : y.legs ? 'legs ' + y.legs : '', y.mood ? 'mood ' + y.mood : ''].filter(Boolean).join(' · ')}</span>${(y.hurt||[]).length ? ` <span class="chip c-red">SORE: ${y.hurt.map(esc).join(', ').toUpperCase()}</span>` : ''}`; }
   if (r.game) { const g = r.game; return `⚽ ${esc(g.result && g.result !== 'Skip' ? g.result : 'Game')}${g.opp ? ' vs ' + esc(g.opp) : ''} · <b>${g.rate || '-'}/10</b> · ${esc(g.mins || '')} min · ${esc([].concat(g.pos || []).join('/'))}${(g.hurt||[]).length ? ` <span class="chip c-red">SORE: ${g.hurt.map(esc).join(', ').toUpperCase()}</span>` : ''}${g.well ? `<div class="muted">👍 ${esc(g.well)}${g.work ? ' · 🛠 ' + esc(g.work) : ''}</div>` : ''}`; }
@@ -1234,7 +1252,17 @@ function epaToday() {
       <div class="legend">🚌 checked in on the way · ✅ logged session · ${ENERGY_I.slice(1).join('')} energy · 💪👍😬🤕🚑 body</div></div>
     ${F.length ? `<div class="card" style="border-color:#f59e0b66"><div class="card-h" style="color:var(--amber)">⚠ GO EASY / CHECK IN WITH</div>${F.map(x => `<div class="feed-row click" onclick="openKid('${x.p.id}')"><b style="width:150px">${esc(x.p.nickname)}</b><span style="flex:1">${x.flags.map(f => `<span class="chip c-amber">${esc(f)}</span>`).join(' ')}</span><span class="muted small">${(epaOf(x.p).group||'').toUpperCase()}</span></div>`).join('')}</div>` : ''}
     <div class="grid2">${planHTML(plan, ds, live ? "TODAY'S PLAN" : 'LAST PLAN')}${planHTML(np, nxt, 'NEXT SESSION')}</div>
+    ${planAhead(nxt)}
     ${['younger','older'].map(g => { const G = grp(g); return G.length ? `<div class="card"><div class="card-h">${g.toUpperCase()} · ${G.filter(x => x.r || x.ep).length}/${G.length} IN</div><div class="br-grid">${G.sort((a,b) => (b.flags.length - a.flags.length) || ((b.r||b.ep?1:0) - (a.r||a.ep?1:0))).map(tile).join('')}</div></div>` : ''; }).join('')}`;
+}
+// Upcoming EPA days (3 weeks) with plan status, one click to plan any of them
+function planAhead(from) {
+  const out = []; let d = new Date(from + 'T12:00:00'); d.setDate(d.getDate() + 1);
+  for (let i = 0; i < 28 && out.length < 9; i++) { const ds = localDate(d); if (isEpaDay(ds)) out.push(ds); d.setDate(d.getDate() + 1); }
+  if (!out.length) return '';
+  const n = out.filter(ds => (D.days||{})[ds]).length;
+  return `<div class="card"><div class="card-h">PLAN AHEAD · NEXT 3 WEEKS <span class="legend">${n}/${out.length} planned · click any day · or use the Calendar tab for later months</span></div>
+    <div class="br-grid">${out.map(ds => { const p = (D.days||{})[ds]; return `<div class="br-kid ${p ? 'in' : ''}" style="opacity:1" onclick="openDayPlan('${ds}')"><b>${fmtDay(ds)}</b><span>${p ? (FOCUS[p.theme] ? FOCUS[p.theme].ico + ' ' : '') + esc(p.title || 'Planned') : '<i style="color:var(--accent)">+ plan</i>'}</span></div>`; }).join('')}</div></div>`;
 }
 // ── EPA session planner ──
 let dayDraft = null;
@@ -1441,7 +1469,9 @@ function openKid(id) {
       <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center"><span class="legend">${(D.notes||{})[p.id]?.updated_at ? 'Updated ' + new Date(D.notes[p.id].updated_at).toLocaleDateString() : ''}</span><button class="btn sm" onclick="saveNote('${p.id}')">SAVE NOTES</button></div></div>
     ${spdCard(p)}
     <div class="card"><div class="card-h">PROGRAMS</div>${epaOf(p).id ? `<div class="form-row" style="margin-bottom:8px"><span class="small muted">EPA group</span><select onchange="setGroup('${p.id}',this.value)">${['younger','older'].map(g => `<option ${(epaOf(p).group||'younger')===g?'selected':''}>${g}</option>`).join('')}</select><button class="btn ghost sm" onclick="unenroll('${p.id}')">Remove from EPA</button></div>` : ''}${progChips(p)} ${epaOf(p).focus ? `<span class="muted small">focus: ${esc(FOCUS[epaOf(p).focus]?.name||epaOf(p).focus)}</span>` : ''}</div>
-    <div class="card"><div class="card-h">LOGS · LAST 60 DAYS</div>${p.sess.map(s => `<div class="feed-row"><div class="t">${esc(s.date)}</div><div style="flex:1"><span class="chip c-sub">${esc((MODE[s.mode]||s.mode||'session').toUpperCase())}</span> ${detail(s)}</div><div class="num small">${s.touches?fmt(s.touches)+' · ':''}+${s.xp}</div></div>`).join('') || '<div class="empty">No logs</div>'}</div>`;
+    <div class="card"><div class="card-h">LOGS · LAST 60 DAYS <span class="legend">click a log to see the exact questions + answers</span></div>${p.sess.map(s => { const q = qaRows(s);
+      return `<details class="logrow"><summary class="feed-row" style="cursor:${q.length ? 'pointer' : 'default'}"><div class="t">${esc(s.date)}</div><div style="flex:1"><span class="chip c-sub">${esc((MODE[s.mode]||s.mode||'session').toUpperCase())}</span> ${detail(s)}</div><div class="num small">${s.touches?fmt(s.touches)+' · ':''}+${s.xp}</div></summary>
+        ${q.length ? `<div class="qa">${q.map(([k,v]) => `<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>` : ''}</details>`; }).join('') || '<div class="empty">No logs</div>'}</div>`;
   dr.classList.add('open');
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') $('drawer').classList.remove('open'); });
