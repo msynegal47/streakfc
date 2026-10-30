@@ -29,6 +29,20 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
 
+/* ── HALLOWEEN (Oct 31 only, or ?halloween to preview) ── */
+.hw-deco{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+.hw-web{position:absolute;width:90px;height:90px;opacity:.13}
+.hw-web.l{top:0;left:0}.hw-web.r{top:0;right:0;transform:scaleX(-1)}
+.hw-spider{position:absolute;top:0;right:46px;width:2px;background:#ffffff40;animation:hwDrop 6s ease-in-out infinite;transform-origin:top}
+.hw-spider::after{content:'🕷️';position:absolute;bottom:-14px;left:-9px;font-size:18px}
+@keyframes hwDrop{0%,100%{height:40px}50%{height:120px}}
+.hw-bat{position:absolute;font-size:18px;opacity:.4;animation:hwFly linear infinite}
+@keyframes hwFly{0%{transform:translate(-40px,0)}25%{transform:translate(28vw,-14px)}50%{transform:translate(55vw,8px)}75%{transform:translate(80vw,-10px)}100%{transform:translate(110vw,0)}}
+.hw-glow{position:absolute;left:0;right:0;bottom:0;height:35vh;background:radial-gradient(ellipse at 50% 120%,#f9731633,transparent 70%)}
+.hw-banner{background:linear-gradient(90deg,#3b0764,#7c2d12);border:1px solid #f9731666;border-radius:12px;padding:10px 14px;font-size:13px;color:#fed7aa}
+.hw-banner b{color:#fb923c}
+body.hw .confetti.hw-e{width:auto;height:auto;background:none!important;font-size:22px}
+
 /* ── FIELD LINES BACKGROUND ── */
 .field-bg {
   position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;opacity:.03;
@@ -1483,6 +1497,7 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
           </div>
           <div class="season-card hero-season" id="seasonCard"></div>
         </div>
+        <div class="hw-banner" id="hwBanner" style="display:none">🎃 <b>Trick or touch!</b> Get today's touches in before the candy. 👻</div>
         <div class="snap-row" id="snapRow"></div>
         <!-- Program today (EPA day etc.), full cards live in TEAMS -->
         <div id="progToday"></div>
@@ -3899,7 +3914,23 @@ function calcHistToday() {
   const h = JSON.parse(localStorage.getItem(`sfc_history_${currentPlayer.id}`)||'{}');
   return (h[localDate()]||0).toLocaleString();
 }
+const HALLOWEEN = (() => { const d = new Date(); return (d.getMonth() === 9 && d.getDate() === 31) || /[?#&]halloween/.test(location.href); })();
+function halloweenInit() {
+  if (!HALLOWEEN || document.querySelector('.hw-deco')) return;
+  document.body.classList.add('hw');
+  const web = '<svg viewBox="0 0 100 100" fill="none" stroke="#fff" stroke-width="1"><path d="M0 0L100 100M0 0L50 100M0 0L100 50M0 0L0 100M0 0L100 0"/><path d="M0 20Q14 14 20 0M0 40Q28 28 40 0M0 62Q44 44 62 0M0 86Q60 60 86 0"/></svg>';
+  const el = document.createElement('div'); el.className = 'hw-deco';
+  el.innerHTML = `<div class="hw-glow"></div><div class="hw-web l">${web}</div><div class="hw-web r">${web}</div><div class="hw-spider"></div>
+    <div class="hw-bat" style="top:14vh;animation-duration:26s">🦇</div><div class="hw-bat" style="top:38vh;animation-duration:34s;animation-delay:-12s;font-size:14px">🦇</div><div class="hw-bat" style="top:62vh;animation-duration:30s;animation-delay:-20s">🦇</div>`;
+  document.body.appendChild(el);
+  const b = document.getElementById('hwBanner'); if (b) b.style.display = '';
+}
+document.addEventListener('DOMContentLoaded', halloweenInit); if (document.readyState !== 'loading') setTimeout(halloweenInit, 0);
 function confetti() {
+  if (HALLOWEEN) { const ov = document.getElementById('reveal'), E = ['🎃','👻','🦇','🍬','🕷️'];
+    for (let i=0;i<28;i++) { const c = document.createElement('div'); c.className = 'confetti hw-e'; c.textContent = E[i%E.length];
+      c.style.left = Math.random()*100+'vw'; c.style.animationDuration = (1.8+Math.random()*1.6)+'s'; c.style.animationDelay = (Math.random()*.4)+'s'; ov.appendChild(c); setTimeout(()=>c.remove(), 3800); }
+    return; }
   const ov = document.getElementById('reveal'), cols = ['#f97316','#fbbf24','#39ff14','#4fc3f7','#ffffff'];
   for (let i=0;i<40;i++) {
     const c = document.createElement('div'); c.className = 'confetti';
