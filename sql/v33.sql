@@ -81,3 +81,5 @@ begin
   where id = p_player;
 end $$;
 select 'v33 ok' as status;
+
+-- Oct 31 follow-up (applied live): sfc_coach_data no longer bypasses the org rules for platform admin. A program view always shows exactly what that org's coaches see; admin's global view is sfc_admin_data.
