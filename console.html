@@ -1403,7 +1403,7 @@ async function savePos(id, k, v) { const p = D.byId[id]; if (await adminPatch(p,
 async function saveGoalComment(id) { const p = D.byId[id], c = $('gComment').value.trim(); if (await adminPatch(p, {goal_comment:c}, 'Comment saved')) { p.goals = {...(p.goals||{}), coach:c}; } }
 async function saveNote(id) {
   const focus = $('nFocus').value.trim(), note = $('nNote').value.trim();
-  if (!localOnly(D.byId[id])) { try { await rpc('sfc_admin_set_note', {p_player:id, p_focus:focus, p_note:note}); toast('Notes saved'); } catch(e) { return toast('Failed: ' + e.message); } } else toast('Sandbox: changed here only');
+  if (!localOnly(D.byId[id])) { try { await rpc('sfc_admin_set_note', coachView() ? {p_player:id, p_focus:focus, p_note:note, p_program:CURP()} : {p_player:id, p_focus:focus, p_note:note}); toast('Notes saved'); } catch(e) { return toast('Failed: ' + e.message); } } else toast('Sandbox: changed here only');
   D.notes = D.notes || {}; D.notes[id] = {focus, note, updated_at:new Date().toISOString()}; render();
 }
 
@@ -1489,13 +1489,13 @@ function openKid(id) {
     <div class="card"><div class="card-h">PLAYER PROFILE</div>
       <div class="form-row"><span class="small muted" style="width:90px">Preferred</span>${posSel(p,'pos1')}<span class="small muted">Secondary</span>${posSel(p,'pos2')}</div></div>
     ${idpCard(p)}
-    <div class="card"><div class="card-h">GOAL WORKSHEET <span class="legend">kid fills it in the app</span></div>
+    ${epaOf(p).id ? `<div class="card"><div class="card-h">GOAL WORKSHEET <span class="legend">kid fills it in the app</span></div>
       ${(p.goals||{}).sheet ? (() => { const g = p.goals.sheet; return `<div style="font-size:16px;font-weight:900;margin-bottom:8px">🎯 ${esc(g.dream)}</div>
         ${[['season','This season'],['month','This month'],['week','This week'],['obstacle','Could get in the way'],['overcome','How I will overcome it'],['takes','What I think it takes']].filter(([k]) => g[k]).map(([k,l]) => `<div class="feed-row"><span class="muted small" style="width:150px;flex:none">${l}</span><span>${esc(g[k])}</span></div>`).join('')}
         <div class="legend" style="margin-top:6px">${g.commit === 'YES' ? '✅ Committed' : ''} ${g.at ? '· ' + esc(g.at) : ''}</div>`; })() : '<div class="muted small">Not filled in yet. It shows on their EPA card.</div>'}
       ${((p.goals||{}).items||[]).length ? `<div class="muted small" style="margin-top:10px">Parent-set goals: ${p.goals.items.map(g => (g.done?'✅ ':'') + esc(g.t)).join(' · ')}</div>` : ''}
       <div class="field-lbl" style="margin-top:12px;font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:800">COACH'S STANDARD · WHAT IT WILL ACTUALLY TAKE (KID + PARENT SEE THIS)</div>
-      <div class="form-row" style="margin-top:6px"><textarea id="gComment" rows="3" style="flex:1" maxlength="300" placeholder="The specific skills, habits and effort level I expect to see">${esc((p.goals||{}).coach||'')}</textarea><button class="btn sm" onclick="saveGoalComment('${p.id}')">SAVE</button></div></div>
+      <div class="form-row" style="margin-top:6px"><textarea id="gComment" rows="3" style="flex:1" maxlength="300" placeholder="The specific skills, habits and effort level I expect to see">${esc((p.goals||{}).coach||'')}</textarea><button class="btn sm" onclick="saveGoalComment('${p.id}')">SAVE</button></div></div>` : ''}
     <div class="card"><div class="card-h">PRIVATE COACH NOTES <span class="chip c-red">NEVER SHOWN TO KIDS OR PARENTS</span></div>
       <input id="nFocus" style="width:100%;margin-bottom:8px" maxlength="200" placeholder="Focus areas, e.g. weak foot, scanning, defending 1v1" value="${esc((D.notes||{})[p.id]?.focus||'')}">
       <textarea id="nNote" rows="4" style="width:100%" maxlength="1000" placeholder="Attitude, role, what to watch">${esc((D.notes||{})[p.id]?.note||'')}</textarea>
