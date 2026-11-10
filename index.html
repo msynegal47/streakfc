@@ -840,6 +840,12 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
 .cat-desc{display:none;font-size:13px;color:var(--sub);line-height:1.5;margin-top:8px}
 .cat-item.open .cat-desc{display:block}
 .cat-item.locked{opacity:.45}
+.cat-tag.msa{color:#2dd4bf;border-color:#2dd4bf66}
+.sk-buckets{display:flex;flex-direction:column;gap:8px}
+.sk-bucket{display:flex;align-items:center;gap:10px;width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;color:var(--text);font:inherit;font-weight:800;font-size:13px;letter-spacing:1.5px;text-align:left;cursor:pointer}
+.sk-bucket .ic{font-size:18px}.sk-bucket .lb{flex:1}.sk-bucket .ct{font-size:12px;color:var(--sub);letter-spacing:0}.sk-bucket .cv{color:var(--sub)}
+.sk-bucket.on{border-color:var(--accent);background:var(--bg3)}
+.sk-list{padding:2px 0 6px 10px;border-left:2px solid var(--border);margin-left:6px}
 
 /* ── OFFLINE BAR ── */
 .offline-bar{
@@ -3097,19 +3103,26 @@ function checkBadges() {
 }
 
 // ─── SKILLS LIST ──────────────────────────────────────
+let skillOpen = null;
+const SKILL_BUCKETS = [['bm','⚽','BALL MASTERY'],['mv','🏃','MOVES / 1v1'],['wall','🧱','WALL / FIRST TOUCH'],['jg','🤹','JUGGLING'],['pj','🤝','PARTNER JUGGLING'],['spd','⚡','SPEED + FOOTWORK'],['str','💪','STRENGTH'],['rec','🌙','RECOVERY']];
 function renderSkillsList() {
   const el = document.getElementById('skillCatalog'); if (!el || !currentPlayer) return;
-  const lvl = levelIdx(currentPlayer), pbs = getPBs(currentPlayer.id);
-  const groups = [['bm','⚽ BALL MASTERY'],['wall','🧱 WALL / FIRST TOUCH'],['mv','🏃 MOVES / 1v1'],['rec','🌙 RECOVERY']];
-  el.innerHTML = groups.map(([g,label]) => `<div class="skills-section-title" style="margin:10px 0 8px">${label}</div>` +
-    Object.entries(SKILLS).filter(([,k])=>k.block===g).map(([id,k]) => {
+  const lvl = levelIdx(currentPlayer), pbs = getPBs(currentPlayer.id), msaTag = '<span class="cat-tag msa">MSA</span>';
+  const appItems = g => Object.entries(SKILLS).filter(([id,k])=>(id.startsWith('jg_') ? 'jg' : k.block)===g).map(([id,k]) => {
       const best = Object.entries(pbs).filter(([key])=>key.startsWith(id+'_')).map(([key,v])=>`${v} in ${key.split('_').pop()}s`).join(' · ');
       const locked = k.lvl > lvl;
       return `<div class="cat-item ${locked?'locked':''}" onclick="this.classList.toggle('open')">
-        <div class="cat-top"><div class="cat-name">${k.name}</div>
+        <div class="cat-top"><div class="cat-name">${k.name}</div>${MSA_SAME.includes(id) ? msaTag : ''}
           ${locked?`<span class="cat-tag">🔒 ${LEVELS[k.lvl].toUpperCase()}</span>`:`<span class="cat-tag">${UNIT_LBL[k.unit]}</span>`}
           ${best?`<span class="cat-pb">PB ${best}</span>`:''}</div>
-        <div class="cat-desc">${k.desc}${STAGES[k.block] && !locked ? `<div class="stg-ladder">${STAGES[k.block].map((t, i) => `<div class="${skillStage(currentPlayer, id) === i + 1 ? 'on' : skillStage(currentPlayer, id) > i + 1 ? 'done' : ''}"><b>${i + 1}</b>${t}</div>`).join('')}</div>` : ''}</div></div>`; }).join('')).join('');
+        <div class="cat-desc">${k.desc}${STAGES[k.block] && !locked ? `<div class="stg-ladder">${STAGES[k.block].map((t, i) => `<div class="${skillStage(currentPlayer, id) === i + 1 ? 'on' : skillStage(currentPlayer, id) > i + 1 ? 'done' : ''}"><b>${i + 1}</b>${t}</div>`).join('')}</div>` : ''}</div></div>`; });
+  const libItems = g => MSA_LIB.filter(d => d.b === g).map(d => `<div class="cat-item" onclick="this.classList.toggle('open')">
+        <div class="cat-top"><div class="cat-name">${esc(d.n)}</div>${msaTag}<span class="cat-tag">${UNIT_LBL[d.u]}</span></div>
+        <div class="cat-desc">${esc(d.d)}${d.b === 'pj' ? '<div class="small" style="margin-top:6px">10x each foot. No partner? Use a wall.</div>' : ''}</div></div>`);
+  el.innerHTML = `<div class="skills-section-title" style="margin:4px 0 10px">SKILLS LIBRARY · TAP A GROUP</div><div class="sk-buckets">` + SKILL_BUCKETS.map(([g,ic,label]) => {
+    const items = appItems(g).concat(libItems(g)); if (!items.length) return '';
+    const on = skillOpen === g;
+    return `<button class="sk-bucket ${on?'on':''}" onclick="skillOpen=skillOpen==='${g}'?null:'${g}';renderSkillsList()"><span class="ic">${ic}</span><span class="lb">${label}</span><span class="ct">${items.length}</span><span class="cv">${on?'▴':'▾'}</span></button>${on ? `<div class="sk-list">${items.join('')}</div>` : ''}`; }).join('') + `</div>`;
 }
 
 // ─── CREW (sibling leaderboard) ───────────────────────
@@ -4109,6 +4122,55 @@ const SKILLS = {
   rec_juggle: {name:'Easy Juggles', block:'rec', tier:'r', unit:'touches', max:3, lvl:0, desc:'Relaxed juggling. Count your total touches (drops are fine).'},
 };
 const BLOCK_LBL = {bm:'BALL MASTERY', wall:'WALL / FIRST TOUCH', mv:'MOVES / 1v1', rec:'RECOVERY'};
+// MSA Drill Library (James McGhee, Nov 2026). Skills screen reference only: never enters daily-session pools. Drills that match an app drill are tagged on that drill (MSA_SAME).
+const MSA_LIB = [
+  {"n": "Half Maradona Face Up", "b": "bm", "u": "reps", "d": "Step on the ball, spin, and drag it with the opposite foot so you finish facing up the field. Protect the ball with your body through the turn."},
+  {"n": "Double Scissor", "b": "bm", "u": "reps", "d": "Circle one foot around the front of the ball, then the other. Take it away with the outside of your foot. Sell each scissor with your hips."},
+  {"n": "Double Body Feint", "b": "bm", "u": "reps", "d": "Drop your shoulder one way, then the other, without touching the ball. Go the way the defender isn't leaning."},
+  {"n": "Scissor Feint", "b": "bm", "u": "reps", "d": "Circle your foot around the front of the ball from inside to outside. Plant, then take it away with the outside of your opposite foot."},
+  {"n": "Inside Outside Lift", "b": "bm", "u": "reps", "d": "Inside touch, then lift the ball with the outside of the same foot like you're popping it over a defender's foot. Keep the lift small and controlled."},
+  {"n": "Inside Outside Scissor Fake", "b": "bm", "u": "reps", "d": "Inside touch with your right, scissor fake going right, then push it left. Sell the fake with your hips so the defender commits."},
+  {"n": "L Pull Grab Back", "b": "bm", "u": "reps", "d": "Hit the L pull, stop the ball with the sole of your opposite foot and pull it back, then touch it forward with the foot you started with. Keep it flowing without stopping."},
+  {"n": "360 Inside Foot", "b": "bm", "u": "reps", "d": "Turn a full circle around the ball using only small inside-foot touches. Head up, ball under control the whole way. Go both directions."},
+  {"n": "360 Outside Foot", "b": "bm", "u": "reps", "d": "Turn a full circle around the ball using only small outside-foot touches. Stay low and keep the ball within a step."},
+  {"n": "Marco Turn", "b": "bm", "u": "reps", "d": "Sole roll the ball across the front of your body with your right foot. Spin 180 while you grab the ball from behind your right foot with your left and pull it back to where it started. One smooth motion."},
+  {"n": "McGeady Spin", "b": "bm", "u": "reps", "d": "Stop the ball with the inside of your foot as you spin, then hit it forward with the outside of your opposite foot. Turn and go in one move."},
+  {"n": "Fake Shot Robinho", "b": "bm", "u": "reps", "d": "Set up like you're about to shoot, then scoop the ball to the inside with the inside of your foot. The ball stays attached to your foot the whole way through the turn."},
+  {"n": "Rabona Fake", "b": "bm", "u": "reps", "d": "Wrap your kicking leg behind your standing leg like you're about to strike a rabona. Pull out of it and cut the other way."},
+  {"n": "Figure 8s", "b": "bm", "u": "touches", "d": "Set two cones 3-5 yards apart and dribble a figure 8 around them using every surface of both feet. Tight turns, quick touches, head up."},
+  {"n": "Juggling Off Wall", "b": "wall", "u": "reps", "d": "Volley the ball against the wall and keep it off the ground. Soft contact, constant small adjustments."},
+  {"n": "Normal Free", "b": "jg", "u": "touches", "d": "Juggle with any surface, any order. Lock your ankle and keep the ball below head height. Count every touch."},
+  {"n": "Toss & Trap", "b": "jg", "u": "reps", "d": "Toss or kick the ball above your head and kill it dead with the inside, then the outside of your foot. Cushion it, don't stab at it."},
+  {"n": "High Juggles", "b": "jg", "u": "reps", "d": "Juggle normally, but every couple of touches send it back up above your head and keep the juggle going. Every time the ball goes above your head is a rep. Never let it hit the ground."},
+  {"n": "Every Other Touch Inside", "b": "jg", "u": "touches", "d": "Alternate a regular juggle with an inside-of-foot juggle. Bring the ball back to center after every inside touch."},
+  {"n": "Every Other Touch Outside", "b": "jg", "u": "touches", "d": "Alternate a regular juggle with an outside-of-foot juggle. Small, controlled contact."},
+  {"n": "Laces", "b": "pj", "u": "reps", "d": "Volley it back to your partner off your laces. Toe down, ankle locked, deliver it at a catchable height."},
+  {"n": "Inside", "b": "pj", "u": "reps", "d": "Return the ball with the inside of your foot. Open your hip and guide it right back to your partner."},
+  {"n": "Inside Inside", "b": "pj", "u": "reps", "d": "Control with the inside, return with the inside. Same foot, then alternating. The first touch decides how good the second one is."},
+  {"n": "Thigh Volley", "b": "pj", "u": "reps", "d": "Cushion it off your thigh, then volley it back. Thigh flat, soft contact."},
+  {"n": "Chest Volley", "b": "pj", "u": "reps", "d": "Lean back, cushion it off your chest, then volley it back before it lands. Arms out for balance."},
+  {"n": "Headers", "b": "pj", "u": "reps", "d": "Head it back to your partner off your forehead. Eyes open, neck strong, attack the ball."},
+  {"n": "Outside of Foot Volley", "b": "pj", "u": "reps", "d": "Control the ball with a juggle off the outside of your foot, then volley it back to your partner. Settle it first, then deliver."},
+  {"n": "2x Laces Juggle > Volley Back", "b": "pj", "u": "reps", "d": "Take two juggles off your laces, then volley it back to your partner. Settle it, then deliver."},
+  {"n": "Y Cone Weave", "b": "spd", "u": "reps", "d": "Set a cone at the base, a middle cone 5 yards up, a right cone 2 steps forward and 3 steps right of the middle, and a left cone 2 steps forward and 3 steps left of the middle. Start at the base and dribble around the left side of the middle cone, then the right side of the right cone. Come back around the left of the middle cone, then the right of the left cone. Finish back around the left of the middle cone and dribble back to the base. Two figure 8s and home. Keep the ball tight through the turns and alternate which way you start."},
+  {"n": "Nordic Hamstring Curl", "b": "str", "u": "reps", "d": "Kneel with your ankles held down by a partner or tucked under a couch. Lower your body forward as slowly as you can, catch yourself with your hands, and push back up. Fight the fall the whole way down."},
+  {"n": "Copenhagen Plank", "b": "str", "u": "time", "d": "Side plank with your top leg resting on a bench or couch and your bottom leg underneath. Hips up, body in a straight line. Beginners rest the knee on the bench instead of the foot."},
+  {"n": "Single Leg Balance", "b": "str", "u": "time", "d": "Stand on one foot with a slight bend in the knee. Once 30 seconds is easy, close your eyes. Builds the ankle stability that prevents rolled ankles."},
+  {"n": "Single Leg Calf Raise", "b": "str", "u": "reps", "d": "Stand on one foot on the edge of a step. Rise all the way onto your toes, then lower your heel slowly below the step. Slow on the way down."},
+  {"n": "World's Greatest Stretch", "b": "rec", "u": "time", "d": "Lunge forward, drop your elbow to your instep, then rotate and reach to the sky. Opens hips, hamstrings, and upper back in one move."},
+  {"n": "Couch Stretch", "b": "rec", "u": "time", "d": "Back knee on the ground, foot up against a wall or couch, front foot planted. Squeeze your glute and stay tall. Hits the quads and hip flexors."},
+  {"n": "Frogger", "b": "rec", "u": "time", "d": "Knees wide on the ground, rock your hips back and forth. Opens up the groin and inner hips."},
+  {"n": "Calf Wall Stretch", "b": "rec", "u": "time", "d": "Hands on the wall, back leg straight, heel down. Lean in until you feel the calf. Switch legs."},
+  {"n": "Bed Pigeon Stretch", "b": "rec", "u": "time", "d": "Front shin across the edge of a bed, back leg extended. Sink your hips and breathe into your glute."},
+  {"n": "Hamstring Stretch", "b": "rec", "u": "time", "d": "Leg straight, hinge at the hips with a flat back. Reach toward your toes without rounding."},
+  {"n": "Quad Stretch", "b": "rec", "u": "time", "d": "Grab your ankle and pull your heel toward your glute. Knees together, hips pushed forward."},
+  {"n": "90/90 Hip Switches", "b": "rec", "u": "reps", "d": "Sit with both knees bent at 90 degrees, one in front and one to the side. Rotate both knees to the other side without using your hands. Sit tall the whole time."},
+  {"n": "Adductor Rock Back", "b": "rec", "u": "reps", "d": "On hands and knees, straighten one leg out to the side. Rock your hips back toward your heels until you feel your inner thigh. Slow and controlled, then switch legs."},
+  {"n": "Glute Bridge", "b": "rec", "u": "reps", "d": "Lie on your back, knees bent, feet flat. Drive your hips up by squeezing your glutes, pause at the top, lower slowly."},
+  {"n": "Foam Roll", "b": "rec", "u": "time", "d": "Roll your quads, calves, and IT band slowly. When you find a tight spot, pause and breathe. Never roll directly on a joint."},
+  {"n": "Child's Pose", "b": "rec", "u": "time", "d": "Knees wide, sit back on your heels, arms stretched long in front of you. Breathe deep into your back and let everything relax."}
+];
+const MSA_SAME = ["chop", "croqueta", "in_out", "jg_alt", "l_turns", "sole_rolls", "v_pulls", "wall_1t", "wall_2t", "wall_turn"];
 // Progressions: every drill has 3 stages. Stage = how far above the drill's level the player is, +1 once they've logged 150+ of it.
 const STAGES = {bm:['Slow and clean, eyes on the ball','Faster, eyes up every few touches','Max speed, eyes up the whole time'],
   mv:['Standing still, slow and clean','Dribble at a cone, do it 1 yard before it','Full speed, then burst 3 steps'],
