@@ -853,6 +853,23 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
 .cat-desc{display:none;font-size:13px;color:var(--sub);line-height:1.5;margin-top:8px}
 .cat-item.open .cat-desc{display:block}
 .cat-item.locked{opacity:.45}
+.cat-tag.msa{color:#2dd4bf;border-color:#2dd4bf66}
+.cat-tag.md{color:var(--green);border-color:var(--green)}
+.cat-acts{display:flex;gap:8px;margin-top:10px}.cat-acts button{flex:1;border-radius:10px;padding:10px;font:inherit;font-weight:900;font-size:13px;letter-spacing:.5px;cursor:pointer}
+.cat-do{background:var(--accent);color:#000;border:0}.cat-add{background:transparent;color:var(--text);border:1px solid var(--border)}.cat-add.on{color:var(--green);border-color:var(--green)}
+.md-bar{display:flex;gap:10px;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--accent);border-radius:14px;padding:12px 14px;margin:4px 0 14px}
+.md-bar b{display:block;font-size:13px;letter-spacing:1px;color:var(--accent)}.md-bar span{display:block;font-size:12px;color:var(--sub);margin-top:3px;line-height:1.35}
+.md-bar.empty{display:block;border-style:dashed;border-color:var(--border);color:var(--sub);font-size:13px}.md-bar.empty b{display:inline;color:var(--text)}
+.md-btns{display:flex;flex-direction:column;gap:6px;flex:none}.md-go{background:var(--accent);color:#000;border:0;border-radius:10px;padding:10px 14px;font:inherit;font-weight:900;cursor:pointer}.md-clr{background:none;border:0;color:var(--sub);font:inherit;font-size:12px;cursor:pointer}
+.rp-row{display:flex;align-items:center;gap:12px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer;text-align:left;width:100%;color:var(--text);font:inherit}
+.rp-row.on{border-color:var(--green)}.rp-row i{flex:none;width:24px;height:24px;border-radius:7px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:900;color:#000}
+.rp-row.on i{background:var(--green);border-color:var(--green)}.rp-row b{display:block;font-size:15px}.rp-row span{display:block;font-size:12px;color:var(--sub);margin-top:2px}
+.epa-drills{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.epa-drills span{font-size:12px;border:1px solid var(--border);border-radius:8px;padding:4px 8px}.epa-drills span.ok{color:var(--green);border-color:var(--green)}
+.sk-buckets{display:flex;flex-direction:column;gap:8px}
+.sk-bucket{display:flex;align-items:center;gap:10px;width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;color:var(--text);font:inherit;font-weight:800;font-size:13px;letter-spacing:1.5px;text-align:left;cursor:pointer}
+.sk-bucket .ic{font-size:18px}.sk-bucket .lb{flex:1}.sk-bucket .ct{font-size:12px;color:var(--sub);letter-spacing:0}.sk-bucket .cv{color:var(--sub)}
+.sk-bucket.on{border-color:var(--accent);background:var(--bg3)}
+.sk-list{padding:2px 0 6px 10px;border-left:2px solid var(--border);margin-left:6px}
 
 /* ── OFFLINE BAR ── */
 .offline-bar{
@@ -3252,19 +3269,48 @@ function checkBadges() {
 }
 
 // ─── SKILLS LIST ──────────────────────────────────────
+let skillOpen = null;
+// ── MY DAY: kid builds their own session from any drill in the library. Runs in the timed player, logs like any session (XP, streak, rounds for the coach)
+// Drills done this week (any session) so coach-assigned drills can tick off
+function drillLog(p) { return jget(`sfc_drills_${p.id}`, {}); }
+function drillDoneWeek(p, k) { const L = drillLog(p); return weekDates(0).some(d => (L[d] || []).includes(k)); }
+function logDrills(p, ids) { const L = drillLog(p), t = localDate(); L[t] = [...new Set([...(L[t] || []), ...ids])];
+  Object.keys(L).sort().slice(0, -21).forEach(d => delete L[d]); try { localStorage.setItem(`sfc_drills_${p.id}`, JSON.stringify(L)); } catch(e) {} }
+function myDayKey() { return `sfc_myday_${currentPlayer && currentPlayer.id}`; }
+function myDay() { const x = jget(myDayKey(), null); return x && x.date === localDate() ? (x.ids || []).filter(k => SKILLS[k]) : []; }
+function myDayHas(id) { return myDay().includes(id); }
+function myDaySet(ids) { try { localStorage.setItem(myDayKey(), JSON.stringify({date:localDate(), ids})); } catch(e) {} }
+function myDayToggle(id) { const d = myDay(); if (d.includes(id)) myDaySet(d.filter(x => x !== id)); else if (d.length >= 12) return showToast('12 drills max. Start your day!'); else myDaySet([...d, id]); renderSkillsList(); }
+function myDayBar() { const d = myDay(); if (!d.length) return `<div class="md-bar empty">🛠 <b>BUILD YOUR OWN DAY</b><span>Open a group, tap a drill, then ＋ MY DAY.</span></div>`;
+  return `<div class="md-bar"><div><b>MY DAY · ${d.length} DRILL${d.length > 1 ? 'S' : ''}</b><span>${d.map(k => esc(SKILLS[k].name)).join(' · ')}</span></div><div class="md-btns"><button class="md-go" onclick="startCustom(myDay(),'myday')">START ▶</button><button class="md-clr" onclick="myDaySet([]);renderSkillsList()">Clear</button></div></div>`; }
+function customPlan(p, ids) { const c = ageCfg(p);
+  return ids.filter(k => SKILLS[k]).map(k => { const sk = SKILLS[k], b = sk.block;
+    return {skill:k, secs: sk.unit === 'time' ? (b === 'str' ? 30 : c.recSecs) : c.secs, foot: b === 'wall' ? 'BOTH FEET' : (GOAL_SK[k]||[])[1] ? 'SWITCH FEET HALFWAY' : b === 'mv' ? 'ALTERNATE FEET' : ''}; }); }
+// src: 'drill' (one drill), 'myday', 'coach' (homework drills), 'recovery' (picked recovery)
+function startCustom(ids, src) {
+  ids = (ids || []).filter(k => SKILLS[k]); if (!ids.length) return;
+  const ex = loadSess();
+  if (ex && !ex.finished && ((ex.results||[]).some(r => !r.skipped) || (ex.items||[]).some(i => i.done))) { showToast('Finish your current session first'); S = ex; return resumeSession(); }
+  const allRec = ids.every(k => SKILLS[k].block === 'rec');
+  S = {date:localDate(), mode: allRec ? 'recovery' : 'timed', custom: src || 'myday', intensity: allRec ? 'limited' : currentDiff, target: goalFor(currentDiff), plan: customPlan(currentPlayer, ids), idx:0, results:[]};
+  saveSess(); openSess(); renderReady();
+}
+const SKILL_BUCKETS = [['bm','⚽','BALL MASTERY'],['mv','🏃','MOVES / 1v1'],['wall','🧱','WALL / FIRST TOUCH'],['jg','🤹','JUGGLING'],['pj','🤝','PARTNER JUGGLING'],['spd','⚡','SPEED + FOOTWORK'],['str','💪','STRENGTH'],['rec','🌙','RECOVERY']];
 function renderSkillsList() {
   const el = document.getElementById('skillCatalog'); if (!el || !currentPlayer) return;
-  const lvl = levelIdx(currentPlayer), pbs = getPBs(currentPlayer.id);
-  const groups = [['bm','⚽ BALL MASTERY'],['wall','🧱 WALL / FIRST TOUCH'],['mv','🏃 MOVES / 1v1'],['rec','🌙 RECOVERY']];
-  el.innerHTML = groups.map(([g,label]) => `<div class="skills-section-title" style="margin:10px 0 8px">${label}</div>` +
-    Object.entries(SKILLS).filter(([,k])=>k.block===g).map(([id,k]) => {
+  const lvl = levelIdx(currentPlayer), pbs = getPBs(currentPlayer.id), msaTag = '<span class="cat-tag msa">MSA</span>';
+  const appItems = g => Object.entries(SKILLS).filter(([id,k])=>(k.lib || (id.startsWith('jg_') ? 'jg' : k.block))===g).map(([id,k]) => {
       const best = Object.entries(pbs).filter(([key])=>key.startsWith(id+'_')).map(([key,v])=>`${v} in ${key.split('_').pop()}s`).join(' · ');
       const locked = k.lvl > lvl;
       return `<div class="cat-item ${locked?'locked':''}" onclick="this.classList.toggle('open')">
-        <div class="cat-top"><div class="cat-name">${k.name}</div>
+        <div class="cat-top"><div class="cat-name">${k.name}</div>${k.msa || MSA_SAME.includes(id) ? msaTag : ''}${myDayHas(id) ? '<span class="cat-tag md">✓ MY DAY</span>' : ''}
           ${locked?`<span class="cat-tag">🔒 ${LEVELS[k.lvl].toUpperCase()}</span>`:`<span class="cat-tag">${UNIT_LBL[k.unit]}</span>`}
           ${best?`<span class="cat-pb">PB ${best}</span>`:''}</div>
-        <div class="cat-desc">${k.desc}${STAGES[k.block] && !locked ? `<div class="stg-ladder">${STAGES[k.block].map((t, i) => `<div class="${skillStage(currentPlayer, id) === i + 1 ? 'on' : skillStage(currentPlayer, id) > i + 1 ? 'done' : ''}"><b>${i + 1}</b>${t}</div>`).join('')}</div>` : ''}</div></div>`; }).join('')).join('');
+        <div class="cat-desc">${k.desc}${STAGES[k.block] && !locked ? `<div class="stg-ladder">${STAGES[k.block].map((t, i) => `<div class="${skillStage(currentPlayer, id) === i + 1 ? 'on' : skillStage(currentPlayer, id) > i + 1 ? 'done' : ''}"><b>${i + 1}</b>${t}</div>`).join('')}</div>` : ''}${locked ? '' : `<div class="cat-acts"><button class="cat-do" onclick="event.stopPropagation();startCustom(['${id}'],'drill')">▶ DO IT</button><button class="cat-add ${myDayHas(id)?'on':''}" onclick="event.stopPropagation();myDayToggle('${id}')">${myDayHas(id) ? '✓ IN MY DAY' : '＋ MY DAY'}</button></div>`}</div></div>`; });
+  el.innerHTML = myDayBar() + `<div class="skills-section-title" style="margin:4px 0 10px">SKILLS LIBRARY · TAP A GROUP</div><div class="sk-buckets">` + SKILL_BUCKETS.map(([g,ic,label]) => {
+    const items = appItems(g); if (!items.length) return '';
+    const on = skillOpen === g;
+    return `<button class="sk-bucket ${on?'on':''}" onclick="skillOpen=skillOpen==='${g}'?null:'${g}';renderSkillsList()"><span class="ic">${ic}</span><span class="lb">${label}</span><span class="ct">${items.length}</span><span class="cv">${on?'▴':'▾'}</span></button>${on ? `<div class="sk-list">${items.join('')}</div>` : ''}`; }).join('') + `</div>`;
 }
 
 // ─── CREW (sibling leaderboard) ───────────────────────
@@ -4281,7 +4327,56 @@ const SKILLS = {
   rec_sole:   {name:'Easy Sole Rolls', block:'rec', tier:'r', unit:'time', lvl:0, desc:'Slow, relaxed sole rolls. Smooth, not fast. Just feel the ball.'},
   rec_juggle: {name:'Easy Juggles', block:'rec', tier:'r', unit:'touches', max:3, lvl:0, desc:'Relaxed juggling. Count your total touches (drops are fine).'},
 };
-const BLOCK_LBL = {bm:'BALL MASTERY', wall:'WALL / FIRST TOUCH', mv:'MOVES / 1v1', rec:'RECOVERY'};
+const BLOCK_LBL = {bm:'BALL MASTERY', wall:'WALL / FIRST TOUCH', mv:'MOVES / 1v1', rec:'RECOVERY', pj:'PARTNER JUGGLING', spd:'SPEED + FOOTWORK', str:'STRENGTH'};
+// MSA Drill Library (James McGhee, Nov 2026). Turned into SKILLS entries below (ids m_* / jg_m_*). Drills that match an app drill are tagged on that drill (MSA_SAME).
+const MSA_LIB = [
+  {"n": "Half Maradona Face Up", "b": "bm", "u": "reps", "d": "Step on the ball, spin, and drag it with the opposite foot so you finish facing up the field. Protect the ball with your body through the turn."},
+  {"n": "Double Scissor", "b": "bm", "u": "reps", "d": "Circle one foot around the front of the ball, then the other. Take it away with the outside of your foot. Sell each scissor with your hips."},
+  {"n": "Double Body Feint", "b": "bm", "u": "reps", "d": "Drop your shoulder one way, then the other, without touching the ball. Go the way the defender isn't leaning."},
+  {"n": "Scissor Feint", "b": "bm", "u": "reps", "d": "Circle your foot around the front of the ball from inside to outside. Plant, then take it away with the outside of your opposite foot."},
+  {"n": "Inside Outside Lift", "b": "bm", "u": "reps", "d": "Inside touch, then lift the ball with the outside of the same foot like you're popping it over a defender's foot. Keep the lift small and controlled."},
+  {"n": "Inside Outside Scissor Fake", "b": "bm", "u": "reps", "d": "Inside touch with your right, scissor fake going right, then push it left. Sell the fake with your hips so the defender commits."},
+  {"n": "L Pull Grab Back", "b": "bm", "u": "reps", "d": "Hit the L pull, stop the ball with the sole of your opposite foot and pull it back, then touch it forward with the foot you started with. Keep it flowing without stopping."},
+  {"n": "360 Inside Foot", "b": "bm", "u": "reps", "d": "Turn a full circle around the ball using only small inside-foot touches. Head up, ball under control the whole way. Go both directions."},
+  {"n": "360 Outside Foot", "b": "bm", "u": "reps", "d": "Turn a full circle around the ball using only small outside-foot touches. Stay low and keep the ball within a step."},
+  {"n": "Marco Turn", "b": "bm", "u": "reps", "d": "Sole roll the ball across the front of your body with your right foot. Spin 180 while you grab the ball from behind your right foot with your left and pull it back to where it started. One smooth motion."},
+  {"n": "McGeady Spin", "b": "bm", "u": "reps", "d": "Stop the ball with the inside of your foot as you spin, then hit it forward with the outside of your opposite foot. Turn and go in one move."},
+  {"n": "Fake Shot Robinho", "b": "bm", "u": "reps", "d": "Set up like you're about to shoot, then scoop the ball to the inside with the inside of your foot. The ball stays attached to your foot the whole way through the turn."},
+  {"n": "Rabona Fake", "b": "bm", "u": "reps", "d": "Wrap your kicking leg behind your standing leg like you're about to strike a rabona. Pull out of it and cut the other way."},
+  {"n": "Figure 8s", "b": "bm", "u": "touches", "d": "Set two cones 3-5 yards apart and dribble a figure 8 around them using every surface of both feet. Tight turns, quick touches, head up."},
+  {"n": "Juggling Off Wall", "b": "wall", "u": "reps", "d": "Volley the ball against the wall and keep it off the ground. Soft contact, constant small adjustments."},
+  {"n": "Normal Free", "b": "jg", "u": "touches", "d": "Juggle with any surface, any order. Lock your ankle and keep the ball below head height. Count every touch."},
+  {"n": "Toss & Trap", "b": "jg", "u": "reps", "d": "Toss or kick the ball above your head and kill it dead with the inside, then the outside of your foot. Cushion it, don't stab at it."},
+  {"n": "High Juggles", "b": "jg", "u": "reps", "d": "Juggle normally, but every couple of touches send it back up above your head and keep the juggle going. Every time the ball goes above your head is a rep. Never let it hit the ground."},
+  {"n": "Every Other Touch Inside", "b": "jg", "u": "touches", "d": "Alternate a regular juggle with an inside-of-foot juggle. Bring the ball back to center after every inside touch."},
+  {"n": "Every Other Touch Outside", "b": "jg", "u": "touches", "d": "Alternate a regular juggle with an outside-of-foot juggle. Small, controlled contact."},
+  {"n": "Laces", "b": "pj", "u": "reps", "d": "Volley it back to your partner off your laces. Toe down, ankle locked, deliver it at a catchable height."},
+  {"n": "Inside", "b": "pj", "u": "reps", "d": "Return the ball with the inside of your foot. Open your hip and guide it right back to your partner."},
+  {"n": "Inside Inside", "b": "pj", "u": "reps", "d": "Control with the inside, return with the inside. Same foot, then alternating. The first touch decides how good the second one is."},
+  {"n": "Thigh Volley", "b": "pj", "u": "reps", "d": "Cushion it off your thigh, then volley it back. Thigh flat, soft contact."},
+  {"n": "Chest Volley", "b": "pj", "u": "reps", "d": "Lean back, cushion it off your chest, then volley it back before it lands. Arms out for balance."},
+  {"n": "Headers", "b": "pj", "u": "reps", "d": "Head it back to your partner off your forehead. Eyes open, neck strong, attack the ball."},
+  {"n": "Outside of Foot Volley", "b": "pj", "u": "reps", "d": "Control the ball with a juggle off the outside of your foot, then volley it back to your partner. Settle it first, then deliver."},
+  {"n": "2x Laces Juggle > Volley Back", "b": "pj", "u": "reps", "d": "Take two juggles off your laces, then volley it back to your partner. Settle it, then deliver."},
+  {"n": "Y Cone Weave", "b": "spd", "u": "reps", "d": "Set a cone at the base, a middle cone 5 yards up, a right cone 2 steps forward and 3 steps right of the middle, and a left cone 2 steps forward and 3 steps left of the middle. Start at the base and dribble around the left side of the middle cone, then the right side of the right cone. Come back around the left of the middle cone, then the right of the left cone. Finish back around the left of the middle cone and dribble back to the base. Two figure 8s and home. Keep the ball tight through the turns and alternate which way you start."},
+  {"n": "Nordic Hamstring Curl", "b": "str", "u": "reps", "d": "Kneel with your ankles held down by a partner or tucked under a couch. Lower your body forward as slowly as you can, catch yourself with your hands, and push back up. Fight the fall the whole way down."},
+  {"n": "Copenhagen Plank", "b": "str", "u": "time", "d": "Side plank with your top leg resting on a bench or couch and your bottom leg underneath. Hips up, body in a straight line. Beginners rest the knee on the bench instead of the foot."},
+  {"n": "Single Leg Balance", "b": "str", "u": "time", "d": "Stand on one foot with a slight bend in the knee. Once 30 seconds is easy, close your eyes. Builds the ankle stability that prevents rolled ankles."},
+  {"n": "Single Leg Calf Raise", "b": "str", "u": "reps", "d": "Stand on one foot on the edge of a step. Rise all the way onto your toes, then lower your heel slowly below the step. Slow on the way down."},
+  {"n": "World's Greatest Stretch", "b": "rec", "u": "time", "d": "Lunge forward, drop your elbow to your instep, then rotate and reach to the sky. Opens hips, hamstrings, and upper back in one move."},
+  {"n": "Couch Stretch", "b": "rec", "u": "time", "d": "Back knee on the ground, foot up against a wall or couch, front foot planted. Squeeze your glute and stay tall. Hits the quads and hip flexors."},
+  {"n": "Frogger", "b": "rec", "u": "time", "d": "Knees wide on the ground, rock your hips back and forth. Opens up the groin and inner hips."},
+  {"n": "Calf Wall Stretch", "b": "rec", "u": "time", "d": "Hands on the wall, back leg straight, heel down. Lean in until you feel the calf. Switch legs."},
+  {"n": "Bed Pigeon Stretch", "b": "rec", "u": "time", "d": "Front shin across the edge of a bed, back leg extended. Sink your hips and breathe into your glute."},
+  {"n": "Hamstring Stretch", "b": "rec", "u": "time", "d": "Leg straight, hinge at the hips with a flat back. Reach toward your toes without rounding."},
+  {"n": "Quad Stretch", "b": "rec", "u": "time", "d": "Grab your ankle and pull your heel toward your glute. Knees together, hips pushed forward."},
+  {"n": "90/90 Hip Switches", "b": "rec", "u": "reps", "d": "Sit with both knees bent at 90 degrees, one in front and one to the side. Rotate both knees to the other side without using your hands. Sit tall the whole time."},
+  {"n": "Adductor Rock Back", "b": "rec", "u": "reps", "d": "On hands and knees, straighten one leg out to the side. Rock your hips back toward your heels until you feel your inner thigh. Slow and controlled, then switch legs."},
+  {"n": "Glute Bridge", "b": "rec", "u": "reps", "d": "Lie on your back, knees bent, feet flat. Drive your hips up by squeezing your glutes, pause at the top, lower slowly."},
+  {"n": "Foam Roll", "b": "rec", "u": "time", "d": "Roll your quads, calves, and IT band slowly. When you find a tight spot, pause and breathe. Never roll directly on a joint."},
+  {"n": "Child's Pose", "b": "rec", "u": "time", "d": "Knees wide, sit back on your heels, arms stretched long in front of you. Breathe deep into your back and let everything relax."}
+];
+const MSA_SAME = ["chop", "croqueta", "in_out", "jg_alt", "l_turns", "sole_rolls", "v_pulls", "wall_1t", "wall_2t", "wall_turn"];
 // Progressions: every drill has 3 stages. Stage = how far above the drill's level the player is, +1 once they've logged 150+ of it.
 const STAGES = {bm:['Slow and clean, eyes on the ball','Faster, eyes up every few touches','Max speed, eyes up the whole time'],
   mv:['Standing still, slow and clean','Dribble at a cone, do it 1 yard before it','Full speed, then burst 3 steps'],
@@ -4317,6 +4412,16 @@ const GOAL_SK = {
 // Max per item (per foot when split) on a Standard day, so nobody does 1,000 toe taps and quits
 const GOAL_CAP = {tick_tock:200, toe_drag:50, outside_v:50, stop_go:40, roll_step:30, jg_laces:100, jg_alt:100, jg_thigh:80, jg_atw:20, body_feint:50, hooks:40, fake_stop:40, rivelino:30, chop:30, elastico:20, toe_taps:200, sole_rolls:100, in_out:100, pull_push:50, v_pulls:100, lac_roll:50, wall_2t:75, wall_1t:100, wall_back:50, wall_outin:50, wall_turn:40,
   l_turns:50, step_overs:50, scissors:30, drag_back:30, cruyff:30, out_cut:30, maradona:25, combo_so_cr:20, croqueta:60};
+// MSA Drill Library -> real skills: they rotate into daily sessions (ball mastery / wall), count for XP, can be assigned by coaches and picked for recovery
+const MSA_LVL = {'L Pull Grab Back':1, 'Inside Outside Scissor Fake':1, 'Marco Turn':1, 'McGeady Spin':1, 'Fake Shot Robinho':2, 'Rabona Fake':2, 'High Juggles':1, 'Every Other Touch Outside':1, '2x Laces Juggle > Volley Back':1, 'Nordic Hamstring Curl':1};
+const LIB_BLOCK = {bm:'bm', jg:'bm', wall:'wall', rec:'rec', pj:'pj', spd:'spd', str:'str'};
+MSA_LIB.forEach(d => {
+  const id = (d.b === 'jg' ? 'jg_m_' : 'm_') + d.n.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, ''), blk = LIB_BLOCK[d.b]; d.id = id;
+  const tp = d.u === 'time' || blk === 'rec' || blk === 'str' ? 0 : d.u === 'touches' ? 1 : blk === 'bm' ? 2 : blk === 'spd' ? 6 : 1;
+  SKILLS[id] = {name:d.n, block:blk, lib:d.b, msa:true, unit:d.u, lvl:MSA_LVL[d.n] || 0, tier: tp === 0 ? 'r' : d.u === 'touches' ? 1 : 2,
+    max: d.u === 'touches' ? 3.5 : blk === 'spd' ? 0.2 : (blk === 'str' || blk === 'rec') ? 0.6 : 1.4, desc: d.d + (d.b === 'pj' ? ' 10x each foot. No partner? Use a wall.' : '')};
+  GOAL_SK[id] = [tp, blk === 'bm' && d.u === 'reps' ? 1 : 0, 20]; GOAL_CAP[id] = d.u === 'touches' ? 100 : 40;
+});
 function tpr(skill) { return (GOAL_SK[skill]||[1])[0]; }
 function itemTouches(it) { return (it.count||0) * tpr(it.skill); }
 function poolFor(p, block) { const l = levelIdx(p); return Object.keys(SKILLS).filter(k => SKILLS[k].block===block && SKILLS[k].lvl <= l); }
@@ -4398,8 +4503,8 @@ function extraRound(p) {
   return {skill: pool[Math.floor(Math.random()*pool.length)], secs: ageCfg(p).secs, foot: b==='wall' ? 'WEAK FOOT' : (b==='mv'?'ALTERNATE FEET':'')};
 }
 function recoveryPlan(p) {
-  const secs = ageCfg(p).recSecs;
-  return ['mob_hips','mob_swing','mob_ham','mob_calf','mob_squat','rec_sole','rec_juggle'].map(skill => ({skill, secs, foot:''}));
+  const secs = ageCfg(p).recSecs, msa = shuffled(Object.keys(SKILLS).filter(k => SKILLS[k].block === 'rec' && SKILLS[k].msa && !SKILLS[k].lvl), seeded(p.id + localDate() + 'rec')).slice(0, 2);
+  return ['mob_hips','mob_swing','mob_ham','mob_calf','mob_squat', ...msa, 'rec_sole','rec_juggle'].map(skill => ({skill, secs, foot:''}));
 }
 // Touch goal: spread the goal across ball mastery (50%), moves (30%), passing (20%), capped per skill
 function buildGoalItems(p, target, pick, intensity='consistent') {
@@ -4543,10 +4648,21 @@ function startTimed() {
   S = {date:localDate(), mode:'timed', intensity:currentDiff, target:goalFor(currentDiff), plan:buildTimedPlan(currentPlayer, currentDiff), idx:0, results:[]};
   saveSess(); openSess(); renderReady();
 }
+// Recovery: kid picks what their body needs (suggested set pre-checked), or just starts the suggested set
+let REC_PICK = [];
 function startRecovery() {
-  const ex = loadSess(); if (ex && !ex.finished && ex.mode!=='recovery') { S = ex; return resumeSession(); }
-  S = ex || {date:localDate(), mode:'recovery', intensity:'limited', plan:recoveryPlan(currentPlayer), idx:0, results:[]};
-  saveSess(); openSess(); renderReady();
+  const ex = loadSess(); if (ex && !ex.finished) { S = ex; return resumeSession(); }
+  S = null; REC_PICK = recoveryPlan(currentPlayer).map(r => r.skill); openSess(); renderRecPick();
+}
+function recToggle(k) { REC_PICK = REC_PICK.includes(k) ? REC_PICK.filter(x => x !== k) : [...REC_PICK, k]; renderRecPick(); }
+function renderRecPick() {
+  const all = Object.keys(SKILLS).filter(k => SKILLS[k].block === 'rec'), n = REC_PICK.length;
+  body(`<div class="sk-block">RECOVERY</div><div class="sk-name">Pick your recovery</div>
+    <div class="sk-desc">Suggested set is checked. Tap to add or drop what your body needs today.</div>
+    <div style="flex:1;overflow-y:auto;margin:6px 0">${all.map(k => { const on = REC_PICK.includes(k), sk = SKILLS[k];
+      return `<button class="rp-row ${on?'on':''}" onclick="recToggle('${k}')"><i>${on?'✓':''}</i><div><b>${esc(sk.name)}${sk.msa ? ' <small style="color:#2dd4bf;font-size:10px;letter-spacing:1px">MSA</small>' : ''}</b><span>${esc(sk.desc)}</span></div></button>`; }).join('')}</div>
+    <button class="big-btn green" ${n ? '' : 'disabled style="opacity:.4"'} onclick="startCustom(REC_PICK,'recovery')">START RECOVERY · ${n} ▶</button>
+    <button class="big-btn ghost" onclick="REC_PICK=recoveryPlan(currentPlayer).map(r=>r.skill);renderRecPick()">Back to suggested</button>`);
 }
 function roundUnitText(sk, r) {
   if (sk.unit==='time') return 'Follow along until the beep';
@@ -4758,7 +4874,8 @@ function commitSession() {
   const p = currentPlayer, today = localDate();
   const items = S.mode==='goal' ? S.items.filter(i=>i.done).map(i=>({skill:i.skill, count:i.count})) : S.results.filter(r=>!r.skipped);
   const rawTouches = S.mode==='recovery' ? 0 : items.reduce((a,b)=>a+itemTouches(b),0);
-  if (S.mode !== 'recovery' && rawTouches <= 0) { showToast('Log at least one round first','error'); return; }
+  const doneRounds = S.mode==='goal' ? items.length : S.results.filter(r=>!r.skipped).length;
+  if (S.mode !== 'recovery' && rawTouches <= 0 && !(S.custom && doneRounds)) { showToast('Log at least one round first','error'); return; }
   const touches = capTouches(p, rawTouches, today);
   if (touches < rawTouches) setTimeout(() => showToast(`Daily touch cap hit (${touchCap(p).toLocaleString()}). Extra touches not counted. Rest is training too.`, 'error'), 1500);
   const before = todayTouches(), after = before + touches;
@@ -4772,11 +4889,11 @@ function commitSession() {
   const rankBefore = rankOf(p), oldPB = getJugglePB();
   applyStreak(p, today);
   const mult = streakMult(p.streak||0);
-  const baseXP = sessionXP(p, items, S.mode), boostXP = Math.round(baseXP * mult) - baseXP, extraXP = jBonus + milestones.length*15 + pbNames.length*10;
+  const baseXP = S.custom ? Math.max(S.mode === 'recovery' ? 60 : 0, sessionXP(p, items, S.mode), Math.min(120, doneRounds * 12)) : sessionXP(p, items, S.mode), boostXP = Math.round(baseXP * mult) - baseXP, extraXP = jBonus + milestones.length*15 + pbNames.length*10;
   const rawXP = baseXP + boostXP + extraXP;
   const capXP = capDailyXP(p.id, today, rawXP, Math.round(DAILY_XP_CAP * mult));
   if (juggle > oldPB) { localStorage.setItem(`sfc_juggle_${p.id}`, String(juggle)); p.juggle_pb = juggle; }
-  addHistory(p.id, today, touches); addSkillReps(p, items);
+  addHistory(p.id, today, touches); addSkillReps(p, items); logDrills(p, (S.mode==='goal' ? items : S.results.filter(r=>!r.skipped)).map(i => i.skill));
   const quest = updateQuests(p, items, S.mode, pbNames.length, juggleTotal, S.mode==='goal' && S.items.every(i=>i.done));
   const xpEarned = capXP + quest.xp;
   addDay(`sfc_xpdays_${p.id}`, today, xpEarned);
@@ -4785,7 +4902,7 @@ function commitSession() {
   localStorage.setItem('sfc_player', JSON.stringify(p));
   localStorage.setItem(`sfc_playerdata_${p.id}`, JSON.stringify(p));
   checkBadges();
-  const session = {date:today, touches, juggle_high:juggle, juggle_total:juggleTotal, mode:S.mode, difficulty:S.intensity,
+  const session = {date:today, touches, juggle_high:juggle, juggle_total:juggleTotal, mode:S.mode, difficulty:S.intensity, ...(S.custom ? {custom:S.custom} : {}),
     full_session: S.mode==='recovery' || after >= goalFor(S.intensity) * .9, xp_earned:xpEarned,
     rounds: items.map(i=>({skill:i.skill, secs:i.secs||null, count:i.count, pb:!!i.pb})),
     bm_skills: items.filter(i=>SKILLS[i.skill]?.block==='bm').map(i=>i.skill), mv_skills: items.filter(i=>SKILLS[i.skill]?.block==='mv').map(i=>i.skill)};
@@ -5144,7 +5261,10 @@ function renderEPA() {
     ${(() => { const pl = planToday(p); if (!pl) return ''; const dn = (pl.days||{})[String(wdOf(today))];
       return `<div class="epa-plan"><div class="epa-plan-h">COACH PLAN · THIS WEEK${pl.focus ? ' · ' + esc(pl.focus.toUpperCase()) : ''}</div>
         ${pl.touches ? `<div><b>${pl.touches.toLocaleString()}</b> touches a day at home</div>` : ''}${dn ? `<div>📅 Today: <b>${esc(dn)}</b></div>` : ''}
-        ${(pl.emphasis||[]).length ? `<div class="epa-emph">${pl.emphasis.map(x => `<span>${esc(x)}</span>`).join('')}</div>` : ''}${pl.note ? `<div style="color:var(--sub)">${esc(pl.note)}</div>` : ''}</div>`; })()}
+        ${(pl.emphasis||[]).length ? `<div class="epa-emph">${pl.emphasis.map(x => `<span>${esc(x)}</span>`).join('')}</div>` : ''}${pl.note ? `<div style="color:var(--sub)">${esc(pl.note)}</div>` : ''}
+        ${(() => { const dr = (pl.drills||[]).filter(k => SKILLS[k]); if (!dr.length) return ''; const left = dr.filter(k => !drillDoneWeek(p, k));
+          return `<div class="epa-plan-h" style="margin-top:10px">COACH DRILLS · ${dr.length - left.length}/${dr.length} DONE</div><div class="epa-drills">${dr.map(k => `<span class="${drillDoneWeek(p, k) ? 'ok' : ''}">${drillDoneWeek(p, k) ? '✓ ' : ''}${esc(SKILLS[k].name)}</span>`).join('')}</div>
+            <button class="epa-btn ${left.length ? '' : 'ghost'}" onclick="startCustom(${JSON.stringify(left.length ? left : dr).replace(/"/g, '&quot;')},'coach')">▶ ${left.length ? 'DO COACH DRILLS' : 'GO AGAIN'} <b>${left.length} LEFT</b></button>`; })()}</div>`; })()}
     ${f || es.e.note ? `<div class="epa-coach">${f?`<b>THIS WEEK:</b> ${f.ico} ${f.name}`:''}${es.e.note?`<div>${esc(es.e.note)}</div>`:''}</div>` : ''}
     ${nextSessionHTML(p)}
     ${idpHTML(p)}
