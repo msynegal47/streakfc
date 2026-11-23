@@ -2734,6 +2734,7 @@ function logout() {
 // ─── APP LAUNCH ───────────────────────────────────────
 let appWired = false;
 function launchApp() {
+  try { if (currentPlayer) idpReg(currentPlayer); } catch(e) {}
   const colors = {};
   const color = currentPlayer.color || colors[currentPlayer.id] || '#4fc3f7';
   document.documentElement.style.setProperty('--player-color', color);
@@ -3283,16 +3284,16 @@ function myDaySet(ids) { try { localStorage.setItem(myDayKey(), JSON.stringify({
 function myDayToggle(id) { const d = myDay(); if (d.includes(id)) myDaySet(d.filter(x => x !== id)); else if (d.length >= 12) return showToast('12 drills max. Start your day!'); else myDaySet([...d, id]); renderSkillsList(); }
 function myDayBar() { const d = myDay(); if (!d.length) return `<div class="md-bar empty">🛠 <b>BUILD YOUR OWN DAY</b><span>Open a group, tap a drill, then ＋ MY DAY.</span></div>`;
   return `<div class="md-bar"><div><b>MY DAY · ${d.length} DRILL${d.length > 1 ? 'S' : ''}</b><span>${d.map(k => esc(SKILLS[k].name)).join(' · ')}</span></div><div class="md-btns"><button class="md-go" onclick="startCustom(myDay(),'myday')">START ▶</button><button class="md-clr" onclick="myDaySet([]);renderSkillsList()">Clear</button></div></div>`; }
-function customPlan(p, ids) { const c = ageCfg(p);
+function customPlan(p, ids, feet) { const c = ageCfg(p); feet = feet || {};
   return ids.filter(k => SKILLS[k]).map(k => { const sk = SKILLS[k], b = sk.block;
-    return {skill:k, secs: sk.unit === 'time' ? (b === 'str' ? 30 : c.recSecs) : c.secs, foot: b === 'wall' ? 'BOTH FEET' : (GOAL_SK[k]||[])[1] ? 'SWITCH FEET HALFWAY' : b === 'mv' ? 'ALTERNATE FEET' : ''}; }); }
+    return {skill:k, secs: sk.unit === 'time' ? (b === 'str' ? 30 : c.recSecs) : c.secs, foot: feet[k] ? feet[k] : b === 'wall' ? 'BOTH FEET' : (GOAL_SK[k]||[])[1] ? 'SWITCH FEET HALFWAY' : b === 'mv' ? 'ALTERNATE FEET' : ''}; }); }
 // src: 'drill' (one drill), 'myday', 'coach' (homework drills), 'recovery' (picked recovery)
-function startCustom(ids, src) {
+function startCustom(ids, src, feet) {
   ids = (ids || []).filter(k => SKILLS[k]); if (!ids.length) return;
   const ex = loadSess();
   if (ex && !ex.finished && ((ex.results||[]).some(r => !r.skipped) || (ex.items||[]).some(i => i.done))) { showToast('Finish your current session first'); S = ex; return resumeSession(); }
   const allRec = ids.every(k => SKILLS[k].block === 'rec');
-  S = {date:localDate(), mode: allRec ? 'recovery' : 'timed', custom: src || 'myday', intensity: allRec ? 'limited' : currentDiff, target: goalFor(currentDiff), plan: customPlan(currentPlayer, ids), idx:0, results:[]};
+  S = {date:localDate(), mode: allRec ? 'recovery' : 'timed', custom: src || 'myday', intensity: allRec ? 'limited' : currentDiff, target: goalFor(currentDiff), plan: customPlan(currentPlayer, ids, feet), idx:0, results:[]};
   saveSess(); openSess(); renderReady();
 }
 const SKILL_BUCKETS = [['bm','⚽','BALL MASTERY'],['mv','🏃','MOVES / 1v1'],['wall','🧱','WALL / FIRST TOUCH'],['jg','🤹','JUGGLING'],['pj','🤝','PARTNER JUGGLING'],['spd','⚡','SPEED + FOOTWORK'],['str','💪','STRENGTH'],['rec','🌙','RECOVERY']];
@@ -4327,7 +4328,7 @@ const SKILLS = {
   rec_sole:   {name:'Easy Sole Rolls', block:'rec', tier:'r', unit:'time', lvl:0, desc:'Slow, relaxed sole rolls. Smooth, not fast. Just feel the ball.'},
   rec_juggle: {name:'Easy Juggles', block:'rec', tier:'r', unit:'touches', max:3, lvl:0, desc:'Relaxed juggling. Count your total touches (drops are fine).'},
 };
-const BLOCK_LBL = {bm:'BALL MASTERY', wall:'WALL / FIRST TOUCH', mv:'MOVES / 1v1', rec:'RECOVERY', pj:'PARTNER JUGGLING', spd:'SPEED + FOOTWORK', str:'STRENGTH'};
+const BLOCK_LBL = {bm:'BALL MASTERY', wall:'WALL / FIRST TOUCH', mv:'MOVES / 1v1', rec:'RECOVERY', pj:'PARTNER JUGGLING', spd:'SPEED + FOOTWORK', str:'STRENGTH', idp:'YOUR IDP'};
 // MSA Drill Library (James McGhee, Nov 2026). Turned into SKILLS entries below (ids m_* / jg_m_*). Drills that match an app drill are tagged on that drill (MSA_SAME).
 const MSA_LIB = [
   {"n": "Half Maradona Face Up", "b": "bm", "u": "reps", "d": "Step on the ball, spin, and drag it with the opposite foot so you finish facing up the field. Protect the ball with your body through the turn."},
@@ -4459,16 +4460,22 @@ function nextSessionHTML(p) { const D = (p.days || []).filter(x => x.day >= loca
   const nm = d => d === localDate() ? 'TODAY' : new Date(d + 'T12:00:00').toLocaleDateString('en-US', {weekday:'short', month:'numeric', day:'numeric'}).toUpperCase();
   return `<div class="epa-next">${D.map(x => `<div><b>${nm(x.day)}</b> ${FOCUS[x.theme] ? FOCUS[x.theme].ico + ' ' : ''}${esc(x.title || (FOCUS[x.theme]||{}).name || 'Session')}${x.family ? `<span>${esc(x.family)}</span>` : ''}</div>`).join('')}</div>`; }
 function idpOf(p) { const d = p && p.idp; return d && (d.ratings || d.focus || (d.drills||[]).length) ? d : null; }
-function idpDrills(p) { return ((idpOf(p)||{}).drills||[]).filter(k => k && SKILLS[k]); }
+// Coach-made drills on an IDP (e.g. left-foot finishing): registered as skills for this player only, never in the random daily pool
+function idpReg(p) { ((idpOf(p)||{}).custom || []).forEach(c => { if (!c || !c.id || SKILLS[c.id]) return;
+  SKILLS[c.id] = {name:c.name || 'Coach drill', block:'idp', tier:2, unit: c.unit === 'time' ? 'time' : 'reps', lvl:0, max:1.5, desc:c.desc || ''}; GOAL_SK[c.id] = [c.unit === 'time' ? 0 : 1, 0, 20]; GOAL_CAP[c.id] = 40; }); }
+function idpDrills(p) { idpReg(p); return ((idpOf(p)||{}).drills||[]).filter(k => k && SKILLS[k]); }
 function idpHTML(p, dd) { const d = dd || idpOf(p); if (!d) return '';
   const prev = (d.history||[])[0] || null, R = d.ratings || {};
   const rows = IDP_CATS.filter(([k]) => R[k] && R[k].lvl).map(([k,l]) => { const v = +R[k].lvl, was = prev && prev.ratings ? +prev.ratings[k] : 0;
     return `<div class="idp-rate"><span>${l}</span><b>${'●'.repeat(v)}<i>${'●'.repeat(5-v)}</i></b>${was && was !== v ? `<em class="${v>was?'up':'dn'}">${v>was?'▲':'▼'}${Math.abs(v-was)}</em>` : '<em></em>'}</div>`; }).join('');
-  const dr = dd ? (dd.drills||[]).filter(k => k && SKILLS[k]) : idpDrills(p);
+  if (dd) { const sv = p.idp; p.idp = dd; idpReg(p); p.idp = sv; } const dr = dd ? (dd.drills||[]).filter(k => k && SKILLS[k]) : idpDrills(p);
   return `<div class="epa-idp"><div style="display:flex;justify-content:space-between"><b>🎯 YOUR IDP</b><span class="idp-note" style="margin:0">${esc(d.coach||'Coach')}${d.date?` · ${esc(d.date)}`:''}</span></div>
     ${d.focus ? `<div class="idp-focus"><span>NEXT 4-6 WEEKS</span>${esc(d.focus)}</div>` : ''}
     ${rows}
-    ${dr.length ? `<div class="idp-drills">${dr.map(k => `<button class="vid-btn sm" onclick="openIdpDrill('${k}')">${vidUrl(k)?'▶ ':''}${esc(SKILLS[k].name)}</button>`).join('')}</div><div class="idp-note">These drills get added to your home sessions 🎯</div>` : ''}
+    ${dr.length ? (() => { const ft = (d.foot || {}), done = k => !dd && drillDoneWeek(p, k), left = dr.filter(k => !done(k));
+      return `<div class="idp-drills">${dr.map(k => `<button class="vid-btn sm" style="${done(k) ? 'color:var(--green);border-color:var(--green)' : ''}" onclick="openIdpDrill('${k}')">${done(k) ? '✓ ' : vidUrl(k) ? '▶ ' : ''}${esc(SKILLS[k].name)}${ft[k] ? ` · ${ft[k] === 'LEFT FOOT' ? 'LEFT' : 'RIGHT'}` : ''}</button>`).join('')}</div>
+      ${dd ? '' : `<button class="epa-btn ${left.length ? '' : 'ghost'}" style="margin-top:8px" onclick="startCustom(idpDrills(currentPlayer),'idp',(idpOf(currentPlayer)||{}).foot)">▶ ${left.length ? 'DO MY IDP DRILLS' : 'GO AGAIN'} <b>${left.length ? left.length + ' LEFT' : '✓ DONE'}</b></button>`}
+      <div class="idp-note">Ball drills also mix into your home sessions 🎯</div>`; })() : ''}
     ${d.strengths || d.improve || d.how ? `<details class="idp-more"><summary>Coach notes</summary>${[['strengths','💪 Strengths'],['improve','📈 Areas to improve'],['how','🛠 How we will improve']].filter(([k]) => d[k]).map(([k,l]) => `<div><b>${l}</b><p>${esc(d[k])}</p></div>`).join('')}${IDP_CATS.filter(([k]) => R[k] && R[k].note).map(([k,l]) => `<div><b>${l}</b><p>${esc(R[k].note)}</p></div>`).join('')}</details>` : ''}</div>`; }
 function openIdpDrill(k) { if (vidUrl(k)) openVideo(k); else showToast(`${SKILLS[k].name}: ${SKILLS[k].desc}`, 'success'); }
 const IDP_BLOCK = {bm:'bm', v1:'mv', ft:'wall', fin:'wall'};
@@ -4620,7 +4627,7 @@ function clearSess() { localStorage.removeItem(sessKey()); S = null; }
 function openSess() { document.getElementById('sess').classList.add('open'); keepAwake(true); updateSessTop(); }
 function closeSess() { document.getElementById('sess').classList.remove('open'); clearInterval(sessTimer); keepAwake(false); renderToday(); }
 function pauseSession() { saveSess(); closeSess(); }
-function resumeSession() { S = loadSess(); if (!S) return; openSess(); S.mode==='goal' ? renderGoalList() : (S.idx >= S.plan.length ? renderSummary() : renderReady()); }
+function resumeSession() { S = loadSess(); if (!S) return; if (currentPlayer) idpReg(currentPlayer); (S.plan||[]).forEach(r => { if (!SKILLS[r.skill]) SKILLS[r.skill] = {name:'Coach drill', block:'idp', tier:2, unit:'reps', lvl:0, max:1.5, desc:''}; }); openSess(); S.mode==='goal' ? renderGoalList() : (S.idx >= S.plan.length ? renderSummary() : renderReady()); }
 function sessTouches() { return S ? (S.mode==='goal' ? S.items.filter(i=>i.done).reduce((a,b)=>a+itemTouches(b),0) : S.results.reduce((a,b)=>a+itemTouches(b),0)) : 0; }
 function updateSessTop() {
   document.getElementById('sessTotal').textContent = (todayTouches() + sessTouches()).toLocaleString();
