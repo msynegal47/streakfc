@@ -350,7 +350,7 @@ function paintOrg() {
 async function loadOrg() {
   const id = ORG.id;
   if (orgSandbox()) { ORGD[id] = orgMock(); return; }
-  try { ORGD[id] = await rpc('sfc_org_staff', {p_org:id}); } catch(e) { ORGD[id] = {error:e.message, staff:[], invites:[], programs:[]}; }
+  try { ORGD[id] = await rpc('sfc_org_staff', {p_org:id}); ORGD[id].programs = (ORGD[id].programs || []).filter(p => p.active !== false); } catch(e) { ORGD[id] = {error:e.message, staff:[], invites:[], programs:[]}; }
   if (['org','staff'].includes(view)) render();
 }
 async function loadProg(id) {
@@ -1059,16 +1059,43 @@ function idpCard(p) {
     <div class="form-row" style="margin-bottom:8px"><span class="small muted">Date</span><input id="idpDate" style="width:110px" maxlength="12" value="${esc(d.date || new Date().toLocaleDateString('en-US',{month:'numeric',day:'numeric'}))}"><span class="small muted">Coach</span><input id="idpCoach" style="width:140px" maxlength="30" value="${esc(d.coach || (ROLE==='coach' ? 'Coach' : 'Coach James'))}"></div>
     <div class="legend" style="margin-bottom:6px">5 Elite for age · 4 Strong · 3 Solid · 2 Developing · 1 Early stage${prev ? ` · last snapshot ${esc(prev.date)}` : ''}</div>
     ${IDP_CATS.map(([k,l]) => `<div class="form-row" style="margin-bottom:6px"><span style="width:150px;font-weight:700;font-size:13px">${l}</span><select id="idpR_${k}" style="width:64px"><option value="">-</option>${[1,2,3,4,5].map(n => `<option ${+(R[k]||{}).lvl===n?'selected':''}>${n}</option>`).join('')}</select>${prev && prev.ratings && prev.ratings[k] ? `<span class="small muted" style="width:40px">was ${prev.ratings[k]}</span>` : ''}<input id="idpN_${k}" style="flex:1;min-width:140px" maxlength="200" placeholder="Coach notes" value="${esc((R[k]||{}).note||'')}"></div>`).join('')}
-    <div class="form-row" style="margin:6px 0"><span style="width:150px;font-weight:700;font-size:13px">🎯 Priority #1</span><select id="idpPri" style="min-width:200px"><option value="">Auto (lowest rating)</option>${IDP_CATS.filter(([k]) => k !== 'men').map(([k,l]) => `<option value="${k}" ${d.priority===k?'selected':''}>${l}</option>`).join('')}</select><span class="small muted">Their daily home sessions lean toward this</span></div>
+    <div class="form-row" style="margin:6px 0"><span style="width:150px;font-weight:700;font-size:13px">🎯 Priority #1</span><select id="idpPri" style="min-width:200px" onchange="$('idpDrills').innerHTML=idpDrillsHTML(IDPE.pid)"><option value="">Auto (lowest rating)</option>${IDP_CATS.filter(([k]) => k !== 'men').map(([k,l]) => `<option value="${k}" ${d.priority===k?'selected':''}>${l}</option>`).join('')}</select><span class="small muted">Their daily home sessions lean toward this</span></div>
     ${ta('idpStr','Strengths',d.strengths)}${ta('idpImp','Areas to improve',d.improve)}${ta('idpHow','How we will improve',d.how)}
     <div class="field-lbl" style="margin-top:10px;font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:800">PRIMARY FOCUS · NEXT 4-6 WEEKS (BIG ON THEIR APP)</div>${ta('idpFoc','e.g. Be aggressive taking players on 1v1',d.focus)}
-    <div class="form-row" style="margin-top:8px"><span class="small muted">Home drills</span>${[0,1,2].map(i => `<select id="idpD${i}" style="flex:1;min-width:120px"><option value="">-</option>${SKILL_LIST.map(x => `<option value="${x.id}" ${dr[i]===x.id?'selected':''}>${(D.media||{})[x.id]?'▶ ':''}${esc(x.name)}</option>`).join('')}</select>`).join('')}</div>
+    <div class="field-lbl" style="margin-top:12px;font-size:10px;letter-spacing:1.5px;color:var(--sub);font-weight:800">🎯 IDP DRILLS · THEIR PATH (UP TO 8 · KID GETS A "DO MY IDP DRILLS" BUTTON, BALL DRILLS ALSO MIX INTO DAILY SESSIONS)</div>
+    <div id="idpDrills">${idpDrillsHTML(p.id, true)}</div>
     <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="legend">New date = new snapshot. The old ratings are kept so everyone sees progress.</span><button class="btn sm" onclick="saveIdp('${p.id}')">SAVE IDP</button></div></div>`;
 }
+// IDP drill editor: library drills or a custom drill (e.g. left-foot finishing), each with a foot focus
+let IDPE = null;   // {pid, drills:[{id, foot}], custom:[{id, name, desc, unit}]}
+const IDP_SUGGEST = {bm:['bm'], v1:['mv','bm'], ft:['wall','pj'], fin:[], men:[]};
+function idpEdit(pid, reset) { if (reset || !IDPE || IDPE.pid !== pid) { const d = (D.idps||{})[pid] || {}, ft = d.foot || {};
+  IDPE = {pid, drills:(d.drills||[]).map(id => ({id, foot:ft[id]||''})), custom:JSON.parse(JSON.stringify(d.custom||[]))}; } return IDPE; }
+function idpLowest(pid) { const R = (((D.idps||{})[pid]||{}).ratings)||{}; const c = ['bm','v1','ft','fin'].filter(k => R[k] && +R[k].lvl).sort((a,b) => +R[a].lvl - +R[b].lvl); return c[0] || ''; }
+function idpName(id) { const c = (IDPE.custom||[]).find(x => x.id === id); return c ? c.name + ' (custom)' : skName(id); }
+function idpDrillsHTML(pid, reset) { const E = idpEdit(pid, reset), pri = ($('idpPri') && $('idpPri').value) || (((D.idps||{})[pid]||{}).priority) || idpLowest(pid);
+  const have = E.drills.map(x => x.id), sug = (IDP_SUGGEST[pri]||[]).flatMap(b => SKILL_LIST.filter(x => x.block === b && !have.includes(x.id))).sort((a, b) => /MSA/.test(b.name) - /MSA/.test(a.name)).slice(0, 6);
+  const fbtn = (i, f, l) => `<button class="seg ${(E.drills[i].foot||'') === f ? 'on' : ''}" style="padding:3px 8px;font-size:11px" onclick="IDPE.drills[${i}].foot='${f}';$('idpDrills').innerHTML=idpDrillsHTML('${pid}')">${l}</button>`;
+  return `${E.drills.map((x, i) => `<div class="form-row" style="margin:4px 0;gap:6px"><b style="flex:1;font-size:13px">${esc(idpName(x.id))}</b>${fbtn(i,'','Both')}${fbtn(i,'LEFT FOOT','Left')}${fbtn(i,'RIGHT FOOT','Right')}<button class="btn ghost sm" onclick="IDPE.drills.splice(${i},1);$('idpDrills').innerHTML=idpDrillsHTML('${pid}')">✕</button></div>`).join('') || '<div class="small muted">No IDP drills yet.</div>'}
+    ${E.drills.length < 8 ? `<div class="form-row" style="margin-top:6px"><select style="flex:1" onchange="if(this.value){IDPE.drills.push({id:this.value,foot:''});$('idpDrills').innerHTML=idpDrillsHTML('${pid}')}"><option value="">＋ Add a drill from the library...</option>${DRILL_GROUPS.map(([b,l]) => `<optgroup label="${l}">${SKILL_LIST.filter(x => x.block === b && !have.includes(x.id)).map(x => `<option value="${x.id}">${(D.media||{})[x.id]?'▶ ':''}${esc(x.name)}</option>`).join('')}</optgroup>`).join('')}</select>
+      <button class="btn ghost sm" onclick="idpCustomForm('${pid}')">＋ Custom drill</button></div>
+      ${sug.length ? `<div class="chips" style="margin-top:6px"><span class="small muted" style="align-self:center">Suggested for ${esc(((IDP_CATS.find(c => c[0] === pri)||[])[1])||'')}:</span>${sug.map(x => `<button class="seg" onclick="IDPE.drills.push({id:'${x.id}',foot:''});$('idpDrills').innerHTML=idpDrillsHTML('${pid}')">＋ ${esc(x.name)}</button>`).join('')}</div>` : ''}
+      ${pri === 'fin' ? `<div class="chips" style="margin-top:6px"><span class="small muted" style="align-self:center">Finishing templates:</span>${FIN_TPL.map((t, i) => `<button class="seg" onclick="idpTpl('${pid}',${i})">＋ ${esc(t[0])}</button>`).join('')}</div>` : ''}
+      <div id="idpCustom"></div>` : ''}`; }
+const FIN_TPL = [['Left-foot finishing','10 shots from the top of the box, left foot only. Laces through the ball, plant foot beside it, pick a corner.','LEFT FOOT'],
+  ['Right-foot finishing','10 shots from the top of the box, right foot only. Laces through the ball, plant foot beside it, pick a corner.','RIGHT FOOT'],
+  ['Touch and finish','Push the ball out of your feet with one touch, then finish in two touches max. Alternate sides each rep.',''],
+  ['Volley off the wall','Toss or play the ball off a wall and strike it on the volley. Keep your knee over the ball and stay down.','']];
+function idpTpl(pid, i) { const [n, d, f] = FIN_TPL[i], id = 'c_' + Date.now().toString(36); IDPE.custom.push({id, name:n, desc:d, unit:'reps'}); IDPE.drills.push({id, foot:f}); $('idpDrills').innerHTML = idpDrillsHTML(pid); }
+function idpCustomForm(pid) { $('idpCustom').innerHTML = `<div class="card" style="margin-top:8px;padding:10px"><div class="form-row"><input id="icN" maxlength="40" placeholder="Drill name, e.g. Left-foot finishing" style="flex:1"><select id="icU"><option value="reps">Count reps</option><option value="time">Timed</option></select></div>
+  <textarea id="icD" rows="2" maxlength="300" style="width:100%;margin-top:6px" placeholder="How to do it, e.g. 10 shots from the top of the box, left foot only, laces through the ball, pick a corner"></textarea>
+  <div style="display:flex;gap:8px;margin-top:6px"><button class="btn sm" onclick="idpAddCustom('${pid}')">Add</button><button class="btn ghost sm" onclick="$('idpCustom').innerHTML=''">Cancel</button></div></div>`; }
+function idpAddCustom(pid) { const n = $('icN').value.trim(), d = $('icD').value.trim(); if (!n) return toast('Give it a name');
+  const id = 'c_' + Date.now().toString(36); IDPE.custom.push({id, name:n, desc:d, unit:$('icU').value}); IDPE.drills.push({id, foot: /left/i.test(n + d) ? 'LEFT FOOT' : /right/i.test(n + d) ? 'RIGHT FOOT' : ''}); $('idpDrills').innerHTML = idpDrillsHTML(pid); }
 async function saveIdp(id) {
   const p = D.byId[id], old = (D.idps||{})[id] || {}, v = x => $(x).value.trim();
   const ratings = Object.fromEntries(IDP_CATS.map(([k]) => [k, {lvl: +$('idpR_'+k).value || null, note: v('idpN_'+k)}]).filter(([,r]) => r.lvl || r.note));
-  const data = {date:v('idpDate'), coach:v('idpCoach'), ratings, strengths:v('idpStr'), improve:v('idpImp'), how:v('idpHow'), focus:v('idpFoc'), priority:$('idpPri').value, drills:[0,1,2].map(i => $('idpD'+i).value).filter(Boolean), history: old.history || [], at:localDate()};
+  const data = {date:v('idpDate'), coach:v('idpCoach'), ratings, strengths:v('idpStr'), improve:v('idpImp'), how:v('idpHow'), focus:v('idpFoc'), priority:$('idpPri').value, drills:idpEdit(id).drills.map(x => x.id), foot:Object.fromEntries(idpEdit(id).drills.filter(x => x.foot).map(x => [x.id, x.foot])), custom:idpEdit(id).custom.filter(c => idpEdit(id).drills.some(x => x.id === c.id)), history: old.history || [], at:localDate()};
   if (old.ratings && old.date && old.date !== data.date) data.history = [{date:old.date, ratings:Object.fromEntries(Object.entries(old.ratings).map(([k,r]) => [k, r.lvl]))}, ...data.history].slice(0, 6);
   if (!localOnly(p)) { try { await rpc('sfc_set_idp', {p_player:id, p_program:CURP(), p_data:data}); } catch(e) { return toast('Failed: ' + e.message); } }
   D.idps = {...(D.idps||{}), [id]:data}; if (REAL && D !== REAL && !localOnly(p)) REAL.idps = {...(REAL.idps||{}), [id]:data};
@@ -1094,6 +1121,7 @@ function kidFlags(p) {
   const due = wk.filter(d => d <= today && PROGRAMS.epa.days.includes(wdOf(d)) && !epaOff(d));
   return {follow: j.followup === 'Yes' || /Stressed|talk/.test(j.mental||''), sore: (j.hurt||[]).length > 0, nosheet: !(p.goals||{}).sheet, missed: due.some(d => !p.sess.some(s => s.mode === 'epa' && s.date === d))};
 }
+let EPA_WAIT = null;   // EPA names loaded by the coach that haven't joined yet (no stats until they do)
 function epaFiltered() {
   return enrolled().filter(p => (epaF.g === 'all' || (epaOf(p).group||'younger') === epaF.g) && (!epaF.pos || p.pos1 === epaF.pos || p.pos2 === epaF.pos)
     && (!epaF.flag || kidFlags(p)[epaF.flag]) && (!epaF.q || (p.nickname||'').toLowerCase().includes(epaF.q.toLowerCase())));
@@ -1122,6 +1150,8 @@ function vEPA() {
   ${body}`;
 }
 function epaRoster() {
+  if (EPA_WAIT === null && !D.mock) { EPA_WAIT = []; rpc('sfc_roster_list', {p_program:'epa'}).then(r => { EPA_WAIT = (r || []).filter(x => !x.player_id); render(); }).catch(() => {}); }
+  const W = (EPA_WAIT || []).filter(r => (!epaF.q || (r.nickname||'').toLowerCase().includes(epaF.q.toLowerCase())) && !epaF.pos && !epaF.flag);
   const E = epaFiltered(), wk = weekDates(attWk), today = localDate(), lo7 = daysAgo(6), avg = a => a.length ? (a.reduce((x,y)=>x+y,0)/a.length).toFixed(1) : '-';
   const seg = (k, v, l) => `<button class="seg ${epaF[k]===v?'on':''}" onclick="setEpaF('${k}','${v}')">${l}</button>`;
   const row = p => { const L = p.sess, ck = L.filter(s => s.mode === 'checkin'), last = L.find(s => s.mode === 'epa' && s.source !== 'coach'), lj = lastJournal(p), fl = kidFlags(p);
@@ -1139,7 +1169,8 @@ function epaRoster() {
     <select onchange="setEpaF('flag',this.value)"><option value="">No filter</option>${[['follow','Needs follow-up'],['sore','Sore'],['missed','Missed EPA this week'],['nosheet','No goal worksheet']].map(([v,l]) => `<option value="${v}" ${epaF.flag===v?'selected':''}>${l}</option>`).join('')}</select>
     <input placeholder="Search" value="${esc(epaF.q)}" style="width:150px" onchange="setEpaF('q',this.value)">${epaF.flag||epaF.pos||epaF.q||epaF.g!=='all' ? `<a href="#" class="small" style="color:var(--accent)" onclick="epaF={g:'all',pos:'',flag:'',q:''};render();return false">Clear</a>` : ''}<span class="muted small" style="margin-left:auto">${E.length} shown · click a player for their profile</span></div>
   <div class="card" style="padding:6px 14px"><table class="tight"><tr><th>PLAYER</th><th>AGE</th><th>POS</th><th>GROUP</th><th title="Solid = player logged it (XP). Dashed ✓ = coach marked present (no XP). Click a past day to mark.">EPA ATTENDANCE <a href="#" class="small" style="color:var(--accent);font-weight:700" onclick="event.stopPropagation();attWk=attWk?0:-1;render();return false">${attWk ? 'this wk ▶' : '◀ last wk'}</a></th><th class="num" title="Home touches last 7 days (if the parent shares all training)">HOME 7D</th><th>READY</th><th>LAST EPA</th><th>JOURNAL + FLAGS</th></tr>
-  ${groups.map(g => { const G = E.filter(p => (epaOf(p).group||'younger') === g); return G.length ? `<tr><td colspan="9" class="grp-row">${g.toUpperCase()} · ${G.length}</td></tr>` + G.map(row).join('') : ''; }).join('') || '<tr><td colspan="9" class="empty">No players match. Clear filters or add a player.</td></tr>'}</table></div>`;
+  ${groups.map(g => { const G = E.filter(p => (epaOf(p).group||'younger') === g), Wg = W.filter(r => (r.grp||'younger') === g); return G.length || Wg.length ? `<tr><td colspan="9" class="grp-row">${g.toUpperCase()} · ${G.length} joined${Wg.length ? ` · ${Wg.length} not yet` : ''}</td></tr>` + G.map(row).join('')
+    + Wg.map(r => `<tr style="opacity:.55"><td><b>${esc(r.nickname)}</b></td><td colspan="8"><span class="chip c-sub">NOT JOINED YET</span> <span class="small muted">Shows up here with stats once they tap their name on code ${esc(D.code || 'EPA-F410')}</span></td></tr>`).join('') : ''; }).join('') || '<tr><td colspan="9" class="empty">No players match. Clear filters or add a player.</td></tr>'}</table></div>`;
 }
 function weekOf(ds) { const d = new Date(ds + 'T12:00:00'), k = (d.getDay() + 6) % 7; d.setDate(d.getDate() - k); return localDate(d); }
 function wkLbl(w) { const e = new Date(w + 'T12:00:00'); e.setDate(e.getDate() + 6); return w.slice(5).replace('-','/') + ' - ' + localDate(e).slice(5).replace('-','/'); }
