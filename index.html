@@ -2582,6 +2582,7 @@ function showParentPortal() {
   renderParentPortal();
   if (localStorage.getItem('sfc_claim')) setTimeout(claimPrompt, 400);
   else if (players.length && !tourSeen('sfc_tour_parent')) setTimeout(() => startTour('parent'), 900);
+  else if (players.some(p => progOf(p)) && !tourSeen('sfc_tour_epa_parent')) setTimeout(() => startTour('epaparent'), 900);
 }
 
 function todayStrip() {
@@ -2700,6 +2701,7 @@ function launchApp() {
   renderCrew();
   checkOnline();
   if (!DEMO && currentPlayer && !tourSeen(`sfc_tour_${currentPlayer.id}`)) setTimeout(() => startTour('kid'), 700);
+  else if (!DEMO && currentPlayer && epaState(currentPlayer) && !tourSeen(`sfc_tour_epa_${currentPlayer.id}`)) setTimeout(() => startTour('epa'), 700);
   recordSeason(currentPlayer);
   const se = seasonEndReveals(currentPlayer); if (se.length) setTimeout(() => showReveals(se), 600);
 }
@@ -3316,13 +3318,29 @@ const PARENT_TOUR = [
   {sel:'#portalBody [data-pch]', t:'APPROVALS', d:'Challenges and squads your kids ask to join show up here. Nothing happens until you say yes.'},
   {sel:'#portalBody [onclick="showPairCode()"]', t:'KID DEVICE', d:'Put StreakFC on their phone or tablet with a one-time code. No email needed for kids.'},
   {sel:'#portalBody [onclick="openPinModal()"]', t:'PINs + MINIMUMS', d:'Change PINs and juggle minimums here.'}];
+// EPA first-load: once per kid / per parent, right after the main tour (or on next launch if that's done)
+const EPA_TOUR = [
+  {sel:'#nav-teams', t:'EPA LIVES HERE', d:'Everything for MSA EPA is in Teams. Check it every EPA day.', tab:'home'},
+  {sel:'#epaCard .epa-strip', t:'YOUR EPA WEEK', d:'Every EPA day this week. Log each one and it counts as a training day 🔥', tab:'teams'},
+  {sel:'#epaCard [onclick="openCheckin()"]', t:'BEFORE EPA: CHECK IN', d:'Two taps. How you feel, anything sore. Your coach sees it before the session.', tab:'teams'},
+  {sel:'#epaCard [onclick="openEpaLog()"]', t:'AFTER EPA: LOG IT', d:'What you worked on, how hard, how it felt. 20 seconds.', tab:'teams'},
+  {sel:'#epaCard [onclick="openForm(\'journal\')"]', t:'SUNDAY: WEEKLY JOURNAL', d:'Best moment, hardest thing, next goal. Shows up Thursday, due Sunday.', tab:'teams'},
+  {sel:'#epaCard [onclick="openForm(\'game\')"], #epaCard .gw', t:'PLAYED A GAME?', d:'Log it, then add a film review. Your coaches see it, no need to send it twice.', tab:'teams'},
+  {sel:'#nav-crew', t:'ACADEMY BOARD', d:'Tap Crew for the academy board. See how the whole academy is doing this week. Hold each other to it 🏆', tab:'teams'}];
+const EPA_PARENT_TOUR = [
+  {sel:'#portalBody .epa-parent', t:'EPA AT A GLANCE', d:'Sessions logged this week, readiness and any soreness your player reports. Coaches see the same.'},
+  {sel:'#portalBody .kid-more', t:'PLAYER SETTINGS', d:'PIN, devices and program details for each player.'}];
 function tourSeen(k) { try { return localStorage.getItem(k) === '1'; } catch(e) { return true; } }
 function startTour(kind, force) {
   if (DEMO || TOUR.on) return;
-  const kid = kind === 'kid', key = kid ? `sfc_tour_${currentPlayer && currentPlayer.id}` : 'sfc_tour_parent';
+  const kid = kind === 'kid' || kind === 'epa', pid = currentPlayer && currentPlayer.id;
+  const key = {kid:`sfc_tour_${pid}`, epa:`sfc_tour_epa_${pid}`, parent:'sfc_tour_parent', epaparent:'sfc_tour_epa_parent'}[kind];
   if (!force && tourSeen(key)) return;
-  if (kid) { switchTab('home'); const sh = document.getElementById('screen-home'); if (sh) sh.scrollTop = 0; }
-  TOUR.steps = (kid ? KID_TOUR : PARENT_TOUR).filter(x => { const e = document.querySelector(x.sel); return e && e.offsetParent !== null; });
+  if (kind === 'epa') { if (typeof renderEPA === 'function') renderEPA(); switchTab('teams'); }
+  else if (kid) { switchTab('home'); const sh = document.getElementById('screen-home'); if (sh) sh.scrollTop = 0; }
+  const vis = x => { const e = document.querySelector(x.sel); return e && e.offsetParent !== null; };
+  TOUR.steps = ({kid:KID_TOUR, epa:EPA_TOUR, parent:PARENT_TOUR, epaparent:EPA_PARENT_TOUR})[kind].filter(vis);
+  if (kind === 'parent' && EPA_PARENT_TOUR.filter(vis).length) { TOUR.steps.splice(1, 0, EPA_PARENT_TOUR[0]); try { localStorage.setItem('sfc_tour_epa_parent', '1'); } catch(e) {} }
   if (!TOUR.steps.length) return;
   TOUR.on = true; TOUR.i = 0; TOUR.key = key; TOUR.kind = kind;
   let o = document.getElementById('tourLayer');
@@ -3339,7 +3357,7 @@ function tourShow() {
     Object.assign(h.style, {left:(r.left - pad) + 'px', top:(r.top - pad) + 'px', width:(r.width + pad * 2) + 'px', height:(r.height + pad * 2) + 'px'});
     const last = TOUR.i === TOUR.steps.length - 1, n = TOUR.steps.length;
     c.innerHTML = `<div class="tour-k">${TOUR.i + 1} / ${n}</div><div class="tour-t">${st.t}</div><div class="tour-d">${st.d}</div>
-      <div class="tour-btns"><button data-tskip class="tour-skip">${last ? '' : 'Skip'}</button><button class="tour-next">${last ? (TOUR.kind === 'kid' ? "LET'S GO ▶" : 'GOT IT') : 'NEXT ›'}</button></div>`;
+      <div class="tour-btns"><button data-tskip class="tour-skip">${last ? '' : 'Skip'}</button><button class="tour-next">${last ? (TOUR.kind === 'kid' || TOUR.kind === 'epa' ? "LET'S GO ▶" : 'GOT IT') : 'NEXT ›'}</button></div>`;
     const below = r.bottom + 16 + 190 < H;
     c.style.left = Math.max(12, Math.min(W - 12 - Math.min(340, W - 24), r.left + r.width / 2 - 170)) + 'px';
     c.style.top = below ? (r.bottom + pad + 14) + 'px' : ''; c.style.bottom = below ? '' : (H - r.top + pad + 14) + 'px';
@@ -3351,7 +3369,8 @@ function endTour(done) {
   const o = document.getElementById('tourLayer'); if (o) o.style.display = 'none';
   const was = TOUR.on; TOUR.on = false; try { localStorage.setItem(TOUR.key, '1'); } catch(e) {}
   if (!was) return;
-  if (TOUR.kind === 'kid') { const sh = document.getElementById('screen-home'); if (sh) sh.scrollTop = 0; setTimeout(chPopups, 500); }
+  if (TOUR.kind === 'kid' && epaState(currentPlayer) && !tourSeen(`sfc_tour_epa_${currentPlayer.id}`)) setTimeout(() => startTour('epa'), 400);
+  else if (TOUR.kind === 'kid' || TOUR.kind === 'epa') { switchTab('home'); const sh = document.getElementById('screen-home'); if (sh) sh.scrollTop = 0; setTimeout(chPopups, 500); }
   else { const pb = document.getElementById('portalBody'); if (pb) pb.scrollTop = 0; }
 }
 // ─── STREAK REMINDERS (web push) ───
