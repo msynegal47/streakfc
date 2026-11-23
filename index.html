@@ -1416,19 +1416,19 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
 </div>
 
 <!-- ─────────────── KID LINK: ADD TO HOME SCREEN ─────────────── -->
-<div class="screen" id="kid-install">
-  <div class="auth-card" style="gap:14px">
+<div class="screen" id="kid-install" style="overflow-y:auto;padding:24px 16px">
+  <div class="auth-card" style="gap:14px;margin:0 auto;max-width:100%">
     <img src="/logo.png" alt="" style="width:86px;margin:0 auto">
-    <div class="auth-eyebrow">You're invited to train</div>
+    <div class="auth-eyebrow" id="kiEyebrow">You're invited to train</div>
     <div class="auth-title">Put StreakFC on your home screen</div>
     <div class="a2hs">
       <div><b>1</b>Tap the <b>Share</b> button <span class="shr">⬆︎</span> at the bottom of Safari (top right on iPad).</div>
       <div><b>2</b>Scroll down and tap <b>Add to Home Screen</b>. (Don't see it? Tap <b>More</b> first.)</div>
       <div><b>3</b>Tap <b>Add</b>. Then open <b>StreakFC</b> from your home screen.</div>
-      <div><b>4</b>Type this code, pick your name, enter your PIN:</div>
+      <div><b>4</b><span id="kiStep4">Type this code, pick your name, enter your PIN:</span></div>
     </div>
     <div class="kid-code" id="kidCode">------</div>
-    <button class="opt-btn" style="width:100%" onclick="kidUseBrowser()">Skip, just use it in the browser</button>
+    <button class="opt-btn" style="width:100%" id="kiSkip" onclick="kidUseBrowser()">Skip, just use it in the browser</button>
   </div>
 </div>
 
@@ -2278,7 +2278,7 @@ async function init() {
   const hash = window.location.hash;
   { const t = /team=([A-Za-z0-9]+-[A-Za-z0-9]+)/i.exec(hash), g = /parent=(G-[A-Za-z0-9]+)/i.exec(hash);
     if (t || g) window.history.replaceState({}, '', window.location.pathname);
-    if (t) return openTeam(t[1].toUpperCase());
+    if (t) return openTeamLink(t[1].toUpperCase());
     if (g) { localStorage.setItem('sfc_parentclaim', g[1].toUpperCase()); localStorage.removeItem('sfc_mode'); if (!localStorage.getItem('sfc_session')) return openParentClaim(g[1].toUpperCase()); } }
   { const j = /join=([A-Za-z0-9]+)/.exec(hash), k = /kid=([A-Za-z0-9]+)/.exec(hash), c = /claim=(P-[A-Za-z0-9]+)/i.exec(hash);
     if (j || k || c) window.history.replaceState({}, '', window.location.pathname);
@@ -2362,6 +2362,17 @@ function openKidLink(code) {
   if (deviceToken()) return showPlayerPinEntry();
   if (IS_IOS && !IS_STANDALONE) { document.getElementById('kidCode').textContent = code; return showScreen('kid-install'); }
   kidUseBrowser();
+}
+// Team link on iPhone Safari: home screen first (Safari and the home screen app keep separate logins), then join inside the app
+function openTeamLink(code) {
+  if (IS_IOS && !IS_STANDALONE && !deviceToken() && !localStorage.getItem('sfc_session')) {
+    document.getElementById('kidCode').textContent = code;
+    document.getElementById('kiEyebrow').textContent = 'Join your team';
+    document.getElementById('kiStep4').innerHTML = 'Tap <b>PLAYER LOGIN</b>, type this team code, tap your name, make a PIN:';
+    const b = document.getElementById('kiSkip'); b.onclick = () => openTeam(code);
+    return showScreen('kid-install');
+  }
+  openTeam(code);
 }
 function kidUseBrowser() { const c = localStorage.getItem('sfc_kidcode') || ''; showScreen('pair-screen'); document.getElementById('pairInput').value = c; if (c.length === 6) pairDevice(); }
 async function resumeKid() {
