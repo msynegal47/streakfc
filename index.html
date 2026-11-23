@@ -1951,7 +1951,7 @@ async function teamAdd(pid) {
   try {
     if (TEAM.via === 'device') await rpc('sfc_team_add', {p_token: deviceToken(), p_code: TEAM.code, p_player: pid});
     else await rpc('sfc_join_program', {p_player: pid, p_code: TEAM.code});
-    localStorage.removeItem('sfc_player'); showToast(`${m.nickname} is on ${TEAM.name} 🔥`);
+    localStorage.removeItem('sfc_player'); localStorage.setItem('sfc_from_team', pid); showToast(`${m.nickname} is on ${TEAM.name} 🔥`);
     setTimeout(() => location.replace(location.pathname), 900);
   } catch(e) { showToast('Could not add it. Try again.'); }
 }
@@ -1997,7 +1997,7 @@ async function teamJoin() {
     if (!r.ok) { btn.disabled = false; st.style.color = 'var(--red)'; st.textContent = r.error === 'locked' ? 'Too many tries. Wait 10 minutes or ask your coach.' : `Wrong PIN. ${r.remaining} tr${r.remaining === 1 ? 'y' : 'ies'} left.`; return; }
     localStorage.setItem('sfc_device', r.token); cacheRoster(r.players || []); players = r.players || [];
     const l = await rpc('sfc_player_login', {p_token: r.token, p_player: r.player, p_pin: pin});
-    if (l.ok) { currentPlayer = hydratePlayer(l.data); localStorage.setItem('sfc_player', JSON.stringify(currentPlayer)); showToast(`You're on ${TEAM.name} 🔥`); launchApp(); return; }
+    if (l.ok) { localStorage.setItem('sfc_from_team', r.player); currentPlayer = hydratePlayer(l.data); localStorage.setItem('sfc_player', JSON.stringify(currentPlayer)); showToast(`You're on ${TEAM.name} 🔥`); launchApp(); return; }
     showPlayerPinEntry();
   } catch(e) { btn.disabled = false; st.style.color = 'var(--red)'; st.textContent = navigator.onLine ? 'Something went wrong. Try again.' : 'Need internet to join.'; }
 }
@@ -2739,7 +2739,12 @@ function launchApp() {
   renderSkillsList();
   renderCrew();
   checkOnline();
-  if (!DEMO && currentPlayer && !tourSeen(`sfc_tour_${currentPlayer.id}`)) setTimeout(() => startTour('kid'), 700);
+  if (!DEMO && currentPlayer) { try { const k = 'sfc_loads_' + currentPlayer.id; localStorage.setItem(k, String((+localStorage.getItem(k) || 0) + 1)); } catch(e) {} }
+  // Came in through a team link: only the team (EPA) walkthrough, skip the generic one
+  const fromTeam = !DEMO && currentPlayer && localStorage.getItem('sfc_from_team') === currentPlayer.id;
+  if (fromTeam) localStorage.removeItem('sfc_from_team');
+  if (fromTeam && epaState(currentPlayer)) { try { localStorage.setItem(`sfc_tour_${currentPlayer.id}`, '1'); } catch(e) {} if (!tourSeen(`sfc_tour_epa_${currentPlayer.id}`)) setTimeout(() => startTour('epa'), 700); }
+  else if (!DEMO && currentPlayer && !tourSeen(`sfc_tour_${currentPlayer.id}`)) setTimeout(() => startTour('kid'), 700);
   else if (!DEMO && currentPlayer && epaState(currentPlayer) && !tourSeen(`sfc_tour_epa_${currentPlayer.id}`)) setTimeout(() => startTour('epa'), 700);
   recordSeason(currentPlayer);
   const se = seasonEndReveals(currentPlayer); if (se.length) setTimeout(() => showReveals(se), 600);
@@ -3551,6 +3556,7 @@ function chPopups() {
         <div class="ch-title">${B.last.me ? "THAT'S YOU!" : esc(B.last.nickname)}</div><div class="ch-stat">${B.last.days}/7 days trained · ${(B.last.xp || 0).toLocaleString()} XP</div>
         <div class="ch-sub2">New week, fresh board. Day 1 starts now.</div><button class="modal-save-btn" onclick="closeChModal();crewScope='challenges';switchTab('crew');renderCrew()">SEE THE BOARD</button></div>`); }
   }
+  if ((+localStorage.getItem('sfc_loads_' + p.id) || 0) < 3) return;   // no invites until their 3rd time opening the app
   for (const c of CH.list) {   // invite pop-up, at most once every 5 days
     const k = `sfc_chpop_${c.id}_${p.id}`, last = +localStorage.getItem(k) || 0;
     if ((!c.status || c.status === 'none') && Date.now() - last > 5 * 864e5) { localStorage.setItem(k, String(Date.now()));
