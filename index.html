@@ -1596,6 +1596,7 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
       <div class="unlock-card" id="unlockCard" style="margin:0 16px 12px"></div>
       <div id="pushLineKid" style="margin:0 16px 6px"></div>
       <div id="parentLinkKid" style="margin:0 16px 6px"></div>
+      <div id="kidPinCard" style="margin:0 16px 6px"></div>
       <button class="tour-replay" onclick="startTour('kid',1)">❓ Replay the app tour</button>
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-val" id="statStreak">0</div><div class="stat-lbl">STREAK</div></div>
@@ -1934,9 +1935,25 @@ let TEAM = null, teamPick = null;
 async function openTeam(code) {
   TEAM = null; teamPick = null; showScreen('team-screen');
   const w = document.getElementById('teamWrap'); w.innerHTML = '<div style="color:var(--sub);text-align:center;margin-top:40px">Loading team…</div>';
-  try { TEAM = await rpc('sfc_team_info', {p_code: code}); if (!TEAM) throw new Error('code_invalid'); TEAM.code = code; }
+  try { TEAM = await rpc('sfc_team_info', {p_code: code}); if (!TEAM) throw new Error('code_invalid'); TEAM.code = code; TEAM.mine = []; }
   catch(e) { w.innerHTML = `<div class="auth-card" style="margin-top:20px"><div class="auth-title">Code not found</div><div class="auth-desc">Check the team code with your coach and try again.</div><button class="auth-btn" onclick="showScreen('pair-screen')">TRY AGAIN</button></div>`; return; }
   paintTeam();
+  // Already on StreakFC? Offer to add this program to the player they have (keeps streak + XP), not make a new one
+  try {
+    if (deviceToken()) { const R = await rpc('sfc_device_roster', {p_token: deviceToken()}); TEAM.mine = (R || []).map(p => ({id:p.id, nickname:p.nickname, has:(p.programs||[]).some(x => x.id === TEAM.program)})); TEAM.via = 'device'; }
+    else if (localStorage.getItem('sfc_session')) { const R = await sb('sfc_players?select=id,nickname,programs,archived'); TEAM.mine = (R || []).filter(p => !p.archived).map(p => ({id:p.id, nickname:p.nickname, has:(p.programs||[]).some(x => x.id === TEAM.program)})); TEAM.via = 'parent'; }
+  } catch(e) { TEAM.mine = []; }
+  if (TEAM.mine.length && !teamPick) paintTeam();
+}
+async function teamAdd(pid) {
+  const m = TEAM.mine.find(x => x.id === pid); if (!m) return;
+  if (m.has) { location.replace(location.pathname); return; }
+  try {
+    if (TEAM.via === 'device') await rpc('sfc_team_add', {p_token: deviceToken(), p_code: TEAM.code, p_player: pid});
+    else await rpc('sfc_join_program', {p_player: pid, p_code: TEAM.code});
+    localStorage.removeItem('sfc_player'); showToast(`${m.nickname} is on ${TEAM.name} 🔥`);
+    setTimeout(() => location.replace(location.pathname), 900);
+  } catch(e) { showToast('Could not add it. Try again.'); }
 }
 function teamHead() {
   const b = TEAM.brand || {};
@@ -1953,13 +1970,17 @@ function paintTeam() {
       : `<div class="team-q">${taken ? 'WELCOME BACK' : 'IS THIS YOU?'}</div><div class="team-name" style="font-size:30px">${esc(r.nickname)}</div>`) +
       `<div class="team-q">${taken ? 'ENTER YOUR 4-DIGIT PIN' : 'MAKE A 4-DIGIT PIN'}</div>
       <input class="auth-input team-pin" id="tmPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" oninput="this.value=this.value.replace(/\D/g,'')" onkeydown="if(event.key==='Enter')teamJoin()">
-      <div class="auth-desc" style="margin:4px 0 10px">${taken ? 'Forgot it? Ask your coach to reset it.' : "Remember it. You'll use it to log in."}</div>
+      <div class="auth-desc" style="margin:4px 0 10px">${taken ? 'Forgot it? A parent can reset it in their StreakFC, or ask your coach.' : "Remember it. You'll use it to log in."}</div>
       <button class="auth-btn" id="tmBtn" onclick="teamJoin()">${taken ? 'LOG IN' : "LET'S GO"}</button><div class="auth-status" id="tmStatus"></div>
       <button class="team-link" onclick="teamPick=null;paintTeam()">← Not you? Pick again</button>`;
     setTimeout(() => { const f = document.getElementById(isNew ? 'tmNick' : 'tmPin'); if (f) f.focus(); }, 200);
     return;
   }
-  w.innerHTML = teamHead() + `<div class="team-q">TAP YOUR NAME</div>
+  const mine = TEAM.mine || [];
+  w.innerHTML = teamHead() + (mine.length ? `<div class="team-q">ALREADY ON STREAKFC</div>
+    <div class="auth-desc" style="margin:-4px 0 10px">Add ${esc(TEAM.name)} to your player. Keeps your streak and XP.</div>
+    <div class="team-names">${mine.map(m => `<button onclick="teamAdd('${m.id}')">${esc(m.nickname)}<small>${m.has ? '✓ already in · open' : 'tap to add + open'}</small></button>`).join('')}</div>
+    <div class="team-q" style="margin-top:22px">SOMEONE ELSE? TAP YOUR NAME</div>` : `<div class="team-q">TAP YOUR NAME</div>`) + `
     <div class="team-names">${R.map(r => `<button onclick="teamPick='${r.id}';paintTeam()">${esc(r.nickname)}<small>${r.taken ? '🔒 has a PIN' : 'new'}</small></button>`).join('')}</div>
     ${R.length ? '' : '<div class="auth-desc">No names yet. Add yourself below.</div>'}
     <button class="team-link" onclick="teamPick='new';paintTeam()">Not on the list? Add yourself →</button>`;
@@ -1990,6 +2011,24 @@ async function paintParentLink() {
     el.innerHTML = `<div class="hw-banner" style="background:var(--bg2);border-color:var(--border);color:var(--text)">👪 <b>Want a parent to see your progress?</b> Send them this link. Optional.
       <div style="margin-top:8px"><button class="pt-btn ghost" style="padding:8px 14px" onclick="shareParentLink()">SEND TO A PARENT</button></div></div>`;
   } catch(e) {}
+}
+function paintKidPin(open) {
+  const el = document.getElementById('kidPinCard'); if (!el) return;
+  if (DEMO || !deviceToken() || !currentPlayer) { el.innerHTML = ''; return; }
+  el.innerHTML = open ? `<div class="hw-banner" style="background:var(--bg2);border-color:var(--border);color:var(--text)">🔐 <b>Change your PIN</b>
+      <input class="auth-input team-pin" id="kpOld" type="password" inputmode="numeric" maxlength="4" placeholder="Current PIN" oninput="this.value=this.value.replace(/\D/g,'')" style="margin-top:8px">
+      <input class="auth-input team-pin" id="kpNew" type="password" inputmode="numeric" maxlength="4" placeholder="New PIN" oninput="this.value=this.value.replace(/\D/g,'')">
+      <div style="display:flex;gap:8px"><button class="pt-btn" style="padding:8px 14px" onclick="saveKidPin()">SAVE</button><button class="pt-btn ghost" style="padding:8px 14px" onclick="paintKidPin(false)">CANCEL</button></div>
+      <div class="auth-status" id="kpStatus"></div></div>`
+    : `<button class="team-link" style="margin:0" onclick="paintKidPin(true)">🔐 Change my PIN</button>`;
+}
+async function saveKidPin() {
+  const o = document.getElementById('kpOld').value, n = document.getElementById('kpNew').value, st = document.getElementById('kpStatus');
+  if (!/^\d{4}$/.test(o) || !/^\d{4}$/.test(n)) { st.style.color = 'var(--red)'; st.textContent = 'PINs are 4 numbers'; return; }
+  try { const r = await rpc('sfc_kid_set_pin', {p_token: deviceToken(), p_player: currentPlayer.id, p_old: o, p_new: n});
+    if (!r.ok) { st.style.color = 'var(--red)'; st.textContent = r.error === 'locked' ? 'Too many tries. Wait 10 minutes.' : 'Current PIN is wrong.'; return; }
+    showToast('PIN changed ✅'); paintKidPin(false);
+  } catch(e) { st.style.color = 'var(--red)'; st.textContent = 'Could not save. Try again.'; }
 }
 function shareParentLink() {
   const msg = window.PARENT_MSG || '';
@@ -2119,7 +2158,7 @@ async function checkPP() {
       return;
     }
     err.style.color = 'var(--red)';
-    err.textContent = r.error === 'locked' ? 'Too many tries. Wait 10 minutes or ask a parent.' : `Wrong PIN. ${r.remaining} tr${r.remaining===1?'y':'ies'} left.`;
+    err.textContent = r.error === 'locked' ? 'Too many tries. Wait 10 minutes. Forgot it? A parent or your coach can reset it.' : `Wrong PIN. ${r.remaining} tr${r.remaining===1?'y':'ies'} left.`;
   } catch(e) {
     err.style.color = 'var(--red)';
     err.textContent = navigator.onLine ? 'Something went wrong. Try again.' : 'Need internet to log in.';
@@ -3130,7 +3169,7 @@ function renderProfile() {
   const colors = {};
   const color = p.color || colors[p.id] || '#4fc3f7';
   paintHeroAvatar(document.getElementById('profileAvatar'), document.getElementById('profileTease'), p, color);
-  renderGamesCard(p); renderRewardCard(); paintParentLink(); { const pl = document.getElementById('pushLineKid'); if (pl) pl.innerHTML = DEMO ? '' : pushLine('kid'); }
+  renderGamesCard(p); renderRewardCard(); paintParentLink(); paintKidPin(false); { const pl = document.getElementById('pushLineKid'); if (pl) pl.innerHTML = DEMO ? '' : pushLine('kid'); }
   document.getElementById('editAvBtn').style.display = hasUnlock(p.id,'avatar') ? 'inline-block' : 'none';
   document.getElementById('profileName').textContent = p.name.toUpperCase();
   document.getElementById('profileClub').textContent = [(p.club||'').toUpperCase(), [p.pos1, p.pos2].filter(Boolean).join(' / ')].filter(Boolean).join(' · ');
