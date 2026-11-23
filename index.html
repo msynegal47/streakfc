@@ -2044,7 +2044,7 @@ function showParentAuth() {
 // ─── PLAYER PIN ENTRY (from landing) ─────────────────
 function renderPlayerPinCards() {
   const wrap = document.getElementById('playerPinCards');
-  wrap.innerHTML = players.length ? '' : '<div style="color:var(--sub);text-align:center;font-size:13px">No players yet. A parent adds players from their dashboard.</div>';
+  wrap.innerHTML = players.length ? '' : '<div style="color:var(--sub);text-align:center;font-size:13px">No players on this phone yet.<br><button class="team-link" onclick="showScreen(\'pair-screen\')">Have a team code? Tap here →</button></div>';
   document.getElementById('playerPinKeypad').style.display = 'none';
   wrap.style.display = 'flex';
   const colors = {};
