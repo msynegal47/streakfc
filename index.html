@@ -172,6 +172,17 @@ body.hw .confetti.hw-e{width:auto;height:auto;background:none!important;font-siz
 .auth-eyebrow{font-size:11px;letter-spacing:3px;color:var(--sub);text-transform:uppercase}
 .auth-title{font-size:18px;font-weight:800;text-align:center}
 .auth-desc{font-size:13px;color:var(--sub);text-align:center;line-height:1.6}
+#team-screen{overflow-y:auto;-webkit-overflow-scrolling:touch}
+.team-wrap{width:100%;max-width:380px;margin:0 auto;padding:70px 20px 40px}
+.team-head{display:flex;align-items:center;gap:12px;margin-bottom:6px}.team-head img{width:54px;height:54px;object-fit:contain}
+.team-org{font-size:11px;letter-spacing:2px;color:var(--sub);text-transform:uppercase}.team-name{font-size:22px;font-weight:900}
+.team-q{font-size:12px;letter-spacing:2px;color:var(--sub);margin:18px 0 10px}
+.team-names{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.team-names button{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 10px;color:var(--text);font:inherit;font-weight:800;font-size:14px;cursor:pointer;text-align:left}
+.team-names button small{display:block;font-weight:600;font-size:11px;color:var(--sub);margin-top:2px}
+.team-names button:active{transform:scale(.98)}
+.team-pin{font-size:30px!important;letter-spacing:14px;text-align:center}
+.team-link{background:none;border:none;color:var(--accent,#f97316);font:inherit;font-weight:700;margin-top:16px;cursor:pointer;padding:8px 0}
 .auth-input{
   width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:12px;
   color:var(--text);font-size:16px;padding:14px 16px;outline:none;
@@ -1276,7 +1287,7 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
   <div class="path-card player-path" onclick="showPlayerPinEntry()">
     <div class="path-card-icon">⚽</div>
     <div class="path-card-title">PLAYER LOGIN</div>
-    <div class="path-card-desc" id="playerPathDesc">Pick your name and enter your PIN. First time on this device? Ask a parent for the family code.</div>
+    <div class="path-card-desc" id="playerPathDesc">Pick your name and enter your PIN. First time on this phone? Enter your team code from your coach, or a family code from a parent.</div>
   </div>
 
   <div class="landing-divider">or</div>
@@ -1287,6 +1298,7 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
     <div class="path-card-desc">New here? Start here. Create your family, add players, set PINs, and track progress.</div>
   </div>
   <button class="demo-link" onclick="startDemo()">👀 Just looking? Try the demo player</button>
+  <div style="margin-top:18px;font-size:12px;color:var(--sub)"><a href="/privacy.html" style="color:var(--sub)">Privacy</a> · <a href="/terms.html" style="color:var(--sub)">Terms</a></div>
 </div>
 
 <!-- ─────────────── PLAYER PIN ENTRY (direct from landing) ─────────────── -->
@@ -1354,6 +1366,16 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
 </div>
 
 <!-- ─────────────── PAIR A KID DEVICE ─────────────── -->
+<div class="screen" id="team-screen">
+  <div style="position:absolute;top:env(safe-area-inset-top,20px);left:20px;z-index:2">
+    <button class="pin-back" style="position:relative;top:auto;left:auto" onclick="showScreen('landing')">
+      <svg viewBox="0 0 16 16" style="width:16px;height:16px;stroke:var(--sub);fill:none;stroke-width:2;stroke-linecap:round"><polyline points="10,3 4,8 10,13"/></svg>
+      BACK
+    </button>
+  </div>
+  <div class="team-wrap" id="teamWrap"></div>
+</div>
+
 <div class="screen" id="pair-screen">
   <div style="position:absolute;top:env(safe-area-inset-top,20px);left:20px">
     <button class="pin-back" style="position:relative;top:auto;left:auto" onclick="showScreen('landing')">
@@ -1364,11 +1386,11 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
   <div class="auth-card">
     <div class="auth-logo">STREAKFC</div>
     <div class="auth-eyebrow">Player device setup</div>
-    <div class="auth-title">Enter your family code</div>
-    <div class="auth-desc">A parent gets this code from their dashboard: <b>Add Kid Device</b>. You only do this once on this device.</div>
-    <input class="auth-input" id="pairInput" type="text" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="ABC123"
-      style="text-align:center;font-size:26px;font-weight:900;letter-spacing:8px;text-transform:uppercase"
-      oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')" onkeydown="if(event.key==='Enter')pairDevice()">
+    <div class="auth-title">Enter your team or family code</div>
+    <div class="auth-desc"><b>Team code</b> (like NL-4BC1): your coach gives you this. <b>Family code</b>: a parent gets it from their dashboard. You only do this once on this phone.</div>
+    <input class="auth-input" id="pairInput" type="text" maxlength="9" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="NL-4BC1"
+      style="text-align:center;font-size:24px;font-weight:900;letter-spacing:5px;text-transform:uppercase"
+      oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'')" onkeydown="if(event.key==='Enter')pairDevice()">
     <button class="auth-btn" id="pairBtn" onclick="pairDevice()">CONNECT</button>
     <div class="auth-status" id="pairStatus"></div>
   </div>
@@ -1571,6 +1593,7 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
       <div class="path-card" id="pathCard"></div>
       <div class="unlock-card" id="unlockCard" style="margin:0 16px 12px"></div>
       <div id="pushLineKid" style="margin:0 16px 6px"></div>
+      <div id="parentLinkKid" style="margin:0 16px 6px"></div>
       <button class="tour-replay" onclick="startTour('kid',1)">❓ Replay the app tour</button>
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-val" id="statStreak">0</div><div class="stat-lbl">STREAK</div></div>
@@ -1904,6 +1927,82 @@ function mergeLocal(list) {
   });
 }
 
+// ─── TEAM JOIN (kid's own phone, team code from the coach) ───
+let TEAM = null, teamPick = null;
+async function openTeam(code) {
+  TEAM = null; teamPick = null; showScreen('team-screen');
+  const w = document.getElementById('teamWrap'); w.innerHTML = '<div style="color:var(--sub);text-align:center;margin-top:40px">Loading team…</div>';
+  try { TEAM = await rpc('sfc_team_info', {p_code: code}); if (!TEAM) throw new Error('code_invalid'); TEAM.code = code; }
+  catch(e) { w.innerHTML = `<div class="auth-card" style="margin-top:20px"><div class="auth-title">Code not found</div><div class="auth-desc">Check the team code with your coach and try again.</div><button class="auth-btn" onclick="showScreen('pair-screen')">TRY AGAIN</button></div>`; return; }
+  paintTeam();
+}
+function teamHead() {
+  const b = TEAM.brand || {};
+  return `<div class="team-head">${b.logo ? `<img src="${esc(b.logo)}" alt="">` : ''}<div><div class="team-org">${esc(TEAM.org_name)}</div><div class="team-name">${esc(TEAM.name)}</div></div></div>`;
+}
+function paintTeam() {
+  const w = document.getElementById('teamWrap'), R = TEAM.roster || [];
+  if (teamPick) {
+    const isNew = teamPick === 'new', r = isNew ? null : R.find(x => x.id === teamPick), taken = r && r.taken;
+    w.innerHTML = teamHead() + (isNew ? `<div class="team-q">NOT ON THE LIST? ADD YOURSELF</div>
+        <input class="auth-input" id="tmNick" maxlength="20" placeholder="First name or nickname" autocomplete="off">
+        <select class="auth-input" id="tmAge">${AGE_GROUPS.slice(0,13).map(g => `<option ${g === 'U14' ? 'selected' : ''}>${g}</option>`).join('')}</select>
+        <div class="auth-desc" style="margin:4px 0 10px">First name only. No last names.</div>`
+      : `<div class="team-q">${taken ? 'WELCOME BACK' : 'IS THIS YOU?'}</div><div class="team-name" style="font-size:30px">${esc(r.nickname)}</div>`) +
+      `<div class="team-q">${taken ? 'ENTER YOUR 4-DIGIT PIN' : 'MAKE A 4-DIGIT PIN'}</div>
+      <input class="auth-input team-pin" id="tmPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" oninput="this.value=this.value.replace(/\D/g,'')" onkeydown="if(event.key==='Enter')teamJoin()">
+      <div class="auth-desc" style="margin:4px 0 10px">${taken ? 'Forgot it? Ask your coach to reset it.' : "Remember it. You'll use it to log in."}</div>
+      <button class="auth-btn" id="tmBtn" onclick="teamJoin()">${taken ? 'LOG IN' : "LET'S GO"}</button><div class="auth-status" id="tmStatus"></div>
+      <button class="team-link" onclick="teamPick=null;paintTeam()">← Not you? Pick again</button>`;
+    setTimeout(() => { const f = document.getElementById(isNew ? 'tmNick' : 'tmPin'); if (f) f.focus(); }, 200);
+    return;
+  }
+  w.innerHTML = teamHead() + `<div class="team-q">TAP YOUR NAME</div>
+    <div class="team-names">${R.map(r => `<button onclick="teamPick='${r.id}';paintTeam()">${esc(r.nickname)}<small>${r.taken ? '🔒 has a PIN' : 'new'}</small></button>`).join('')}</div>
+    ${R.length ? '' : '<div class="auth-desc">No names yet. Add yourself below.</div>'}
+    <button class="team-link" onclick="teamPick='new';paintTeam()">Not on the list? Add yourself →</button>`;
+}
+async function teamJoin() {
+  const pin = (document.getElementById('tmPin') || {}).value || '', st = document.getElementById('tmStatus'), btn = document.getElementById('tmBtn'), isNew = teamPick === 'new';
+  const nick = isNew ? document.getElementById('tmNick').value.trim() : null;
+  if (isNew && !nick) { st.style.color = 'var(--red)'; st.textContent = 'Add your first name'; return; }
+  if (!/^\d{4}$/.test(pin)) { st.style.color = 'var(--red)'; st.textContent = 'PIN is 4 numbers'; return; }
+  btn.disabled = true; st.style.color = 'var(--sub)'; st.textContent = 'Joining…';
+  try {
+    const r = await rpc('sfc_team_join', {p_code: TEAM.code, p_roster: isNew ? null : teamPick, p_nickname: nick, p_age: isNew ? document.getElementById('tmAge').value : null, p_pin: pin,
+      p_label: /iPad/.test(navigator.userAgent) ? 'iPad' : 'Phone'});
+    if (!r.ok) { btn.disabled = false; st.style.color = 'var(--red)'; st.textContent = r.error === 'locked' ? 'Too many tries. Wait 10 minutes or ask your coach.' : `Wrong PIN. ${r.remaining} tr${r.remaining === 1 ? 'y' : 'ies'} left.`; return; }
+    localStorage.setItem('sfc_device', r.token); cacheRoster(r.players || []); players = r.players || [];
+    const l = await rpc('sfc_player_login', {p_token: r.token, p_player: r.player, p_pin: pin});
+    if (l.ok) { currentPlayer = hydratePlayer(l.data); localStorage.setItem('sfc_player', JSON.stringify(currentPlayer)); showToast(`You're on ${TEAM.name} 🔥`); launchApp(); return; }
+    showPlayerPinEntry();
+  } catch(e) { btn.disabled = false; st.style.color = 'var(--red)'; st.textContent = navigator.onLine ? 'Something went wrong. Try again.' : 'Need internet to join.'; }
+}
+// Team kid's profile: a link a parent can tap to see progress and own the account (optional)
+async function paintParentLink() {
+  const el = document.getElementById('parentLinkKid'); if (!el) return; el.innerHTML = '';
+  if (DEMO || !deviceToken()) return;
+  try {
+    const c = await rpc('sfc_parent_code', {p_token: deviceToken()}); if (!c) return;
+    window.PARENT_MSG = `Here's my StreakFC. Tap to see my progress (free): ${location.origin}/#parent=${c}`;
+    el.innerHTML = `<div class="hw-banner" style="background:var(--bg2);border-color:var(--border);color:var(--text)">👪 <b>Want a parent to see your progress?</b> Send them this link. Optional.
+      <div style="margin-top:8px"><button class="pt-btn ghost" style="padding:8px 14px" onclick="shareParentLink()">SEND TO A PARENT</button></div></div>`;
+  } catch(e) {}
+}
+function shareParentLink() {
+  const msg = window.PARENT_MSG || '';
+  if (navigator.share) navigator.share({text: msg}).catch(() => {});
+  else navigator.clipboard.writeText(msg).then(() => showToast('Link copied. Paste it in a text to your parent.'));
+}
+async function openParentClaim(code) {
+  showScreen('auth-screen');
+  let names = '';
+  try { const i = await rpc('sfc_parent_code_info', {p_code: code}); names = ((i && i.players) || []).join(' + '); } catch(e) {}
+  document.getElementById('authEyebrow').textContent = 'Parent access';
+  document.getElementById('authTitle').textContent = names ? `See ${names}'s progress` : 'Connect your player';
+  document.getElementById('authDesc').textContent = 'Sign in with your email (free). Your player joins your account with their streak and history. Already on StreakFC? They go next to your other kids.';
+}
+
 // ─── LANDING ACTIONS ──────────────────────────────────
 async function showPlayerPinEntry() {
   if (!deviceToken()) { showScreen('pair-screen'); setTimeout(()=>document.getElementById('pairInput').focus(), 300); return; }
@@ -1918,6 +2017,7 @@ async function showPlayerPinEntry() {
 
 async function pairDevice() {
   const code = document.getElementById('pairInput').value.trim(), st = document.getElementById('pairStatus'), btn = document.getElementById('pairBtn');
+  if (code.includes('-')) return openTeam(code);
   if (code.length !== 6) { st.style.color='var(--red)'; st.textContent = 'Codes are 6 characters'; return; }
   btn.disabled = true; btn.textContent = 'CONNECTING...';
   try {
@@ -2118,6 +2218,10 @@ async function init() {
   }
   flushQueue();
   const hash = window.location.hash;
+  { const t = /team=([A-Za-z0-9]+-[A-Za-z0-9]+)/i.exec(hash), g = /parent=(G-[A-Za-z0-9]+)/i.exec(hash);
+    if (t || g) window.history.replaceState({}, '', window.location.pathname);
+    if (t) return openTeam(t[1].toUpperCase());
+    if (g) { localStorage.setItem('sfc_parentclaim', g[1].toUpperCase()); localStorage.removeItem('sfc_mode'); if (!localStorage.getItem('sfc_session')) return openParentClaim(g[1].toUpperCase()); } }
   { const j = /join=([A-Za-z0-9]+)/.exec(hash), k = /kid=([A-Za-z0-9]+)/.exec(hash), c = /claim=(P-[A-Za-z0-9]+)/i.exec(hash);
     if (j || k || c) window.history.replaceState({}, '', window.location.pathname);
     if (c) { localStorage.setItem('sfc_claim', c[1].toUpperCase()); localStorage.removeItem('sfc_mode'); if (!localStorage.getItem('sfc_session')) return openClaim(c[1].toUpperCase()); }
@@ -2236,6 +2340,9 @@ window.addEventListener('online', flushQueue);
 let family = null;
 async function loadParent() {
   localStorage.setItem('sfc_mode', 'parent');
+  { const g = localStorage.getItem('sfc_parentclaim'); if (g && currentUser) { localStorage.removeItem('sfc_parentclaim');
+      try { const r = await rpc('sfc_parent_claim', {p_code:g, p_name:(currentUser.email||'').split('@')[0]}); showToast(`${((r && r.players)||[]).join(' + ') || 'Your player'} is now on your account ✅`); }
+      catch(e) { showToast(String(e.message).includes('code_invalid') ? 'That parent link was already used' : 'Could not connect that player. Try the link again.'); } } }
   { const j = localStorage.getItem('sfc_join'); if (j && currentUser) { rpc('sfc_signup_invite_claim', {p_code:j}).catch(() => {}); localStorage.removeItem('sfc_join'); } }
   try {
     const fams = await sb('sfc_families?select=*');
@@ -3019,7 +3126,7 @@ function renderProfile() {
   const colors = {};
   const color = p.color || colors[p.id] || '#4fc3f7';
   paintHeroAvatar(document.getElementById('profileAvatar'), document.getElementById('profileTease'), p, color);
-  renderGamesCard(p); renderRewardCard(); { const pl = document.getElementById('pushLineKid'); if (pl) pl.innerHTML = DEMO ? '' : pushLine('kid'); }
+  renderGamesCard(p); renderRewardCard(); paintParentLink(); { const pl = document.getElementById('pushLineKid'); if (pl) pl.innerHTML = DEMO ? '' : pushLine('kid'); }
   document.getElementById('editAvBtn').style.display = hasUnlock(p.id,'avatar') ? 'inline-block' : 'none';
   document.getElementById('profileName').textContent = p.name.toUpperCase();
   document.getElementById('profileClub').textContent = [(p.club||'').toUpperCase(), [p.pos1, p.pos2].filter(Boolean).join(' / ')].filter(Boolean).join(' · ');
