@@ -341,8 +341,9 @@ function paintOrg() {
     ${L.length > 1 ? `<select onchange="switchOrg(this.value)">${L.map(o => `<option value="${o.id}" ${o.id===ORG.id?'selected':''}>${esc(o.name)}</option>`).join('')}</select>` : ''}</div></div>`;
   $('orgNav').innerHTML = `<div class="sep">${coachView() ? '' : '② '}${esc((ORG_KIND[ORG.kind]||'Academy').toUpperCase())} · ${esc((ORG.short||ORG.name).toUpperCase())}</div>
     <div class="nav" data-v="org" onclick="go('org')">🏠 Home</div>
-    <div class="legend" style="padding:6px 12px 2px;letter-spacing:1.5px;font-weight:800;font-size:9px">PROGRAMS</div>
+    <div class="legend" style="padding:6px 12px 2px;letter-spacing:1.5px;font-weight:800;font-size:9px">${ORG.kind === 'club' ? 'MY TEAMS' : 'PROGRAMS'}</div>
     ${(ORG.programs||[]).map(p => `<div class="nav" style="padding-left:22px" data-v="${p.id === 'epa' ? 'epa' : 'prog:' + p.id}" onclick="go('${p.id === 'epa' ? 'epa' : 'prog:' + p.id}')">${(KIND[p.kind]||['•'])[0]} ${esc(p.name.replace(/^MSA East /,''))}</div>`).join('')}
+    ${ORG.kind === 'club' ? `<div class="nav" style="padding-left:22px;color:var(--accent)" onclick="newTeam()">＋ New team</div>` : ''}
     <div class="nav" data-v="staff" onclick="go('staff')">🧢 Staff</div>`;
   document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.v === view));
 }
@@ -445,22 +446,55 @@ async function orgInvite() {
   $('invOut2').innerHTML = `<div class="pf"><label>TEXT THIS</label><textarea id="invMsg" rows="3" style="width:100%">${esc(msg)}</textarea></div><button class="btn ghost sm" style="margin-top:6px" onclick="navigator.clipboard.writeText($('invMsg').value).then(()=>toast('Copied'))">COPY</button>`;
 }
 async function cancelInvite(c) { if (!ORGD[ORG.id].mock) { try { await rpc('sfc_org_cancel_invite', {p_code:c}); } catch(e) { return toast('Failed: ' + e.message); } } ORGD[ORG.id].invites = ORGD[ORG.id].invites.filter(i => i.code !== c); render(); }
+function mvCount() { const n = document.querySelectorAll('.mvC:checked').length; const e = $('mvCount'); if (e) e.textContent = n ? n + ' selected' : ''; }
+async function moveTeam(from) {
+  const to = $('mvTo').value, ch = [...document.querySelectorAll('.mvC:checked')];
+  const pl = ch.filter(c => c.dataset.k === 'p').map(c => c.value), ro = ch.filter(c => c.dataset.k === 'r').map(c => c.value);
+  if (!ch.length) return toast('Tick the players to move first');
+  try { await rpc('sfc_coach_team_move', {p_from:from, p_to:to, p_players:pl, p_roster:ro}); } catch(e) { return toast('Failed: ' + e.message); }
+  delete PDATA[from]; delete PDATA[to]; toast(`Moved ${ch.length} to ${progName(to)}`); render();
+}
+async function refreshRoles() { try { ROLES = await rpc('sfc_my_roles'); pickOrg(ORG && ORG.id); } catch(e) {} }
+async function renameTeam(id) {
+  const n = prompt('Team name (players see this in their app)', progName(id)); if (!n || !n.trim()) return;
+  try { await rpc('sfc_coach_team_rename', {p_program:id, p_name:n.trim()}); } catch(e) { return toast('Failed: ' + e.message); }
+  await refreshRoles(); delete PDATA[id]; paintOrg(); render(); toast('Renamed');
+}
+async function newTeam() {
+  const n = prompt('New team name (e.g. 2012 Girls)'); if (!n || !n.trim()) return;
+  let pid; try { pid = await rpc('sfc_coach_team_new', {p_org:ORG.id, p_name:n.trim()}); } catch(e) { return toast('Failed: ' + e.message); }
+  await refreshRoles(); paintOrg(); go('prog:' + pid); toast('Team created with its own join code');
+}
+async function resetPin(pid, prog) {
+  if (!confirm('Reset this player\'s PIN? She makes a new one next time she joins with the team code.')) return;
+  try { await rpc('sfc_coach_reset_pin', {p_player:pid, p_program:prog}); toast('PIN reset. She sets a new one with the team code.'); }
+  catch(e) { toast(String(e.message).includes('parent_owned') ? "A parent manages this player's PIN" : 'Failed: ' + e.message); }
+}
 function vProgram(id) {
   const P = ((ORG||{}).programs||[]).find(x => x.id === id) || {name:id, kind:'group'}, [ic,kl] = KIND[P.kind] || ['•','Program'];
   if (D.loading) return '<div class="muted">Loading…</div>';
   if (D.error) return `<div class="card">Couldn't load: ${esc(D.error)}</div>`;
   const R = D.roster || [], waiting = R.filter(r => !r.player_id), notesOf = pid => ((R.find(r => r.player_id === pid)||{}).notes||[]);
   const desc = {cohort:'Fixed roster, set days.', group:'Group sessions. Families join with the code.', clinic:'Drop-in. Add walk-ins as "not on StreakFC yet" and hand them the code.', private:'1:1 clients. Add a player, log each session in 30 seconds (level, how they did, homework), text the parent the connect link.', team:'Club team.'}[P.kind] || '';
-  return `<div class="hdr"><div><h2>${ic} ${esc(P.name)}</h2><div class="s">${esc(kl)} · ${D.players.length} on StreakFC${waiting.length ? ` · ${waiting.length} not yet` : ''}</div><div class="legend" style="margin-top:4px;max-width:560px">${esc(desc)}</div></div>
+  const teams = ((ORG||{}).programs||[]).filter(x => x.kind === 'team' && x.id !== id), isTeam = P.kind === 'team';
+  const moveBar = isTeam && teams.length ? `<div class="card" style="padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-color:${esc(((ORG||{}).brand||{}).accent||'var(--accent)')}">
+      <b style="font-size:13px">↔ SORT PLAYERS</b><span class="small muted">Tick players below, then move them to</span>
+      <select id="mvTo">${teams.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('')}</select>
+      <button class="btn sm" onclick="moveTeam('${id}')">MOVE</button><span class="small muted" id="mvCount"></span>
+      <label class="small muted" style="margin-left:auto"><input type="checkbox" onchange="document.querySelectorAll('.mvC').forEach(c=>c.checked=this.checked);mvCount()"> select all</label></div>` : '';
+  const ck = (kind, pid) => isTeam && teams.length ? `<input type="checkbox" class="mvC" data-k="${kind}" value="${pid}" onclick="event.stopPropagation();mvCount()" style="margin-right:8px">` : '';
+  return `<div class="hdr"><div><h2>${ic} ${esc(P.name)}${isTeam ? ` <button class="btn ghost sm" style="vertical-align:middle" onclick="renameTeam('${id}')">✎ Rename</button>` : ''}</h2><div class="s">${esc(kl)} · ${D.players.length} on StreakFC${waiting.length ? ` · ${waiting.length} not yet` : ''}</div><div class="legend" style="margin-top:4px;max-width:560px">${esc(desc)}</div></div>
     <div style="display:flex;gap:8px;align-items:center"><div class="kpi" style="padding:8px 14px;white-space:nowrap"><span class="legend">JOIN CODE</span> <b style="color:var(--accent);letter-spacing:3px;font-size:18px">${esc(D.code||'-')}</b></div><button class="btn add-btn" style="white-space:nowrap" onclick="openAddRoster('${id}')">＋ ADD PLAYER</button></div></div>
     ${D.mock ? `<div class="sandbox-banner">🧪 <b>SANDBOX</b> · sample players and notes.</div>` : ''}
+    ${isTeam ? `<div class="legend" style="margin:-4px 0 10px">Players join on their own phone: StreakFC → Player login → team code <b style="color:var(--accent)">${esc(D.code||'')}</b> → tap their name → PIN. Or text them <span style="color:var(--accent)">${esc(location.origin)}/#team=${esc(D.code||'')}</span></div>` : ''}
+    ${moveBar}
     ${weekCard(id)}
     <div class="card" style="padding:6px 14px"><div class="card-h" style="margin:10px 0 4px">ON STREAKFC <span class="legend">click for profile, IDP, lesson notes</span></div>
       ${D.players.length ? `<table class="tight"><tr><th>PLAYER</th><th>AGE</th><th class="num">STREAK</th><th class="num">HOME 7D</th><th>LAST ACTIVE</th><th>IDP</th><th>LESSONS</th><th>CREDITS</th><th>WEEKLY</th></tr>
-      ${D.players.map(p => { const i = (D.idps||{})[p.id], n = notesOf(p.id); return `<tr class="click" onclick="openKid('${p.id}')"><td>${kidCell(p)}</td><td class="muted small">${esc(p.age_group||'')}</td><td class="num">${liveStreak(p)}🔥</td><td class="num">${fmtK(sumT(p,7))}</td><td class="small muted">${esc(lastActive(p)||'-')}</td><td>${i ? `<span class="chip c-teal">${esc(i.date||'set')}</span>` : '<span class="muted small">-</span>'}</td><td class="small">${lessonCell(R.find(r => r.player_id === p.id))}</td><td>${credChip(R.find(r => r.player_id === p.id))}</td><td class="small muted">${esc(slotLbl((R.find(r => r.player_id === p.id)||{}).slot))}</td></tr>`; }).join('')}</table>`
+      ${D.players.map(p => { const i = (D.idps||{})[p.id], n = notesOf(p.id); return `<tr class="click" onclick="openKid('${p.id}')"><td>${ck('p', p.id)}${kidCell(p)}</td><td class="muted small">${esc(p.age_group||'')}</td><td class="num">${liveStreak(p)}🔥</td><td class="num">${fmtK(sumT(p,7))}</td><td class="small muted">${esc(lastActive(p)||'-')}</td><td>${i ? `<span class="chip c-teal">${esc(i.date||'set')}</span>` : '<span class="muted small">-</span>'}</td><td class="small">${lessonCell(R.find(r => r.player_id === p.id))}</td><td>${credChip(R.find(r => r.player_id === p.id))}</td><td class="small muted">${esc(slotLbl((R.find(r => r.player_id === p.id)||{}).slot))}</td></tr>`; }).join('')}</table>`
       : '<div class="muted small" style="padding:8px 0 12px">No one yet. Give families the join code.</div>'}</div>
     <div class="card" style="padding:6px 14px"><div class="card-h" style="margin:10px 0 4px">NOT ON STREAKFC YET <span class="legend">nickname + age group only. Parent connects with the code</span></div>
-      ${waiting.length ? `<table class="tight"><tr><th>PLAYER</th><th>AGE</th><th>LESSONS</th><th>CREDITS</th><th>WEEKLY</th><th>PARENT CODE</th><th></th></tr>${waiting.map(r => `<tr class="click" onclick="openRoster('${id}','${r.id}')"><td><b>${esc(r.nickname)}</b></td><td class="muted small">${esc(r.age_group||'')}</td><td class="small">${lessonCell(r)}</td><td>${credChip(r)}</td><td class="small muted">${esc(slotLbl(r.slot))}</td><td><span class="chip c-sub" style="letter-spacing:1.5px">${esc(r.claim_code)}</span></td><td class="num"><span class="small" style="color:var(--accent)">Open</span></td></tr>`).join('')}</table>`
+      ${waiting.length ? `<table class="tight"><tr><th>PLAYER</th><th>AGE</th><th>LESSONS</th><th>CREDITS</th><th>WEEKLY</th><th>PARENT CODE</th><th></th></tr>${waiting.map(r => `<tr class="click" onclick="openRoster('${id}','${r.id}')"><td>${ck('r', r.id)}<b>${esc(r.nickname)}</b></td><td class="muted small">${esc(r.age_group||'')}</td><td class="small">${lessonCell(r)}</td><td>${credChip(r)}</td><td class="small muted">${esc(slotLbl(r.slot))}</td><td><span class="chip c-sub" style="letter-spacing:1.5px">${esc(r.claim_code)}</span></td><td class="num"><span class="small" style="color:var(--accent)">Open</span></td></tr>`).join('')}</table>`
       : '<div class="muted small" style="padding:8px 0 12px">Booked a lesson outside StreakFC? ＋ ADD PLAYER, log notes now, connect later.</div>'}</div>`;
 }
 function openAddRoster(id) {
@@ -1505,6 +1539,8 @@ function openKid(id) {
     <div class="card"><div class="card-h">LOGS · LAST 60 DAYS <span class="legend">click a log to see the exact questions + answers</span></div>${p.sess.map(s => { const q = qaRows(s);
       return `<details class="logrow"><summary class="feed-row" style="cursor:${q.length ? 'pointer' : 'default'}"><div class="t">${esc(s.date)}</div><div style="flex:1"><span class="chip c-sub">${esc((MODE[s.mode]||s.mode||'session').toUpperCase())}</span> ${detail(s)}</div><div class="num small">${s.touches?fmt(s.touches)+' · ':''}+${s.xp}</div></summary>
         ${q.length ? `<div class="qa">${q.map(([k,v]) => `<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>` : ''}</details>`; }).join('') || '<div class="empty">No logs</div>'}</div>`;
+  { const pg = String(view).startsWith('prog:') ? view.slice(5) : null, P = pg && ((ORG||{}).programs||[]).find(x => x.id === pg);
+    if (P && P.kind === 'team') dr.insertAdjacentHTML('beforeend', `<div class="card"><div class="card-h">LOGIN HELP</div><div class="small muted">Forgot her PIN? Reset it. She sets a new one next time she enters the team code ${esc(D.code||'')}.</div><button class="btn ghost sm" style="margin-top:8px" onclick="resetPin('${id}','${pg}')">RESET PIN</button></div>`); }
   dr.classList.add('open');
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') $('drawer').classList.remove('open'); });
