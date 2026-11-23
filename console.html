@@ -1094,6 +1094,7 @@ function kidFlags(p) {
   const due = wk.filter(d => d <= today && PROGRAMS.epa.days.includes(wdOf(d)) && !epaOff(d));
   return {follow: j.followup === 'Yes' || /Stressed|talk/.test(j.mental||''), sore: (j.hurt||[]).length > 0, nosheet: !(p.goals||{}).sheet, missed: due.some(d => !p.sess.some(s => s.mode === 'epa' && s.date === d))};
 }
+let EPA_WAIT = null;   // EPA names loaded by the coach that haven't joined yet (no stats until they do)
 function epaFiltered() {
   return enrolled().filter(p => (epaF.g === 'all' || (epaOf(p).group||'younger') === epaF.g) && (!epaF.pos || p.pos1 === epaF.pos || p.pos2 === epaF.pos)
     && (!epaF.flag || kidFlags(p)[epaF.flag]) && (!epaF.q || (p.nickname||'').toLowerCase().includes(epaF.q.toLowerCase())));
@@ -1122,6 +1123,8 @@ function vEPA() {
   ${body}`;
 }
 function epaRoster() {
+  if (EPA_WAIT === null && !D.mock) { EPA_WAIT = []; rpc('sfc_roster_list', {p_program:'epa'}).then(r => { EPA_WAIT = (r || []).filter(x => !x.player_id); render(); }).catch(() => {}); }
+  const W = (EPA_WAIT || []).filter(r => (!epaF.q || (r.nickname||'').toLowerCase().includes(epaF.q.toLowerCase())) && !epaF.pos && !epaF.flag);
   const E = epaFiltered(), wk = weekDates(attWk), today = localDate(), lo7 = daysAgo(6), avg = a => a.length ? (a.reduce((x,y)=>x+y,0)/a.length).toFixed(1) : '-';
   const seg = (k, v, l) => `<button class="seg ${epaF[k]===v?'on':''}" onclick="setEpaF('${k}','${v}')">${l}</button>`;
   const row = p => { const L = p.sess, ck = L.filter(s => s.mode === 'checkin'), last = L.find(s => s.mode === 'epa' && s.source !== 'coach'), lj = lastJournal(p), fl = kidFlags(p);
@@ -1139,7 +1142,8 @@ function epaRoster() {
     <select onchange="setEpaF('flag',this.value)"><option value="">No filter</option>${[['follow','Needs follow-up'],['sore','Sore'],['missed','Missed EPA this week'],['nosheet','No goal worksheet']].map(([v,l]) => `<option value="${v}" ${epaF.flag===v?'selected':''}>${l}</option>`).join('')}</select>
     <input placeholder="Search" value="${esc(epaF.q)}" style="width:150px" onchange="setEpaF('q',this.value)">${epaF.flag||epaF.pos||epaF.q||epaF.g!=='all' ? `<a href="#" class="small" style="color:var(--accent)" onclick="epaF={g:'all',pos:'',flag:'',q:''};render();return false">Clear</a>` : ''}<span class="muted small" style="margin-left:auto">${E.length} shown · click a player for their profile</span></div>
   <div class="card" style="padding:6px 14px"><table class="tight"><tr><th>PLAYER</th><th>AGE</th><th>POS</th><th>GROUP</th><th title="Solid = player logged it (XP). Dashed ✓ = coach marked present (no XP). Click a past day to mark.">EPA ATTENDANCE <a href="#" class="small" style="color:var(--accent);font-weight:700" onclick="event.stopPropagation();attWk=attWk?0:-1;render();return false">${attWk ? 'this wk ▶' : '◀ last wk'}</a></th><th class="num" title="Home touches last 7 days (if the parent shares all training)">HOME 7D</th><th>READY</th><th>LAST EPA</th><th>JOURNAL + FLAGS</th></tr>
-  ${groups.map(g => { const G = E.filter(p => (epaOf(p).group||'younger') === g); return G.length ? `<tr><td colspan="9" class="grp-row">${g.toUpperCase()} · ${G.length}</td></tr>` + G.map(row).join('') : ''; }).join('') || '<tr><td colspan="9" class="empty">No players match. Clear filters or add a player.</td></tr>'}</table></div>`;
+  ${groups.map(g => { const G = E.filter(p => (epaOf(p).group||'younger') === g), Wg = W.filter(r => (r.grp||'younger') === g); return G.length || Wg.length ? `<tr><td colspan="9" class="grp-row">${g.toUpperCase()} · ${G.length} joined${Wg.length ? ` · ${Wg.length} not yet` : ''}</td></tr>` + G.map(row).join('')
+    + Wg.map(r => `<tr style="opacity:.55"><td><b>${esc(r.nickname)}</b></td><td colspan="8"><span class="chip c-sub">NOT JOINED YET</span> <span class="small muted">Shows up here with stats once they tap their name on code ${esc(D.code || 'EPA-F410')}</span></td></tr>`).join('') : ''; }).join('') || '<tr><td colspan="9" class="empty">No players match. Clear filters or add a player.</td></tr>'}</table></div>`;
 }
 function weekOf(ds) { const d = new Date(ds + 'T12:00:00'), k = (d.getDay() + 6) % 7; d.setDate(d.getDate() - k); return localDate(d); }
 function wkLbl(w) { const e = new Date(w + 'T12:00:00'); e.setDate(e.getDate() + 6); return w.slice(5).replace('-','/') + ' - ' + localDate(e).slice(5).replace('-','/'); }
