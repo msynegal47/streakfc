@@ -4461,7 +4461,7 @@ function nextSessionHTML(p) { const D = (p.days || []).filter(x => x.day >= loca
   return `<div class="epa-next">${D.map(x => `<div><b>${nm(x.day)}</b> ${FOCUS[x.theme] ? FOCUS[x.theme].ico + ' ' : ''}${esc(x.title || (FOCUS[x.theme]||{}).name || 'Session')}${x.family ? `<span>${esc(x.family)}</span>` : ''}</div>`).join('')}</div>`; }
 function idpOf(p) { const d = p && p.idp; return d && (d.ratings || d.focus || (d.drills||[]).length) ? d : null; }
 // Coach-made drills on an IDP (e.g. left-foot finishing): registered as skills for this player only, never in the random daily pool
-function idpReg(p) { ((idpOf(p)||{}).custom || []).forEach(c => { if (!c || !c.id || SKILLS[c.id]) return;
+function idpReg(p) { [idpOf(p), ...Object.values((p && p.idps) || {})].flatMap(d => (d && d.custom) || []).forEach(c => { if (!c || !c.id || SKILLS[c.id]) return;
   SKILLS[c.id] = {name:c.name || 'Coach drill', block:'idp', tier:2, unit: c.unit === 'time' ? 'time' : 'reps', lvl:0, max:1.5, desc:c.desc || ''}; GOAL_SK[c.id] = [c.unit === 'time' ? 0 : 1, 0, 20]; GOAL_CAP[c.id] = 40; }); }
 function idpDrills(p) { idpReg(p); return ((idpOf(p)||{}).drills||[]).filter(k => k && SKILLS[k]); }
 function idpHTML(p, dd) { const d = dd || idpOf(p); if (!d) return '';
@@ -4472,10 +4472,10 @@ function idpHTML(p, dd) { const d = dd || idpOf(p); if (!d) return '';
   return `<div class="epa-idp"><div style="display:flex;justify-content:space-between"><b>🎯 YOUR IDP</b><span class="idp-note" style="margin:0">${esc(d.coach||'Coach')}${d.date?` · ${esc(d.date)}`:''}</span></div>
     ${d.focus ? `<div class="idp-focus"><span>NEXT 4-6 WEEKS</span>${esc(d.focus)}</div>` : ''}
     ${rows}
-    ${dr.length ? (() => { const ft = (d.foot || {}), done = k => !dd && drillDoneWeek(p, k), left = dr.filter(k => !done(k));
+    ${dr.length ? (() => { const ft = (d.foot || {}), done = k => drillDoneWeek(p, k), left = dr.filter(k => !done(k)), q = v => JSON.stringify(v).replace(/"/g, '&quot;');
       return `<div class="idp-drills">${dr.map(k => `<button class="vid-btn sm" style="${done(k) ? 'color:var(--green);border-color:var(--green)' : ''}" onclick="openIdpDrill('${k}')">${done(k) ? '✓ ' : vidUrl(k) ? '▶ ' : ''}${esc(SKILLS[k].name)}${ft[k] ? ` · ${ft[k] === 'LEFT FOOT' ? 'LEFT' : 'RIGHT'}` : ''}</button>`).join('')}</div>
-      ${dd ? '' : `<button class="epa-btn ${left.length ? '' : 'ghost'}" style="margin-top:8px" onclick="startCustom(idpDrills(currentPlayer),'idp',(idpOf(currentPlayer)||{}).foot)">▶ ${left.length ? 'DO MY IDP DRILLS' : 'GO AGAIN'} <b>${left.length ? left.length + ' LEFT' : '✓ DONE'}</b></button>`}
-      <div class="idp-note">Ball drills also mix into your home sessions 🎯</div>`; })() : ''}
+      ${`<button class="epa-btn ${left.length ? '' : 'ghost'}" style="margin-top:8px" onclick="startCustom(${q(dr)},'idp',${q(ft)})">▶ ${left.length ? 'DO MY IDP DRILLS' : 'GO AGAIN'} <b>${left.length ? left.length + ' LEFT' : '✓ DONE'}</b></button>`}
+      ${dd ? '' : '<div class="idp-note">Ball drills also mix into your home sessions 🎯</div>'}`; })() : ''}
     ${d.strengths || d.improve || d.how ? `<details class="idp-more"><summary>Coach notes</summary>${[['strengths','💪 Strengths'],['improve','📈 Areas to improve'],['how','🛠 How we will improve']].filter(([k]) => d[k]).map(([k,l]) => `<div><b>${l}</b><p>${esc(d[k])}</p></div>`).join('')}${IDP_CATS.filter(([k]) => R[k] && R[k].note).map(([k,l]) => `<div><b>${l}</b><p>${esc(R[k].note)}</p></div>`).join('')}</details>` : ''}</div>`; }
 function openIdpDrill(k) { if (vidUrl(k)) openVideo(k); else showToast(`${SKILLS[k].name}: ${SKILLS[k].desc}`, 'success'); }
 const IDP_BLOCK = {bm:'bm', v1:'mv', ft:'wall', fin:'wall'};
