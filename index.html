@@ -1594,7 +1594,8 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
       <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
         <div class="quest-card epa-card" id="epaCard" style="display:none"></div>
         <div class="badges-card" id="coachesCard" style="display:none"></div>
-        <div class="crew-empty" id="teamsEmpty" style="display:none">No teams yet. A parent can add a program code from a coach in the parent view.</div>
+        <div id="teamsEmpty" style="display:none"><div class="crew-empty" style="padding:22px 16px 8px">🏟 <b style="color:var(--text)">No teams yet</b><br>On a team, in an academy or training 1:1? Your coach has a code for it.</div></div>
+        <div id="teamsJoin"></div>
       </div>
     </div>
 
@@ -2032,18 +2033,20 @@ async function paintParentLink() {
   } catch(e) {}
 }
 // Kid already on StreakFC joins another team/program (EPA, 1:1, a club team) with the coach's code. Keeps streak + XP.
-function paintKidJoin(open) {
-  const el = document.getElementById('kidJoinCard'); if (!el) return;
+function paintKidJoin(open, id) {
+  id = id || 'kidJoinCard'; const el = document.getElementById(id); if (!el) return;
+  if (!DEMO && currentPlayer && !deviceToken() && id === 'teamsJoin') { el.innerHTML = `<div class="crew-empty" style="padding:4px 16px">Got a code? On the parent dashboard tap ⋯ next to ${esc(currentPlayer.nickname || 'the player')}, then <b>Join a program</b>.</div>`; return; }
   if (DEMO || !deviceToken() || !currentPlayer) { el.innerHTML = ''; return; }
+  const none = !(currentPlayer.programs || []).length; if (id === 'teamsJoin' && none) open = true;
   el.innerHTML = open ? `<div class="hw-banner" style="background:var(--bg2);border-color:var(--border);color:var(--text)">🏟 <b>Join a team or program</b>
       <div style="font-size:12px;color:var(--sub);margin-top:4px">Enter the code from your coach (like EPA-F410).</div>
-      <input class="auth-input" id="kjCode" maxlength="12" autocapitalize="characters" placeholder="CODE" style="margin-top:8px;text-transform:uppercase;letter-spacing:3px">
-      <div style="display:flex;gap:8px"><button class="pt-btn" style="padding:8px 14px" onclick="kidJoin()">JOIN</button><button class="pt-btn ghost" style="padding:8px 14px" onclick="paintKidJoin(false)">CANCEL</button></div>
-      <div class="auth-status" id="kjStatus"></div></div>`
-    : `<button class="team-link" style="margin:0" onclick="paintKidJoin(true)">🏟 Have a team code? Join a team or program</button>`;
+      <input class="auth-input" id="kjCode_${id}" maxlength="12" autocapitalize="characters" placeholder="CODE" style="margin-top:8px;text-transform:uppercase;letter-spacing:3px">
+      <div style="display:flex;gap:8px"><button class="pt-btn" style="padding:8px 14px" onclick="kidJoin('${id}')">JOIN</button>${id === 'teamsJoin' && none ? '' : `<button class="pt-btn ghost" style="padding:8px 14px" onclick="paintKidJoin(false,'${id}')">CANCEL</button>`}</div>
+      <div class="auth-status" id="kjStatus_${id}"></div></div>`
+    : `<button class="team-link" style="margin:0" onclick="paintKidJoin(true,'${id}')">🏟 ${id === 'teamsJoin' ? "Don't see your team? Enter a team code" : 'Have a team code? Join a team or program'}</button>`;
 }
-async function kidJoin() {
-  const code = document.getElementById('kjCode').value.trim().toUpperCase(), st = document.getElementById('kjStatus'); if (!code) return;
+async function kidJoin(id) {
+  id = id || 'kidJoinCard'; const code = document.getElementById('kjCode_' + id).value.trim().toUpperCase(), st = document.getElementById('kjStatus_' + id); if (!code) return;
   try { const r = await rpc('sfc_team_add', {p_token: deviceToken(), p_code: code, p_player: currentPlayer.id});
     showToast(`You're in ${r.name || 'the program'} 🔥`, 'success'); localStorage.removeItem('sfc_player'); setTimeout(() => location.reload(), 900);
   } catch(e) { st.style.color = 'var(--red)'; st.textContent = /code_invalid/.test(e.message) ? "That code didn't work. Check it with your coach." : 'Could not join. Try again.'; }
@@ -3017,8 +3020,9 @@ function renderProgToday() {
 }
 function renderTeamsNav() {
   const p = currentPlayer, on = !!(p && (p.programs || []).length);
-  const n = document.getElementById('nav-teams'); if (n) n.style.display = on ? '' : 'none';
+  const n = document.getElementById('nav-teams'); if (n) n.style.display = '';   // always visible: empty Teams is where you join one
   const e = document.getElementById('teamsEmpty'); if (e) e.style.display = on ? 'none' : 'block';
+  paintKidJoin(false, 'teamsJoin');
 }
 
 function getTodayLabel() {
