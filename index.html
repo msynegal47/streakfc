@@ -1520,7 +1520,7 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
       <div class="top-player" id="appPlayerName"></div>
       <div class="top-streak" id="appPlayerStreak"></div>
     </div>
-    <div style="display:flex;gap:8px;align-items:center"><button class="play-btn" onclick="playToday()">▶ PLAY</button><button class="logout-btn" onclick="exitToPlayerSelect()">↩ EXIT</button></div>
+    <div style="display:flex;gap:8px;align-items:center"><button class="play-btn" onclick="playToday()">▶ PLAY</button><button class="logout-btn" onclick="exitToPlayerSelect()" title="Switch player or go to the parent dashboard">↩ EXIT</button></div>
   </div>
 
   <!-- App screens container -->
@@ -1615,6 +1615,7 @@ body.demo-on .top-bar{position:relative;padding-top:calc(env(safe-area-inset-top
       <div id="pushLineKid" style="margin:0 16px 6px"></div>
       <div id="parentLinkKid" style="margin:0 16px 6px"></div>
       <div id="kidPinCard" style="margin:0 16px 6px"></div>
+      <div id="kidJoinCard" style="margin:0 16px 6px"></div>
       <button class="tour-replay" onclick="startTour('kid',1)">❓ Replay the app tour</button>
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-val" id="statStreak">0</div><div class="stat-lbl">STREAK</div></div>
@@ -2029,6 +2030,23 @@ async function paintParentLink() {
     el.innerHTML = `<div class="hw-banner" style="background:var(--bg2);border-color:var(--border);color:var(--text)">👪 <b>Want a parent to see your progress?</b> Send them this link. Optional.
       <div style="margin-top:8px"><button class="pt-btn ghost" style="padding:8px 14px" onclick="shareParentLink()">SEND TO A PARENT</button></div></div>`;
   } catch(e) {}
+}
+// Kid already on StreakFC joins another team/program (EPA, 1:1, a club team) with the coach's code. Keeps streak + XP.
+function paintKidJoin(open) {
+  const el = document.getElementById('kidJoinCard'); if (!el) return;
+  if (DEMO || !deviceToken() || !currentPlayer) { el.innerHTML = ''; return; }
+  el.innerHTML = open ? `<div class="hw-banner" style="background:var(--bg2);border-color:var(--border);color:var(--text)">🏟 <b>Join a team or program</b>
+      <div style="font-size:12px;color:var(--sub);margin-top:4px">Enter the code from your coach (like EPA-F410).</div>
+      <input class="auth-input" id="kjCode" maxlength="12" autocapitalize="characters" placeholder="CODE" style="margin-top:8px;text-transform:uppercase;letter-spacing:3px">
+      <div style="display:flex;gap:8px"><button class="pt-btn" style="padding:8px 14px" onclick="kidJoin()">JOIN</button><button class="pt-btn ghost" style="padding:8px 14px" onclick="paintKidJoin(false)">CANCEL</button></div>
+      <div class="auth-status" id="kjStatus"></div></div>`
+    : `<button class="team-link" style="margin:0" onclick="paintKidJoin(true)">🏟 Have a team code? Join a team or program</button>`;
+}
+async function kidJoin() {
+  const code = document.getElementById('kjCode').value.trim().toUpperCase(), st = document.getElementById('kjStatus'); if (!code) return;
+  try { const r = await rpc('sfc_team_add', {p_token: deviceToken(), p_code: code, p_player: currentPlayer.id});
+    showToast(`You're in ${r.name || 'the program'} 🔥`, 'success'); localStorage.removeItem('sfc_player'); setTimeout(() => location.reload(), 900);
+  } catch(e) { st.style.color = 'var(--red)'; st.textContent = /code_invalid/.test(e.message) ? "That code didn't work. Check it with your coach." : 'Could not join. Try again.'; }
 }
 function paintKidPin(open) {
   const el = document.getElementById('kidPinCard'); if (!el) return;
@@ -3204,7 +3222,7 @@ function renderProfile() {
   const colors = {};
   const color = p.color || colors[p.id] || '#4fc3f7';
   paintHeroAvatar(document.getElementById('profileAvatar'), document.getElementById('profileTease'), p, color);
-  renderGamesCard(p); renderRewardCard(); paintParentLink(); paintKidPin(false); { const pl = document.getElementById('pushLineKid'); if (pl) pl.innerHTML = DEMO ? '' : pushLine('kid'); }
+  renderGamesCard(p); renderRewardCard(); paintParentLink(); paintKidPin(false); paintKidJoin(false); { const pl = document.getElementById('pushLineKid'); if (pl) pl.innerHTML = DEMO ? '' : pushLine('kid'); }
   document.getElementById('editAvBtn').style.display = hasUnlock(p.id,'avatar') ? 'inline-block' : 'none';
   document.getElementById('profileName').textContent = p.name.toUpperCase();
   document.getElementById('profileClub').textContent = [(p.club||'').toUpperCase(), [p.pos1, p.pos2].filter(Boolean).join(' / ')].filter(Boolean).join(' · ');
@@ -5148,6 +5166,7 @@ function openKidMenu(id) {
       <button onclick="${go(`joinProgram('${id}')`)}">🏟 <span>Join a program<small>${progOf(p) ? 'In EPA · manage in Plan &amp; level' : 'Got a code from a coach? Enter it here.'}</small></span></button>
       <button onclick="${go(`openParentSpeed('${id}')`)}">⚡ <span>Speed + agility<small>Personal bests, improvement, log a test you timed.</small></span></button>
       <button onclick="${go(`openPlanModal('${id}')`)}">⚙️ <span>Plan &amp; level<small>${(LEVELS[levelIdx(p)]||'').replace(/^./,c=>c.toUpperCase())} · sizes their daily session.</small></span></button>
+      <button onclick="confirmRemoveKid('${id}')" style="border-color:#ef444455">🗑 <span style="color:var(--red)">Remove player<small>Made by mistake or a duplicate? Takes them off this account.</small></span></button>
       <button onclick="confirmResetDay('${id}')" style="border-color:#ef444455">↺ <span style="color:var(--red)">Reset today<small>Something broke? Clears today's sessions, XP and touches.</small></span></button>
     </div><button onclick="document.getElementById('kidMenu').classList.remove('open')" class="menu-cancel">Cancel</button></div>`;
   m.classList.add('open');
@@ -5157,6 +5176,17 @@ function clearLocalDay(id, date) {
   [`sfc_dayxp_${id}_${date}`, `sfc_q_${id}_${date}`, `sfc_wip_${id}_${date}`, `sfc_jugglemin_hit_${id}_${date}`].forEach(k => localStorage.removeItem(k));
   try { const s = JSON.parse(localStorage.getItem(`sfc_sess_${id}`)||'null'); if (s && s.date === date) localStorage.removeItem(`sfc_sess_${id}`); } catch(e) {}
   [`sfc_xpdays_${id}`, `sfc_pbdays_${id}`, `sfc_history_${id}`].forEach(k => { const o = jget(k, null); if (o && date in o) { delete o[date]; localStorage.setItem(k, JSON.stringify(o)); } });
+}
+function confirmRemoveKid(id) {
+  const p = players.find(x => x.id === id), m = document.getElementById('kidMenu'); if (!p || !m) return;
+  m.querySelector('.modal-sheet').innerHTML = `<div class="modal-handle"></div><div class="modal-title">Remove ${esc(p.name)}?</div>
+    <div class="modal-sub" style="line-height:1.5">${esc(p.name)} comes off this account and off any team or program list. Their phone gets logged out.<br><br>Made by mistake? Text us and we can bring them back.</div>
+    <button class="modal-save-btn" style="background:var(--red)" onclick="removeKid('${id}')">REMOVE ${esc(p.name.toUpperCase())}</button>
+    <button class="menu-cancel" onclick="document.getElementById('kidMenu').classList.remove('open')">Cancel</button>`;
+}
+async function removeKid(id) {
+  try { await rpc('sfc_archive_player', {p_player:id}); document.getElementById('kidMenu').classList.remove('open'); showToast('Removed', 'success'); await loadParent(); }
+  catch(e) { showToast('Could not remove: ' + e.message, 'error'); }
 }
 function confirmResetDay(id) {
   const p = players.find(x => x.id === id), m = document.getElementById('kidMenu'); if (!p || !m) return;
